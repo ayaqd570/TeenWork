@@ -5,7 +5,7 @@ It is published on Netlify at https://ayaqdteenwork.netlify.app and every push t
 
 ## What's here
 
-- `index.html` – the app (currently TeenWork v41).
+- `index.html` – the app (currently TeenWork v42).
 - `netlify.toml` – tells Netlify there is no build step and to publish this folder as is.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase, not Netlify.
 

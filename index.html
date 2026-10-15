@@ -1969,23 +1969,23 @@ input:checked+.slider:before{transform:translateX(20px);}
 
       <!-- TEEN FIELDS -->
       <div class="extra-fields" id="teen-fields">
-        <div class="form-row">
-          <div class="form-group"><label>Date of Birth</label><input type="date" id="su-age" oninput="checkTeenDobAge()" style="font-size:.95rem"></div>
-          <div id="su-age-note" style="font-size:.78rem;color:var(--muted);margin-top:-8px;display:none"></div>
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="su-age" oninput="checkTeenDobAge()" style="font-size:.95rem"></div>
+        <div id="su-age-note" style="font-size:.78rem;color:var(--muted);margin:-8px 0 12px;display:none"></div>
+        <!-- address-autocomplete-v42: street address first; picking a suggestion fills city, state and ZIP -->
+        <div class="form-group">
+          <label>Street Address <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(private — used for distance only)</span></label>
+          <div class="city-scroller-wrap">
+            <input type="text" id="su-teen-address" placeholder="Start typing, e.g. 123 Main St" autocomplete="off" data-addr-drop="su-teen-addr-drop" data-addr-city="su-city" data-addr-state="su-state" data-addr-zip="su-teen-zip">
+            <div class="city-dropdown" id="su-teen-addr-drop" style="display:none"></div>
+          </div>
+          <div class="tw-addr-hint">Pick your address from the list and we'll fill in your city, state and ZIP.</div>
+        </div>
+        <div class="form-row tw-addr-row">
+          <div class="form-group tw-addr-city"><label>City</label><div class="city-scroller-wrap"><input type="text" id="su-city" placeholder="📍 Your city" oninput="cityScrollerInput('su-city','su-city-drop')" onfocus="cityScrollerInput('su-city','su-city-drop')" autocomplete="off"><div class="city-dropdown" id="su-city-drop" style="display:none"></div></div></div>
           <div class="form-group"><label>State</label>
             <select id="su-state" onchange="checkSignupStatePermit();clearCityOnStateChange('su-city','su-city-drop')"><option value="">Select state</option>
               <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option><option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option><option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option><option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option><option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option><option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option><option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option><option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option><option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option><option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option><option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option><option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option><option>Wisconsin</option><option>Wyoming</option>
             </select>
-          </div>
-        </div>
-        <div class="form-group"><label>City</label><div class="city-scroller-wrap"><input type="text" id="su-city" placeholder="📍 Your city" oninput="cityScrollerInput('su-city','su-city-drop')" onfocus="cityScrollerInput('su-city','su-city-drop')" autocomplete="off"><div class="city-dropdown" id="su-city-drop" style="display:none"></div></div></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Street Address <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(private — used for distance only)</span></label>
-            <div style="position:relative">
-              <input type="text" id="su-teen-address" placeholder="123 Main St" autocomplete="off" oninput="addressAutocomplete(this,'su-teen-addr-drop')" onfocus="addressAutocomplete(this,'su-teen-addr-drop')">
-              <div id="su-teen-addr-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--green);border-top:none;border-radius:0 0 10px 10px;z-index:99;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
-            </div>
           </div>
           <div class="form-group"><label>ZIP Code</label><input type="text" id="su-teen-zip" placeholder="05401" maxlength="10"></div>
         </div>
@@ -1996,16 +1996,24 @@ input:checked+.slider:before{transform:translateX(20px);}
       <!-- EMPLOYER FIELDS -->
       <div class="extra-fields" id="employer-fields">
         <div class="form-group"><label>Business Name</label><input type="text" id="su-business" placeholder="Your business name"></div>
-        <div class="form-row">
-          <div class="form-group"><label>Street Address</label><input type="text" id="su-emp-address" placeholder="123 Main St"></div>
-          <div class="form-group"><label>ZIP Code</label><input type="text" id="su-emp-zip" placeholder="05401" maxlength="10"></div>
+        <!-- address-autocomplete-v42: street address first; picking a suggestion fills city, state and ZIP -->
+        <div class="form-group">
+          <label>Street Address</label>
+          <div class="city-scroller-wrap">
+            <input type="text" id="su-emp-address" placeholder="Start typing, e.g. 123 Main St" autocomplete="off" data-addr-drop="su-emp-addr-drop" data-addr-city="su-emp-city" data-addr-state="su-emp-state" data-addr-zip="su-emp-zip">
+            <div class="city-dropdown" id="su-emp-addr-drop" style="display:none"></div>
+          </div>
+          <div class="tw-addr-hint">Pick your address from the list and we'll fill in the city, state and ZIP.</div>
         </div>
-        <div class="form-group"><label>City</label><div class="city-scroller-wrap"><input type="text" id="su-emp-city" placeholder="📍 Your city" oninput="cityScrollerInput('su-emp-city','su-emp-city-drop')" onfocus="cityScrollerInput('su-emp-city','su-emp-city-drop')" autocomplete="off"><div class="city-dropdown" id="su-emp-city-drop" style="display:none"></div></div></div>
-        <div class="form-group"><label>State</label>
+        <div class="form-row tw-addr-row">
+          <div class="form-group tw-addr-city"><label>City</label><div class="city-scroller-wrap"><input type="text" id="su-emp-city" placeholder="📍 Your city" oninput="cityScrollerInput('su-emp-city','su-emp-city-drop')" onfocus="cityScrollerInput('su-emp-city','su-emp-city-drop')" autocomplete="off"><div class="city-dropdown" id="su-emp-city-drop" style="display:none"></div></div></div>
+          <div class="form-group"><label>State</label>
           <select id="su-emp-state" onchange="clearCityOnStateChange('su-emp-city','su-emp-city-drop')">
             <option value="">Select State</option>
             <option value="Alabama">Alabama</option><option value="Alaska">Alaska</option><option value="Arizona">Arizona</option><option value="Arkansas">Arkansas</option><option value="California">California</option><option value="Colorado">Colorado</option><option value="Connecticut">Connecticut</option><option value="Delaware">Delaware</option><option value="Florida">Florida</option><option value="Georgia">Georgia</option><option value="Hawaii">Hawaii</option><option value="Idaho">Idaho</option><option value="Illinois">Illinois</option><option value="Indiana">Indiana</option><option value="Iowa">Iowa</option><option value="Kansas">Kansas</option><option value="Kentucky">Kentucky</option><option value="Louisiana">Louisiana</option><option value="Maine">Maine</option><option value="Maryland">Maryland</option><option value="Massachusetts">Massachusetts</option><option value="Michigan">Michigan</option><option value="Minnesota">Minnesota</option><option value="Mississippi">Mississippi</option><option value="Missouri">Missouri</option><option value="Montana">Montana</option><option value="Nebraska">Nebraska</option><option value="Nevada">Nevada</option><option value="New Hampshire">New Hampshire</option><option value="New Jersey">New Jersey</option><option value="New Mexico">New Mexico</option><option value="New York">New York</option><option value="North Carolina">North Carolina</option><option value="North Dakota">North Dakota</option><option value="Ohio">Ohio</option><option value="Oklahoma">Oklahoma</option><option value="Oregon">Oregon</option><option value="Pennsylvania">Pennsylvania</option><option value="Rhode Island">Rhode Island</option><option value="South Carolina">South Carolina</option><option value="South Dakota">South Dakota</option><option value="Tennessee">Tennessee</option><option value="Texas">Texas</option><option value="Utah">Utah</option><option value="Vermont" selected>Vermont</option><option value="Virginia">Virginia</option><option value="Washington">Washington</option><option value="West Virginia">West Virginia</option><option value="Wisconsin">Wisconsin</option><option value="Wyoming">Wyoming</option>
           </select>
+          </div>
+          <div class="form-group"><label>ZIP Code</label><input type="text" id="su-emp-zip" placeholder="05401" maxlength="10"></div>
         </div>
       
       </div>
@@ -2858,9 +2866,12 @@ input:checked+.slider:before{transform:translateX(20px);}
             <div class="panel-head"><h2>📍 Your Address</h2><span class="badge badge-green">Private</span></div>
             <div class="panel-body">
               <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.5">🔒 Your address is <strong>never shown</strong> to employers or anyone else. It is only used to calculate how far away jobs are from you.</p>
-              <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">Street Address</label><div class="city-scroller-wrap"><input type="text" id="profile-address" placeholder="123 Main St" value="42 Maple Ave" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" oninput="addressAutocomplete(this,'profile-addr-drop')" onfocus="addressAutocomplete(this,'profile-addr-drop')" onchange="saveProfileAddress()" autocomplete="off"><div class="city-dropdown" id="profile-addr-drop" style="display:none"></div></div></div>
-                <div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">ZIP Code</label><input type="text" id="profile-zip" placeholder="05401" value="05401" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onchange="saveProfileAddress()"></div>
+              <!-- address-autocomplete-v42: street address first; picking a suggestion fills city, state and ZIP -->
+              <div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">Street Address</label><div class="city-scroller-wrap"><input type="text" id="profile-address" placeholder="Start typing, e.g. 123 Main St" value="42 Maple Ave" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" data-addr-drop="profile-addr-drop" data-addr-city="profile-city" data-addr-state="profile-state" data-addr-zip="profile-zip" onchange="saveProfileAddress()" autocomplete="off"><div class="city-dropdown" id="profile-addr-drop" style="display:none"></div></div><div class="tw-addr-hint">Pick your address from the list to fill in the city, state and ZIP.</div></div>
+              <div class="tw-addr-row-sm">
+                <div class="tw-addr-city"><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">City</label><input type="text" id="profile-city" placeholder="City" value="Burlington" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onchange="saveProfileAddress()"></div>
+                <div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">State</label><select id="profile-state" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onchange="saveProfileAddress()"><option value="">State</option><option value="Alabama">Alabama</option><option value="Alaska">Alaska</option><option value="Arizona">Arizona</option><option value="Arkansas">Arkansas</option><option value="California">California</option><option value="Colorado">Colorado</option><option value="Connecticut">Connecticut</option><option value="Delaware">Delaware</option><option value="Florida">Florida</option><option value="Georgia">Georgia</option><option value="Hawaii">Hawaii</option><option value="Idaho">Idaho</option><option value="Illinois">Illinois</option><option value="Indiana">Indiana</option><option value="Iowa">Iowa</option><option value="Kansas">Kansas</option><option value="Kentucky">Kentucky</option><option value="Louisiana">Louisiana</option><option value="Maine">Maine</option><option value="Maryland">Maryland</option><option value="Massachusetts">Massachusetts</option><option value="Michigan">Michigan</option><option value="Minnesota">Minnesota</option><option value="Mississippi">Mississippi</option><option value="Missouri">Missouri</option><option value="Montana">Montana</option><option value="Nebraska">Nebraska</option><option value="Nevada">Nevada</option><option value="New Hampshire">New Hampshire</option><option value="New Jersey">New Jersey</option><option value="New Mexico">New Mexico</option><option value="New York">New York</option><option value="North Carolina">North Carolina</option><option value="North Dakota">North Dakota</option><option value="Ohio">Ohio</option><option value="Oklahoma">Oklahoma</option><option value="Oregon">Oregon</option><option value="Pennsylvania">Pennsylvania</option><option value="Rhode Island">Rhode Island</option><option value="South Carolina">South Carolina</option><option value="South Dakota">South Dakota</option><option value="Tennessee">Tennessee</option><option value="Texas">Texas</option><option value="Utah">Utah</option><option value="Vermont" selected>Vermont</option><option value="Virginia">Virginia</option><option value="Washington">Washington</option><option value="West Virginia">West Virginia</option><option value="Wisconsin">Wisconsin</option><option value="Wyoming">Wyoming</option></select></div>
+                <div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">ZIP Code</label><input type="text" id="profile-zip" placeholder="05401" value="05401" maxlength="10" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem" onchange="saveProfileAddress()"></div>
               </div>
               <div style="margin-top:8px;font-size:.76rem;color:var(--green)">✓ Distance estimates will appear on job listings</div>
             </div>
@@ -5525,6 +5536,14 @@ function _supportBtn(context, detail) {
   return `<button onclick="openSupportModal('${ctx}','${det}')" style="margin-top:8px;background:rgba(0,0,0,0.12);color:inherit;border:none;padding:5px 13px;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:700">📧 Get Help from Support</button>`;
 }
 
+// Bring a message into view. On the long sign-up form the message box sits far above the
+// Create Account button, so a refused sign-up used to look like "nothing happened".
+function _twRevealAlert(el) {
+  try {
+    const r = el.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > (window.innerHeight || document.documentElement.clientHeight)) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch(e) {}
+}
 function showAlert(id, msg, type='error') {
   const el = document.getElementById(id);
   if (!el) return;
@@ -5536,6 +5555,7 @@ function showAlert(id, msg, type='error') {
     el.className = `alert alert-${type} show`;
     el.innerHTML = friendly;
   }
+  _twRevealAlert(el);
 }
 function hideAlert(id) {
   const el = document.getElementById(id);
@@ -6233,6 +6253,7 @@ function _signInFailed(reason, rawError) {
   if (!el) return;
   el.className = 'alert alert-error show';
   el.innerHTML = `<strong>😕 Oops!</strong> ${m.text}${_supportBtn('Sign in problem', m.label)}`;
+  _twRevealAlert(el);
 }
 
 async function doLogin() {
@@ -27360,7 +27381,9 @@ function _styleRateFAB() {
     w.send = function (service, template, params, key) {
       var a = [service, template, params];
       try { a = brand(service, template, params); } catch (e) { console.warn('TeenWork branded email failed, sending plain:', e); }
-      var pr = origSend.call(ej, a[0], a[1], a[2], key);
+      var pr = typeof window.twDeliverEmail === 'function'   // resend-email-v42: Resend first, EmailJS as backup
+        ? window.twDeliverEmail(a[0], a[1], a[2], key, function () { return origSend.call(ej, a[0], a[1], a[2], key); })
+        : origSend.call(ej, a[0], a[1], a[2], key);
       if (pr && typeof pr.catch === 'function' && a[0] !== service) pr.catch(function (e) { console.warn('TeenWork SOS email failed:', e); });
       return pr;
     };
@@ -27432,6 +27455,1128 @@ function _styleRateFAB() {
       preheader: type === 'teen' ? 'Your account is ready. Here is how to get started.' : 'Your ' + (type === 'parent' ? 'parent' : 'employer') + ' account is ready.'
     });
   };
+})();
+</script>
+
+<script id="support-reply-email-v42">
+/* ══════════════════════════════════════════════════════════════════════
+   SUPPORT FORMS ASK FOR AN EMAIL  (2026-10-15, "Welcome email" thread)
+   Aya: "ask for email before sending so they can get admin's response".
+   Every Help & Support form (the Contact Support modal, the floating
+   Support button's form and the backup form) gets a required "Your email"
+   box, pre-filled with the signed-in account's email. Send is blocked
+   until it looks like an email. The address is stored with the message
+   in the admin inbox and used as Reply-To on the support email, so the
+   admin can just press Reply.
+   ══════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.__twSupportReplyEmail) return;
+  window.__twSupportReplyEmail = true;
+
+  var LS_KEY = 'tw_support_reply_email';
+  var EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[A-Za-z]{2,}$/;
+  var SEND_BUTTONS = '#support-modal-overlay button[onclick*="sendSupportEmail"], #tw-sup-fallback #tw-sup-send, #tw-sup-fallback #tw-ss';
+  var pending = null;   // { email, at } set by a valid Send click, used by the next inbox save
+
+  function user() { try { return window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null); } catch (e) { return window.currentUser || null; } }
+  function valid(e) { return EMAIL_RE.test(String(e || '').trim()); }
+  function defaultEmail() {
+    var u = user();
+    if (u && valid(u.email)) return String(u.email).trim();
+    try { var last = localStorage.getItem(LS_KEY); if (valid(last)) return last; } catch (e) {}
+    return '';
+  }
+
+  function fieldHtml() {
+    return '<label for="tw-sup-reply-email" style="font-size:.78rem;font-weight:700;color:#4b5563;display:block;margin-bottom:4px">' +
+        'Your email <span style="color:#c0392b">*</span> <span style="font-weight:400;color:#6b7280">so we can reply to you</span></label>' +
+      '<input id="tw-sup-reply-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" ' +
+        'style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e2ddd4;border-radius:8px;font-family:\'DM Sans\',sans-serif;font-size:.9rem;outline:none;background:#fff;color:#1c1c1c">' +
+      '<div id="tw-sup-reply-err" style="display:none;font-size:.74rem;color:#c0392b;font-weight:600;margin-top:4px">Please enter your email so the TeenWork team can reply.</div>';
+  }
+
+  function addField(ov) {
+    if (!ov || ov.querySelector('#tw-sup-reply-email')) return;
+    var box = document.createElement('div');
+    box.id = 'tw-sup-reply-box';
+    box.style.cssText = 'margin-bottom:1rem';
+    box.innerHTML = fieldHtml();
+    var nameInp = ov.querySelector('#support-name, #tw-sup-name');
+    var ta = ov.querySelector('#tw-sm');
+    if (nameInp && nameInp.parentNode && nameInp.parentNode !== ov) {
+      nameInp.parentNode.parentNode.insertBefore(box, nameInp.parentNode.nextSibling);
+    } else if (ta && ta.parentNode) {
+      ta.parentNode.insertBefore(box, ta);
+    } else {
+      var send = ov.querySelector('#tw-sup-send, #tw-ss, button[onclick*="sendSupportEmail"]');
+      if (!send) return;
+      var row = send.parentNode;
+      row.parentNode.insertBefore(box, row);
+    }
+    var inp = box.querySelector('#tw-sup-reply-email');
+    inp.value = defaultEmail();
+    inp.addEventListener('focus', function () { this.style.borderColor = '#2d6a4f'; });
+    inp.addEventListener('blur', function () { this.style.borderColor = valid(this.value) || !this.value ? '#e2ddd4' : '#c0392b'; });
+    inp.addEventListener('input', function () { var err = box.querySelector('#tw-sup-reply-err'); if (err) err.style.display = 'none'; this.style.borderColor = '#2d6a4f'; });
+  }
+
+  function scan() {
+    ['support-modal-overlay', 'tw-sup-fallback'].forEach(function (id) { var el = document.getElementById(id); if (el) addField(el); });
+  }
+
+  // Forms are appended to <body> when opened; add the box as soon as one appears.
+  try {
+    new MutationObserver(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var added = list[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          var n = added[j];
+          if (n.nodeType === 1 && (n.id === 'support-modal-overlay' || n.id === 'tw-sup-fallback')) addField(n);
+        }
+      }
+    }).observe(document.body, { childList: true });
+  } catch (e) {}
+  scan();
+
+  // Check the email before any Send button's own handler runs (capture phase).
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest(SEND_BUTTONS) : null;
+    if (!btn) return;
+    var ov = btn.closest('#support-modal-overlay, #tw-sup-fallback');
+    addField(ov);
+    var inp = ov && ov.querySelector('#tw-sup-reply-email');
+    var email = inp ? String(inp.value || '').trim() : '';
+    if (!valid(email)) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      var err = ov && ov.querySelector('#tw-sup-reply-err');
+      if (err) { err.textContent = email ? 'That doesn’t look like an email address. Please check it.' : 'Please enter your email so the TeenWork team can reply.'; err.style.display = 'block'; }
+      if (inp) { inp.style.borderColor = '#c0392b'; inp.focus(); }
+      return;
+    }
+    pending = { email: email, at: Date.now() };
+    // Remember it for next time only when nobody is signed in (signed-in users get their account email).
+    var u = user();
+    if (!(u && valid(u.email))) { try { localStorage.setItem(LS_KEY, email); } catch (er) {} }
+  }, true);
+
+  // Put the typed email on the message the form saves (inbox + support email Reply-To).
+  function wrapSave() {
+    var orig = window._adminSaveSupportMessage;
+    if (typeof orig !== 'function' || orig._twReplyEmail) return;
+    var wrapped = function (msg) {
+      if (pending && Date.now() - pending.at < 4000 && msg && typeof msg === 'object') {
+        var email = pending.email;
+        pending = null;
+        msg = Object.assign({}, msg, { email: email });
+        var name = msg.name || 'Anonymous';
+        var type = msg.userType && msg.userType !== 'visitor' ? ' · ' + msg.userType : '';
+        msg.senderDisplay = name + ' <' + email + '>' + type;
+        return orig.call(this, msg);
+      }
+      return orig.apply(this, arguments);
+    };
+    wrapped._twReplyEmail = true;
+    wrapped._twEmailsSupport = orig._twEmailsSupport;
+    window._adminSaveSupportMessage = wrapped;
+  }
+  wrapSave();
+  setTimeout(wrapSave, 0);
+})();
+</script>
+
+<script id="resend-email-v42">
+/* ══════════════════════════════════════════════════════════════════════
+   EMAILS THROUGH RESEND  (2026-10-15, "Set up Resend email" thread, Aya's request)
+   Every email the app sends through the main EmailJS template (welcome,
+   verification code, parent consent, SOS alert, support inbox, school
+   partnership…) now goes out through Resend first, via the Supabase Edge
+   Function `send-email`, which holds the Resend key as a secret. The
+   branded HTML from branded-email-v41 is sent unchanged.
+
+   • If Resend can't take an email (function not deployed yet, no key,
+     test mode for that address, limit reached, offline) the same email
+     goes through EmailJS exactly as before, so nothing is lost.
+   • Needs one hook line in branded-email-v41 (added by
+     apply-resend-email.py): after branding, emails are handed to
+     window.twDeliverEmail instead of straight to EmailJS.
+   • Admin → 🩺 System Health gets an "Email sender" line with a
+     "Send test" button (Resend only, to the address typed there).
+   ══════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.__twResendEmail) return;
+  window.__twResendEmail = true;
+
+  var TIMEOUT_MS = 12000;
+  var state = { off: false, offReason: '', log: [] };
+  function fnUrl() { return (typeof SUPABASE_URL !== 'undefined' && /^https:/.test(SUPABASE_URL)) ? SUPABASE_URL.replace(/\/+$/, '') + '/functions/v1/send-email' : ''; }
+  function sbKey() { return typeof SUPABASE_KEY !== 'undefined' && SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY' ? SUPABASE_KEY : ''; }
+  function mainTemplate() { return typeof EMAILJS_TEMPLATE !== 'undefined' ? EMAILJS_TEMPLATE : ''; }
+  function isEmail(s) { return /^[^\s@<>,;:"()\[\]\\]+@[^\s@<>,;:"()\[\]\\]+\.[A-Za-z]{2,}$/.test(String(s || '').trim()); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function looksHtml(m) { var t = String(m || '').trim(); return t.charAt(0) === '<' && t.charAt(t.length - 1) === '>'; }
+
+  function callFn(body) {
+    var url = fnUrl(), key = sbKey();
+    if (!url || !key) return Promise.resolve({ ok: false, httpStatus: 0, code: 'no_supabase', error: 'Supabase is not configured in this copy' });
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, TIMEOUT_MS) : null;
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify(body),
+      signal: ctl ? ctl.signal : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (d) {
+        d = (d && typeof d === 'object') ? d : {};
+        d.httpStatus = res.status;
+        if (res.status === 404) d.code = 'not_deployed';   // send-email itself never answers 404
+        return d;
+      });
+    }, function (e) {
+      return { ok: false, httpStatus: 0, code: 'network', error: String((e && e.message) || e) };
+    }).then(function (d) { if (timer) clearTimeout(timer); return d; });
+  }
+
+  /* Send one email (EmailJS-style params) through Resend only. Resolves like emailjs.send, rejects {status, text, code}. */
+  window.twSendViaResend = function (params, opts) {
+    var p = params || {};
+    opts = opts || {};
+    if (state.off && !opts.force) return Promise.reject({ status: 0, text: 'Resend is off for this visit: ' + state.offReason, code: 'off' });
+    var html = String(p.message || '');
+    if (!looksHtml(html)) html = '<p>' + esc(html).replace(/\r?\n/g, '<br>') + '</p>';
+    return callFn({ to: String(p.to_email || '').trim(), subject: p.subject || 'TeenWork', html: html, reply_to: p.reply_to || '', from_name: p.from_name || 'TeenWork' })
+      .then(function (d) {
+        if (d.ok) { state.off = false; state.offReason = ''; return { status: 200, text: 'OK', via: 'resend', id: d.id, testing: !!d.testing }; }
+        // Missing function, key or limits table: stop trying Resend until the page is reloaded.
+        if (d.code === 'not_deployed' || d.code === 'not_configured' || d.code === 'limits_unavailable' || d.code === 'bad_key' || d.code === 'no_supabase') {
+          state.off = true; state.offReason = d.code;
+        }
+        throw { status: d.httpStatus || 0, text: d.error || 'Resend send failed', code: d.code || 'error' };
+      });
+  };
+
+  function remember(entry) { state.log.push(entry); if (state.log.length > 30) state.log.shift(); }
+
+  /* Called by the branded-email-v41 wrapper after branding. viaEmailJS() sends the same email through EmailJS. */
+  window.twDeliverEmail = function (service, template, params, key, emailJS) {
+    function viaEmailJS() {
+      // some callers (the SOS alert) never call emailjs.init, so make sure the public key is set first
+      try { if (!key && typeof EMAILJS_PUBKEY !== 'undefined' && window.emailjs && typeof window.emailjs.init === 'function') window.emailjs.init(EMAILJS_PUBKEY); } catch (e) {}
+      return emailJS();
+    }
+    try {
+      var p = params || {};
+      if (!mainTemplate() || template !== mainTemplate() || !isEmail(p.to_email) || typeof p.message !== 'string') return viaEmailJS();
+      var at = new Date().toISOString();
+      return window.twSendViaResend(p).then(function (r) {
+        remember({ at: at, to: p.to_email, subject: p.subject, via: 'resend', id: r.id });
+        return r;
+      }, function (err) {
+        remember({ at: at, to: p.to_email, subject: p.subject, via: 'emailjs', resendError: err && (err.code + ': ' + err.text) });
+        if (err && err.code !== 'off') console.info('TeenWork: Resend could not send (' + (err.code || '') + '), using EmailJS instead.', err.text || '');
+        return viaEmailJS();
+      });
+    } catch (e) {
+      console.warn('TeenWork Resend hook failed, using EmailJS:', e);
+      return viaEmailJS();
+    }
+  };
+
+  window.twEmailStatus = function () { return { resendOff: state.off, reason: state.offReason, functionUrl: fnUrl(), recent: state.log.slice() }; };
+  window.twPingEmailFunction = function () { return callFn({ ping: true }); };
+
+  /* ── Admin → System Health: "Email sender" line + test button ───── */
+  function healthNote(d) {
+    if (d.ok && d.configured && !d.testing) return { status: 'ok', note: 'Resend ready · sending from ' + (d.from_domain || 'your domain') };
+    if (d.ok && d.configured) return { status: 'warn', note: 'Resend in test mode: it only reaches the email your Resend account uses. Others go through EmailJS until a domain is verified.' };
+    if (d.ok) return { status: 'warn', note: 'Resend key not added yet · EmailJS sends instead' };
+    if (d.code === 'not_deployed') return { status: 'warn', note: 'send-email function not deployed · EmailJS sends instead' };
+    if (d.code === 'no_supabase') return { status: 'warn', note: 'Supabase not configured · EmailJS sends instead' };
+    return { status: 'warn', note: 'Resend unreachable (' + (d.error || d.code || 'offline') + ') · EmailJS sends instead' };
+  }
+  function adminEmail() { return typeof ADMIN_EMAIL !== 'undefined' ? ADMIN_EMAIL : ''; }
+  window.twSendTestEmail = function (to) {
+    to = String(to || adminEmail()).trim();
+    if (!isEmail(to)) return Promise.reject({ status: 0, text: 'Type a valid email address', code: 'bad_request' });
+    var params = { to_email: to, subject: '✅ TeenWork test email', from_name: 'TeenWork', reply_to: adminEmail(),
+      message: 'Hi,\n\nThis test email came through Resend, so the app’s emails are set up.\n\nSent ' + new Date().toLocaleString() + '.\n\n— TeenWork' };
+    try { if (typeof window.twBrandEmailParams === 'function') params = window.twBrandEmailParams(params); } catch (e) {}
+    return window.twSendViaResend(params, { force: true });
+  };
+  function testMessage(err) {
+    var c = err && err.code;
+    if (c === 'testing_only') return 'Resend’s test sender only reaches the email your Resend account uses. Try that address, or verify a domain.';
+    if (c === 'not_configured') return 'Add RESEND_API_KEY in Supabase first.';
+    if (c === 'bad_key') return 'Resend refused the key. Check RESEND_API_KEY in Supabase.';
+    if (c === 'limit') return 'Send limit reached for now.';
+    return (err && err.text) || 'Failed';
+  }
+  var _oHealth = window.adminRunHealthCheck;
+  window.adminRunHealthCheck = async function () {
+    var r = _oHealth ? await _oHealth.apply(this, arguments) : undefined;
+    try {
+      var el = document.getElementById('adm-health-list'); if (!el) return r;
+      var old = el.querySelector('[data-tw-email]'); if (old) old.remove();
+      var row = document.createElement('div'); row.className = 'adm-health-item'; row.setAttribute('data-tw-email', '1');
+      row.style.flexWrap = 'wrap';
+      row.innerHTML = '<div class="adm-health-status warn"></div><div class="adm-health-label">Email sender</div><div class="adm-health-note" data-tw-email-note>Checking Resend…</div>' +
+        '<div style="flex-basis:100%;display:flex;gap:6px;justify-content:flex-end;margin-top:6px;">' +
+        '<input data-tw-email-to type="email" value="' + esc(adminEmail()) + '" style="flex:0 1 240px;min-width:0;padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:.78rem;">' +
+        '<button type="button" class="adm-btn adm-btn-mark" data-tw-email-test>✉️ Send test</button></div>';
+      el.appendChild(row);
+      var dot = row.querySelector('.adm-health-status'), note = row.querySelector('[data-tw-email-note]');
+      row.querySelector('[data-tw-email-test]').addEventListener('click', function () {
+        var btn = this; btn.disabled = true; note.textContent = 'Sending a test through Resend…';
+        window.twSendTestEmail(row.querySelector('[data-tw-email-to]').value).then(function (res) {
+          dot.className = 'adm-health-status ok';
+          note.textContent = 'Test sent through Resend ✓ Check the inbox' + (res.testing ? ' (test mode)' : '') + '.';
+        }, function (err) {
+          dot.className = 'adm-health-status error';
+          note.textContent = 'Test not sent: ' + testMessage(err);
+        }).then(function () { btn.disabled = false; });
+      });
+      var d = await callFn({ ping: true });
+      var h = healthNote(d);
+      dot.className = 'adm-health-status ' + h.status;
+      note.textContent = h.note;
+    } catch (e) {}
+    return r;
+  };
+})();
+</script>
+
+<script id="address-autocomplete-v42">
+/* ════════════════════════════════════════════════════════════════════
+   address-autocomplete-v42 (thread "Address autocomplete", 2026-10-15)
+   Every address form asks for the street address first. As the person
+   types, matching US addresses drop down (Photon: a free OpenStreetMap
+   search made for search-as-you-type, no API key). Picking one fills in
+   the street, city, state and ZIP. Every field can still be typed by hand,
+   and nothing breaks if the lookup is slow, offline or finds nothing.
+
+   Wiring: a street <input> carries data-addr-city / data-addr-state /
+   data-addr-zip (ids of the fields to fill) and data-addr-drop (id of its
+   dropdown). The known forms are listed in FORMS below, so the block also
+   works on a file whose form HTML was not re-laid out.
+
+   If Photon doesn't answer within 4 s (down, slow, or blocked on that
+   network), the list offers a one-off "Find" instead: one OpenStreetMap
+   Nominatim search when the person taps it or presses Enter. Nominatim's
+   usage policy allows searches a person asks for but forbids
+   search-as-you-type, so it is never called while typing.
+   addressAutocomplete() / selectAddress() from the old Nominatim code route here.
+   ════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.TWAddress) return;
+  var api = window.TWAddress = { picking: false };
+
+  var PHOTON_SEARCH = 'https://photon.komoot.io/api/', PHOTON_REVERSE = 'https://photon.komoot.io/reverse';
+  var OSM_SEARCH = 'https://nominatim.openstreetmap.org/search', OSM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
+  var US_BBOX = '-180,15,-60,72';   // the US incl. Alaska and Hawaii; Canada/Mexico hits are dropped below
+  var WAIT_MS = 300, MIN_CHARS = 4, MAX_SHOWN = 6;
+  var PHOTON_LIMIT_MS = 4000;    // suggestions that take longer than this count as "not loading"
+  var PHOTON_REST_MS = 90000;    // after a failure, skip suggestions for this long and go straight to "Find"
+  var LOOKUP_LIMIT_MS = 8000;    // any other request
+  var photonRestUntil = 0, osmNextAt = 0;
+
+  // street input id → the fields a pick fills in
+  var FORMS = {
+    'su-teen-address': { drop: 'su-teen-addr-drop', city: 'su-city',     state: 'su-state',     zip: 'su-teen-zip' },
+    'su-emp-address':  { drop: 'su-emp-addr-drop',  city: 'su-emp-city', state: 'su-emp-state', zip: 'su-emp-zip' },
+    'profile-address': { drop: 'profile-addr-drop', city: 'profile-city', state: 'profile-state', zip: 'profile-zip' }
+  };
+
+  var STATES = { AL:'Alabama', AK:'Alaska', AZ:'Arizona', AR:'Arkansas', CA:'California', CO:'Colorado',
+    CT:'Connecticut', DE:'Delaware', DC:'District of Columbia', FL:'Florida', GA:'Georgia', HI:'Hawaii',
+    ID:'Idaho', IL:'Illinois', IN:'Indiana', IA:'Iowa', KS:'Kansas', KY:'Kentucky', LA:'Louisiana',
+    ME:'Maine', MD:'Maryland', MA:'Massachusetts', MI:'Michigan', MN:'Minnesota', MS:'Mississippi',
+    MO:'Missouri', MT:'Montana', NE:'Nebraska', NV:'Nevada', NH:'New Hampshire', NJ:'New Jersey',
+    NM:'New Mexico', NY:'New York', NC:'North Carolina', ND:'North Dakota', OH:'Ohio', OK:'Oklahoma',
+    OR:'Oregon', PA:'Pennsylvania', RI:'Rhode Island', SC:'South Carolina', SD:'South Dakota',
+    TN:'Tennessee', TX:'Texas', UT:'Utah', VT:'Vermont', VA:'Virginia', WA:'Washington',
+    WV:'West Virginia', WI:'Wisconsin', WY:'Wyoming' };
+  var ABBR = {};
+  Object.keys(STATES).forEach(function (k) { ABBR[STATES[k].toLowerCase()] = k; });
+
+  // ── styles ─────────────────────────────────────────────────────────
+  var css = document.createElement('style');
+  css.id = 'address-autocomplete-v42-css';
+  css.textContent =
+    '.tw-addr-hint{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.4;text-transform:none;letter-spacing:0;font-weight:400}' +
+    '.form-row.tw-addr-row,.tw-addr-row-sm{display:grid;grid-template-columns:1.3fr 1.2fr .8fr;gap:12px}' +
+    '.tw-addr-row-sm{gap:10px;margin-top:10px}' +
+    '@media(max-width:768px){.form-row.tw-addr-row,.tw-addr-row-sm{grid-template-columns:1fr 1fr}.tw-addr-row .tw-addr-city,.tw-addr-row-sm .tw-addr-city{grid-column:1/-1}}' +
+    '.tw-addr-drop .tw-addr-main{display:block;font-weight:600;color:var(--text)}' +
+    '.tw-addr-drop .tw-addr-sub{display:block;font-size:.75rem;color:var(--muted);margin-top:1px}' +
+    '.tw-addr-drop .tw-addr-msg{padding:9px 12px;font-size:.82rem;color:var(--muted);font-style:italic;line-height:1.4}' +
+    '.tw-addr-drop .tw-addr-find{font-weight:600;color:var(--green)}' +
+    '.tw-addr-drop .tw-addr-credit{padding:4px 12px;font-size:.66rem;color:var(--muted);text-align:right;border-top:1px solid var(--border)}' +
+    '.tw-addr-row-sm select{background:#fff}html.dark .tw-addr-row-sm select{background:var(--card)}' +
+    '.city-dropdown.tw-addr-drop{max-height:290px}' +
+    'html.dark .city-dropdown.tw-addr-drop{background:var(--card)}' +
+    '.tw-addr-flash{background-color:var(--green-pale)!important;transition:background-color .9s ease}';
+  (document.head || document.documentElement).appendChild(css);
+
+  // ── helpers ────────────────────────────────────────────────────────
+  var $ = function (id) { return id ? document.getElementById(id) : null; };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var zip5 = function (s) { var m = String(s || '').match(/\b(\d{5})(?:-\d{4})?\b/); return m ? m[1] : ''; };
+  var stateName = function (s) {
+    s = String(s || '').trim();
+    if (!s) return '';
+    if (STATES[s.toUpperCase()]) return STATES[s.toUpperCase()];
+    return ABBR[s.toLowerCase()] ? STATES[ABBR[s.toLowerCase()]] : s;
+  };
+  var cfg = function (input) {
+    var d = input.dataset || {};
+    return { drop: d.addrDrop, city: d.addrCity, state: d.addrState, zip: d.addrZip };
+  };
+  var isStreetInput = function (el) {
+    return !!(el && el.tagName === 'INPUT' && el.dataset && (el.dataset.addrCity || el.dataset.addrState || el.dataset.addrZip));
+  };
+
+  // per-input state: debounce timer, in-flight request, current suggestions, highlighted row
+  var runs = new WeakMap();
+  var run = function (input) { var r = runs.get(input); if (!r) { r = { timer: 0, ctrl: null, seq: 0, items: [], active: -1 }; runs.set(input, r); } return r; };
+  var cache = new Map();   // query → raw search results, so retyping or backspacing doesn't re-ask the server
+
+  // fetch + JSON with a hard time limit. The limit is its own timer, so it holds even where a
+  // request never settles and aborting it does nothing.
+  function fetchJSON(url, r, limitMs) {
+    var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    if (r) { if (r.ctrl) try { r.ctrl.abort(); } catch (e) {} r.ctrl = ctrl; }
+    var timer;
+    var limit = new Promise(function (_, reject) {
+      timer = setTimeout(function () { if (ctrl) try { ctrl.abort(); } catch (e) {} reject(new Error('no answer within ' + (limitMs || LOOKUP_LIMIT_MS) + ' ms')); }, limitMs || LOOKUP_LIMIT_MS);
+    });
+    var req;
+    try { req = fetch(url, ctrl ? { signal: ctrl.signal } : {}); } catch (e) { req = Promise.reject(e); }
+    req = req.then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+    return Promise.race([req, limit]).then(function (v) { clearTimeout(timer); return v; }, function (e) { clearTimeout(timer); throw e; });
+  }
+  // Nominatim allows one request a second; resolves when the next one may go.
+  function osmTurn() {
+    var wait = Math.max(0, osmNextAt - Date.now());
+    osmNextAt = Date.now() + wait + 1100;
+    return new Promise(function (ok) { setTimeout(ok, wait); });
+  }
+  function note(what, err) { try { console.warn('[TeenWork address] ' + what + ':', (err && err.message) || err); } catch (e) {} }
+
+  // OSM often has the street but not the house number in the US, so a number the person typed
+  // is kept in front of the street name.
+  function leadNumber(typed) { return (String(typed).match(/^\s*(\d+[a-z]?(?:[-\/]\d+[a-z]?)?)\s+\S/i) || [])[1] || ''; }
+  function collect(rows, typed, read) {
+    var lead = leadNumber(typed), out = [], seen = {};
+    (rows || []).forEach(function (x) {
+      var s = read(x);
+      if (!s || !s.road) return;
+      s.street = ((s.num || lead) ? (s.num || lead) + ' ' : '') + s.road;
+      delete s.road; delete s.num;
+      var key = (s.street + '|' + s.city + '|' + s.state).toLowerCase();   // one row per street, not per OSM segment
+      if (seen[key]) { if (!seen[key].zip && s.zip) seen[key].zip = s.zip; return; }
+      seen[key] = s; out.push(s);
+    });
+    return out.slice(0, MAX_SHOWN);
+  }
+  // Photon features → suggestions
+  function toSuggestions(features, typed) {
+    return collect(features, typed, function (f) {
+      var p = (f && f.properties) || {}, c = (f && f.geometry && f.geometry.coordinates) || [];
+      if (String(p.countrycode || '').toUpperCase() !== 'US') return null;
+      return { road: p.street || ((p.osm_key === 'highway' || p.type === 'street') ? p.name : ''), num: p.housenumber || '',
+        city: p.city || (p.osm_key === 'place' ? p.name : '') || '', state: stateName(p.state), zip: zip5(p.postcode),
+        lon: c[0] == null ? null : c[0], lat: c[1] == null ? null : c[1] };
+    });
+  }
+  // Nominatim results → suggestions
+  function fromNominatim(list, typed) {
+    return collect(list, typed, function (x) {
+      var a = (x && x.address) || {};
+      if (String(a.country_code || '').toLowerCase() !== 'us') return null;
+      return { road: a.road || a.pedestrian || a.footway || a.path || '', num: a.house_number || '',
+        city: a.city || a.town || a.village || a.hamlet || a.municipality || '', state: stateName(a.state), zip: zip5(a.postcode),
+        lon: x.lon == null ? null : +x.lon, lat: x.lat == null ? null : +x.lat, via: 'osm' };
+    });
+  }
+
+  // ── dropdown ───────────────────────────────────────────────────────
+  function dropFor(input) {
+    var c = cfg(input), d = $(c.drop);
+    if (!d) {   // no dropdown in the HTML: make one under the input
+      d = document.createElement('div');
+      d.id = c.drop || (input.id + '-addr-drop');
+      input.setAttribute('data-addr-drop', d.id);
+      d.style.display = 'none';
+      var wrap = input.parentElement;
+      if (wrap && getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+      input.insertAdjacentElement('afterend', d);
+    }
+    if (!d.classList.contains('tw-addr-drop')) {
+      d.classList.add('city-dropdown', 'tw-addr-drop');
+      d.removeAttribute('style'); d.style.display = 'none';   // the old teen sign-up dropdown had its own inline look
+      d.setAttribute('role', 'listbox');
+      d.addEventListener('mousedown', function (e) {
+        e.preventDefault();   // keep focus in the input
+        var row = e.target.closest && e.target.closest('.tw-addr-item, .tw-addr-find');
+        if (!row) return;
+        if (row.classList.contains('tw-addr-find')) findNow(input);
+        else pick(input, run(input).items[+row.getAttribute('data-i')]);
+      });
+    }
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-controls', d.id);
+    return d;
+  }
+  function isOpen(input) { var d = $(cfg(input).drop); return !!(d && d.style.display !== 'none'); }
+  function hide(input) {
+    var d = $(cfg(input).drop);
+    if (d) d.style.display = 'none';
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    run(input).active = -1;
+  }
+  function show(input, html) {
+    var d = dropFor(input);
+    d.innerHTML = html;
+    d.style.display = 'block';
+    input.setAttribute('aria-expanded', 'true');
+    unclip(d);
+  }
+  // Inside a box that hides overflow (the profile panel does), a floating list gets cut off.
+  // There it sits in the page flow instead and pushes the fields below it down.
+  function unclip(d) {
+    d.style.position = ''; d.style.marginTop = '';
+    var bottom = d.getBoundingClientRect().bottom;
+    for (var el = d.parentElement; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
+      var cs = getComputedStyle(el);
+      if (/hidden|auto|scroll|clip/.test(cs.overflowY) && el.getBoundingClientRect().bottom < bottom - 1) {
+        d.style.position = 'static'; d.style.marginTop = '4px';
+        return;
+      }
+    }
+  }
+  function message(input, text) {
+    run(input).items = [];
+    show(input, '<div class="tw-addr-msg">' + esc(text) + '</div>');
+  }
+  function render(input, list) {
+    var r = run(input), d = dropFor(input);
+    r.items = list; r.active = -1;
+    if (!list.length) { message(input, 'No matching street addresses yet. Keep typing, or fill in the fields below.'); return; }
+    show(input, list.map(function (s, i) {
+      var sub = [s.city, [ABBR[String(s.state).toLowerCase()] || s.state, s.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+      return '<div class="city-dropdown-item tw-addr-item" role="option" id="' + d.id + '-opt-' + i + '" data-i="' + i + '">' +
+        '<span class="tw-addr-main">' + esc(s.street) + '</span><span class="tw-addr-sub">' + esc(sub) + '</span></div>';
+    }).join('') + '<div class="tw-addr-credit">Addresses © OpenStreetMap contributors</div>');
+  }
+  function highlight(input, i) {
+    var r = run(input), d = $(cfg(input).drop);
+    if (!d || !r.items.length) return;
+    r.active = (i + r.items.length) % r.items.length;
+    [].forEach.call(d.querySelectorAll('.tw-addr-item'), function (row, k) { row.classList.toggle('highlighted', k === r.active); });
+    var row = $(d.id + '-opt-' + r.active);
+    if (row) { input.setAttribute('aria-activedescendant', row.id); if (row.scrollIntoView) row.scrollIntoView({ block: 'nearest' }); }
+  }
+
+  // ── lookup ─────────────────────────────────────────────────────────
+  function onInput(input) {
+    var r = run(input), q = String(input.value || '').trim();
+    clearTimeout(r.timer);
+    if (q.length < MIN_CHARS || !/[a-z]/i.test(q)) { r.seq++; if (r.ctrl) try { r.ctrl.abort(); } catch (e) {} hide(input); return; }
+    r.timer = setTimeout(function () { search(input, q); }, WAIT_MS);
+  }
+  function search(input, q) {
+    var r = run(input), seq = ++r.seq, key = q.toLowerCase().replace(/\s+/g, ' ');
+    if (cache.has(key)) { render(input, toSuggestions(cache.get(key), q)); return; }
+    if (Date.now() < photonRestUntil) { offerFind(input, q); return; }
+    if (!isOpen(input) || !r.items.length) message(input, 'Searching addresses…');
+    var url = PHOTON_SEARCH + '?q=' + encodeURIComponent(q) + '&limit=12&lang=en&layer=house&layer=street&bbox=' + US_BBOX;
+    fetchJSON(url, r, PHOTON_LIMIT_MS).then(function (data) {
+      if (seq !== r.seq) return;
+      var feats = (data && data.features) || [];
+      cache.set(key, feats);
+      if (cache.size > 60) cache.delete(cache.keys().next().value);
+      if (document.activeElement === input) render(input, toSuggestions(feats, q));
+    }).catch(function (err) {
+      if (seq !== r.seq) return;   // replaced by a newer keystroke
+      photonRestUntil = Date.now() + PHOTON_REST_MS;
+      note('suggestions are not loading (photon.komoot.io), offering Find instead', err);
+      if (document.activeElement === input) offerFind(input, q);
+    });
+  }
+  // Suggestions aren't loading: offer one search the person asks for.
+  function offerFind(input, q) {
+    var r = run(input), d = dropFor(input);
+    r.items = []; r.active = -1;
+    show(input, '<div class="city-dropdown-item tw-addr-find" role="option" id="' + d.id + '-find">🔍 Find “' + esc(q) + '”</div>' +
+      '<div class="tw-addr-msg">Suggestions aren\'t loading right now. Type your street and town, then tap Find or press Enter.</div>');
+  }
+  function findNow(input) {
+    var r = run(input), q = String(input.value || '').trim(), seq = ++r.seq;
+    clearTimeout(r.timer);
+    if (q.length < MIN_CHARS) return;
+    message(input, 'Looking up your address…');
+    osmTurn().then(function () {
+      if (seq !== r.seq) return null;
+      return fetchJSON(OSM_SEARCH + '?format=jsonv2&addressdetails=1&limit=8&countrycodes=us&q=' + encodeURIComponent(q), r).then(function (list) {
+        if (seq !== r.seq) return;
+        var out = fromNominatim(list, q);
+        if (out.length) render(input, out);
+        else message(input, "We couldn't find that address. Check the street and town, or fill in the city, state and ZIP below.");
+      });
+    }).catch(function (err) {
+      if (seq !== r.seq) return;
+      note('address lookup failed (nominatim.openstreetmap.org)', err);
+      message(input, "Address lookup isn't working right now. Fill in the city, state and ZIP below.");
+    });
+  }
+
+  // OSM street results often have no ZIP: ask what's at that spot and take the nearest US ZIP.
+  function photonZip(s) {
+    return fetchJSON(PHOTON_REVERSE + '?lon=' + s.lon + '&lat=' + s.lat + '&limit=10&lang=en', null, PHOTON_LIMIT_MS).then(function (data) {
+      var z = '';
+      ((data && data.features) || []).some(function (f) {
+        var p = (f && f.properties) || {};
+        if (String(p.countrycode || '').toUpperCase() === 'US' && zip5(p.postcode)) { z = zip5(p.postcode); return true; }
+        return false;
+      });
+      return z;
+    });
+  }
+  function osmZip(s) {
+    return osmTurn().then(function () {
+      return fetchJSON(OSM_REVERSE + '?format=jsonv2&addressdetails=1&zoom=18&lat=' + s.lat + '&lon=' + s.lon);
+    }).then(function (x) { return zip5(x && x.address && x.address.postcode); });
+  }
+  function lookupZip(zipEl, s) {
+    if (s.lat == null || s.lon == null) return;
+    var before = zipEl.placeholder;
+    zipEl.placeholder = 'Looking up…';
+    var viaOsm = s.via === 'osm' || Date.now() < photonRestUntil;
+    (viaOsm ? osmZip(s) : photonZip(s).catch(function (err) { note('ZIP lookup via photon failed, trying nominatim', err); return osmZip(s); })).then(function (z) {
+      if (z && !String(zipEl.value || '').trim()) {
+        setField(zipEl, z);
+        api.picking = true;   // quietly joins the address that was just saved
+        try { zipEl.dispatchEvent(new Event('change', { bubbles: true })); } finally { api.picking = false; }
+      }
+    }).catch(function () {}).then(function () { zipEl.placeholder = before; });
+  }
+
+  // ── filling the form ───────────────────────────────────────────────
+  function flash(el) {
+    if (!el) return;
+    el.classList.add('tw-addr-flash');
+    setTimeout(function () { el.classList.remove('tw-addr-flash'); }, 1200);
+  }
+  function setField(el, value) {
+    el.value = value;
+    el.setAttribute('data-addr-filled', value);
+    flash(el);
+  }
+  // A value we have replaces the field. A value we don't have only clears what an earlier pick put there.
+  function fill(el, value) {
+    if (!el) return;
+    if (value) setField(el, value);
+    else if (el.value && el.value === el.getAttribute('data-addr-filled')) { el.value = ''; el.removeAttribute('data-addr-filled'); }
+  }
+  function fillState(sel, name) {
+    if (!sel || !name) return;
+    var want = name.toLowerCase(), abbr = (ABBR[want] || '').toLowerCase();
+    var opt = [].find.call(sel.options || [], function (o) {
+      var v = String(o.value || o.text).trim().toLowerCase(), t = String(o.text).trim().toLowerCase();
+      return v === want || t === want || (abbr && (v === abbr || t === abbr));
+    });
+    if (!opt) return;   // e.g. Washington DC is not in the list: leave the state for them to pick
+    if (sel.value !== opt.value) {
+      sel.value = opt.value;
+      // runs the field's own hooks, e.g. the work-permit note on teen sign-up (it also clears the city, which is filled next)
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    flash(sel);
+  }
+  function pick(input, s) {
+    if (!s) return;
+    var c = cfg(input);
+    clearTimeout(run(input).timer);
+    hide(input);
+    api.picking = true;
+    try {
+      input.value = s.street;
+      fillState($(c.state), s.state);
+      var cityEl = $(c.city);
+      fill(cityEl, s.city);
+      if (cityEl) { var cd = cityEl.parentElement && cityEl.parentElement.querySelector('.city-dropdown'); if (cd) cd.style.display = 'none'; }
+      fill($(c.zip), s.zip);
+    } finally { api.picking = false; }
+    input.dispatchEvent(new Event('change', { bubbles: true }));   // e.g. the profile panel saves the address
+    var zipEl = $(c.zip);
+    if (zipEl && !s.zip) lookupZip(zipEl, s);
+  }
+
+  // ── events (delegated, so forms added later work too) ──────────────
+  document.addEventListener('input', function (e) { if (isStreetInput(e.target)) onInput(e.target); }, true);
+  document.addEventListener('keydown', function (e) {
+    var input = e.target;
+    if (!isStreetInput(input)) return;
+    var r = run(input), open = isOpen(input) && r.items.length > 0;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!open) return;
+      e.preventDefault();
+      highlight(input, r.active < 0 ? (e.key === 'ArrowDown' ? 0 : -1) : r.active + (e.key === 'ArrowDown' ? 1 : -1));
+    } else if (e.key === 'Enter') {
+      var d = $(cfg(input).drop);
+      if (open && r.active >= 0) { e.preventDefault(); pick(input, r.items[r.active]); }
+      else if (isOpen(input) && d && d.querySelector('.tw-addr-find')) { e.preventDefault(); findNow(input); }
+    } else if (e.key === 'Escape' || e.key === 'Tab') {
+      if (isOpen(input)) { if (e.key === 'Escape') e.preventDefault(); hide(input); }
+    }
+  }, true);
+  document.addEventListener('focusout', function (e) {
+    var input = e.target;
+    if (isStreetInput(input)) setTimeout(function () { if (document.activeElement !== input) hide(input); }, 150);
+  }, true);
+
+  // ── set up the known forms ─────────────────────────────────────────
+  function wire() {
+    Object.keys(FORMS).forEach(function (id) {
+      var input = $(id), f = FORMS[id];
+      if (!input) return;
+      [['drop', 'data-addr-drop'], ['city', 'data-addr-city'], ['state', 'data-addr-state'], ['zip', 'data-addr-zip']].forEach(function (a) {
+        if (!input.hasAttribute(a[1]) && f[a[0]]) input.setAttribute(a[1], f[a[0]]);
+      });
+      // the old inline Nominatim handlers, if this file still has them
+      ['oninput', 'onfocus'].forEach(function (h) { if (/addressAutocomplete/.test(input.getAttribute(h) || '')) input.removeAttribute(h); });
+      input.setAttribute('autocomplete', 'off');
+      dropFor(input);
+    });
+  }
+  wire();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+
+  // ── the old entry points ───────────────────────────────────────────
+  window.addressAutocomplete = function (input, dropId) {
+    if (!input) return;
+    if (dropId && !input.hasAttribute('data-addr-drop')) input.setAttribute('data-addr-drop', dropId);
+    onInput(input);
+  };
+  window.selectAddress = function (street, city, state, zip, inputId) {
+    var input = $(inputId);
+    if (input) pick(input, { street: street, city: city, state: stateName(state), zip: zip5(zip) });
+  };
+
+  // The profile panel now has city and state too. One toast per real change, none mid-fill.
+  var lastSaved = null;
+  window.saveProfileAddress = function () {
+    var v = function (id) { var el = $(id); return el ? String(el.value || '').trim() : null; };
+    var next = { street: v('profile-address') || '', zip: v('profile-zip') || '' };
+    if (v('profile-city') !== null) next.city = v('profile-city');
+    if (v('profile-state') !== null) next.state = v('profile-state');
+    try { if (typeof _userAddress === 'object' && _userAddress) Object.assign(_userAddress, next); } catch (e) {}
+    if (api.picking) return;
+    var sig = JSON.stringify(next);
+    if (sig === lastSaved) return;
+    lastSaved = sig;
+    try { showToast('📍 Address saved (private — only used for distance)', 'success'); } catch (e) {}
+  };
+
+  api.wire = wire; api.search = onInput; api.pick = pick; api.find = findNow; api.suggestions = toSuggestions;
+})();
+</script>
+
+<script id="real-stats-v42">
+/* ═══════════════════════════════════════════════════════════════════
+   v42 · REAL STATS FOR REAL ACCOUNTS  (2026-10-15, Aya's request)
+   Real teen, parent and employer accounts now see only their own data.
+   Demo logins keep the sample data (Alex Johnson, Mike's Landscaping…).
+   • 📊 "Your Work Record" (Rec Letters) is built from the teen's own
+     Hours log, reviews employers left them, completed lessons and real
+     sign-up date. No more 14 hrs / 4.7 ★ / "Member since August 2024".
+     Friendly hints replace the numbers when nothing is logged yet.
+   • The two sample recommendation letters and the sample ratings are
+     hidden for real accounts (letters tab, parent Ratings tab, weekly
+     digest, skill report, employer Worker Performance Report).
+   • Lessons: completed lessons are saved per account (on the device and
+     in the cloud `user_data` row "lessons_completed") and restored at
+     sign-in, so "Lessons Done", the lesson grid and the Badges tab count
+     the lessons the teen actually passed. Lessons finished before this
+     version are recovered from the account's saved AI-coach profile.
+   • Hours log, calendar, savings goals and the other teen tools that were
+     kept device-wide are now kept per account on a shared device, so one
+     account (or the demo) no longer shows up in another. Data already on
+     the device goes to the first real account that signs in, minus the
+     demo samples.
+   • Letters a real teen uploads are kept per account (device + cloud row
+     "rec_letters") instead of vanishing on reload, and the upload box
+     shows even before the first letter.
+   • "Learn how to ask for one" (Why letters matter) opens the References
+     lesson; it pointed at a lesson that doesn't exist.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  const ROLES = ['teen', 'parent', 'employer'];
+  const me = () => window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+  const isDemoUser = u => !!(u && (u.isDemo || /\.demo$/i.test(String(u.email || ''))));
+  const isReal = u => !!(u && !isDemoUser(u) && !u.isAdmin && ROLES.includes(u.type) && /@/.test(String(u.email || '')));
+  const acctKey = u => String(u.dataKey || u.email || '').toLowerCase();
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
+  const readJSON = (k, d) => { try { const v = JSON.parse(lsGet(k)); return v == null ? d : v; } catch (e) { return d; } };
+  // change a label or hide a button for real accounts, and put the original back for demo logins
+  function realText(el, real, text) { if (!el) return; if (el.dataset.twOrigText == null) el.dataset.twOrigText = el.textContent; el.textContent = real ? text : el.dataset.twOrigText; }
+  function realHide(el, hide) { if (!el) return; if (hide) { el.dataset.twHidden = '1'; el.style.display = 'none'; } else if (el.dataset.twHidden) { delete el.dataset.twHidden; el.style.display = ''; } }
+
+  /* ── 1. Per-account device data ───────────────────────────────────
+     These teen tools save straight to one device-wide key, so every
+     account on the device (and the demo) shared them. The app keeps
+     using the same keys; we swap the contents when a different
+     account starts its dashboard and park the previous owner's copy. */
+  const SCOPED = ['tw_worklog', 'tw_cal_shifts', 'tw_savings_goals', 'tw_savings_history', 'tw_tracker', 'tw_portfolio', 'tw_earnings_log', 'tw_streak', 'tw_lessons_completed'];
+  const OWNER = 'tw_device_data_owner', CLAIMED = 'tw_device_data_legacy_claimed';
+  const slot = (owner, k) => 'tw_scoped_' + owner.replace(/[^a-z0-9@._:-]/gi, '_') + '__' + k;
+  const DEMO_WL = new Set([1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010]);
+  const DEMO_GOALS = new Set([2001, 2002, 2003]);
+  const isDemoShift = s => !!s && (s.id === 'demo-1' || (s.job === "Lawn Mowing — Mike's Landscaping" && s.notes === 'Bring gloves. Side gate will be open.'));
+  const DEMO_FILTER = {
+    tw_worklog: e => !(e && DEMO_WL.has(e.id)),
+    tw_cal_shifts: s => !isDemoShift(s),
+    tw_savings_goals: g => !(g && DEMO_GOALS.has(g.id)),
+  };
+  function withoutSamples(k, raw) {
+    if (raw == null || !DEMO_FILTER[k]) return raw;
+    try { const v = JSON.parse(raw); return Array.isArray(v) ? JSON.stringify(v.filter(DEMO_FILTER[k])) : raw; } catch (e) { return raw; }
+  }
+  function ownerFor(u) { if (!u) return ''; if (isDemoUser(u)) return 'demo'; if (isReal(u)) return 'acct:' + acctKey(u); return ''; }
+  function demoShift() {
+    const now = new Date(), next = new Date(now);
+    next.setDate(now.getDate() + ((6 - now.getDay() + 7) % 7 || 7));
+    return { id: 'demo-1', job: "Lawn Mowing — Mike's Landscaping", date: next.toISOString().slice(0, 10), start: '09:00', end: '11:30', pay: '$18/hr', notes: 'Bring gloves. Side gate will be open.' };
+  }
+  function reloadCaches(owner) {
+    // values some scripts read once at start-up
+    try {
+      let raw = lsGet('tw_cal_shifts');
+      if (raw == null) { raw = JSON.stringify(owner === 'demo' ? [demoShift()] : []); lsSet('tw_cal_shifts', raw); }
+      calShifts = JSON.parse(raw);
+    } catch (e) {}
+    try { earningsLog = JSON.parse(lsGet('tw_earnings_log') || '[]'); } catch (e) {}
+    try { savingsGoals = JSON.parse(lsGet('tw_savings_goals') || '[]'); } catch (e) {}
+  }
+  function useDeviceDataOf(u) {
+    const next = ownerFor(u); if (!next) return;
+    const cur = lsGet(OWNER) || 'legacy';             // 'legacy' = saved before this version, owner unknown
+    if (cur !== next) {
+      SCOPED.forEach(k => lsSet(slot(cur, k), lsGet(k)));
+      lsSet(slot(cur, '_seen'), '1');
+      const claimLegacy = next.indexOf('acct:') === 0 && !lsGet(slot(next, '_seen')) && lsGet(slot('legacy', '_seen')) && !lsGet(CLAIMED);
+      SCOPED.forEach(k => lsSet(k, claimLegacy ? withoutSamples(k, lsGet(slot('legacy', k))) : lsGet(slot(next, k))));
+      if (claimLegacy) lsSet(CLAIMED, next);
+      lsSet(slot(next, '_seen'), '1');
+      lsSet(OWNER, next);
+    }
+    if (isReal(u)) SCOPED.forEach(k => { const raw = lsGet(k), clean = withoutSamples(k, raw); if (clean !== raw) lsSet(k, clean); });
+    reloadCaches(next);
+  }
+
+  /* ── 2. Sample data: only for demo logins ──────────────────────── */
+  const SAMPLE_RATINGS = (typeof demoRatings !== 'undefined') ? demoRatings.map(r => ({ ...r })) : [];
+  const SAMPLE_LETTERS = (typeof _teenLetters !== 'undefined') ? _teenLetters.filter(l => /^lor-demo/.test(l.id)) : [];
+  function reviewsFor(u) {
+    if (!u || u.type !== 'teen') return [];
+    let list = [];
+    try { list = (window._getReviewsForTeen ? window._getReviewsForTeen(u.name) : []) || []; } catch (e) {}
+    return list.filter(r => r && r.stars).map(r => ({ from: r.employer || 'An employer', job: r.jobTitle || 'Job', stars: Number(r.stars) || 0, comment: r.text || '' }));
+  }
+  function applySampleGate(u) {
+    const real = isReal(u);
+    try {
+      if (typeof demoRatings !== 'undefined') {
+        if (real) { demoRatings.length = 0; reviewsFor(u).forEach(r => demoRatings.push(r)); }
+        else if (u && !demoRatings.length) SAMPLE_RATINGS.forEach(r => demoRatings.push({ ...r }));
+      }
+    } catch (e) {}
+    try {
+      if (typeof _teenLetters !== 'undefined' && real) { for (let i = _teenLetters.length - 1; i >= 0; i--) if (/^lor-demo/.test(_teenLetters[i].id)) _teenLetters.splice(i, 1); }
+    } catch (e) {}
+  }
+  // Letters a real teen uploads were kept in memory only and vanished on reload, although the app
+  // says "saved to your account". Keep them per account (device + cloud row "rec_letters").
+  let lettersSaved = null;
+  function useLettersOf(u) {
+    if (typeof _teenLetters === 'undefined' || !u) return;
+    const list = isReal(u) ? (u.type === 'teen' ? (() => { try { const v = _DB.load('rec_letters', []); return Array.isArray(v) ? v.filter(l => l && l.id && !/^lor-demo/.test(l.id)) : []; } catch (e) { return []; } })() : [])
+                           : SAMPLE_LETTERS.map(l => ({ ...l }));
+    _teenLetters.length = 0; list.forEach(l => _teenLetters.push(l));
+    lettersSaved = isReal(u) && u.type === 'teen' ? JSON.stringify(list) : null;
+  }
+  function saveLetters(u) {
+    if (lettersSaved == null || !isReal(u) || u.type !== 'teen') return;
+    const json = JSON.stringify(_teenLetters.filter(l => l && !/^lor-demo/.test(l.id)));
+    if (json === lettersSaved) return;
+    lettersSaved = json;
+    try { _DB.save('rec_letters', JSON.parse(json)); } catch (e) {}
+  }
+
+  /* ── 3. Lessons the account really completed ───────────────────── */
+  function knownLessonIds() {
+    const ids = new Set();
+    try { (window.lessonsData || []).forEach(l => l && l.id && ids.add(l.id)); } catch (e) {}
+    return ids;
+  }
+  function savedLessons(u) {
+    const set = new Set();
+    const add = a => { if (Array.isArray(a)) a.forEach(id => { if (typeof id === 'string' && id) set.add(id); }); };
+    try { add(_DB.load('lessons_completed', [])); } catch (e) {}
+    // lessons finished before this version were only recorded in the AI-coach profile
+    [u.id, u.dataKey, u.email, String(u.email || '').toLowerCase()].filter(Boolean).forEach(id => { const p = readJSON('tw_' + id + '_ai_profile', null); if (p) add(p.lessonsCompleted); });
+    return [...set];
+  }
+  function lessonCount(list) {
+    const known = knownLessonIds();
+    return new Set((list || []).filter(id => !known.size || known.has(id))).size;
+  }
+  function storeLessons(list) {
+    try { _DB.save('lessons_completed', list); } catch (e) {}
+    lsSet('tw_lessons_completed', String(lessonCount(list)));
+  }
+  // At sign-in: the saved list only (anything already in memory belongs to the previous session).
+  // After the cloud copy is pulled: saved + what was finished since, then written back.
+  // Nothing is written to the cloud before that pull, so a shorter device list never replaces it.
+  function restoreLessons(u, afterSync) {
+    if (!isReal(u) || u.type !== 'teen' || typeof userActivity === 'undefined') return;
+    const list = afterSync ? [...new Set(savedLessons(u).concat(userActivity.lessonsCompleted || []))] : savedLessons(u);
+    userActivity.lessonsCompleted = list;
+    lsSet('tw_lessons_completed', String(lessonCount(list)));
+    if (afterSync && list.length) storeLessons(list);
+  }
+  const _oTrack = window.trackActivity;
+  if (typeof _oTrack === 'function') {
+    window.trackActivity = function (type) {
+      const r = _oTrack.apply(this, arguments);
+      try {
+        const u = me();
+        if (type === 'lesson_complete' && isReal(u) && u.type === 'teen' && typeof userActivity !== 'undefined')
+          setTimeout(() => { const list = [...new Set(savedLessons(u).concat(userActivity.lessonsCompleted || []))]; userActivity.lessonsCompleted = list; storeLessons(list); }, 0);
+      } catch (e) {}
+      return r;
+    };
+  }
+  // the cloud copy arrives after the dashboard opens: merge it in and redraw
+  const _oSync = window._syncUserData;
+  let syncCalled = false;
+  if (typeof _oSync === 'function') {
+    window._syncUserData = async function () {
+      syncCalled = true;
+      const r = await _oSync.apply(this, arguments);
+      try {
+        const u = me();
+        if (isReal(u) && u.type === 'teen') {
+          const before = (userActivity.lessonsCompleted || []).length;
+          restoreLessons(u, true);
+          const untouched = lettersSaved != null && JSON.stringify(_teenLetters) === lettersSaved;
+          if (untouched) useLettersOf(u);
+          if ((userActivity.lessonsCompleted || []).length !== before || untouched) redrawTeen();
+        }
+      } catch (e) {}
+      return r;
+    };
+  }
+
+  /* ── 4. The teen's real work record ────────────────────────────── */
+  function joinedAt(u) {
+    const ok = t => { const n = typeof t === 'number' ? t : Date.parse(t); return n && n > Date.UTC(2020, 0, 1) && n <= Date.now() + 864e5 ? n : 0; };
+    let t = ok(u.created) || ok(u.createdAt) || ok(u.signupDate);
+    if (!t) { try { const all = _twLocalAccounts() || {}; const a = all[acctKey(u)] || all[String(u.email || '').toLowerCase()]; t = ok(a && a.created); } catch (e) {} }
+    if (!t) { const k = 'tw_' + acctKey(u).replace(/[^a-z0-9]/gi, '_') + '_first_seen'; t = ok(Number(lsGet(k))); if (!t) { t = Date.now(); lsSet(k, String(t)); } }
+    return t;
+  }
+  function timeOnApp(t) {
+    const days = Math.floor((Date.now() - t) / 864e5);
+    if (days < 1) return 'Today';
+    if (days < 31) return days + ' day' + (days === 1 ? '' : 's');
+    const months = Math.floor(days / 30.44);
+    if (months < 12) return months + ' month' + (months === 1 ? '' : 's');
+    const y = Math.floor(months / 12), m = months % 12;
+    return y + ' yr' + (y > 1 ? 's' : '') + (m ? ' ' + m + ' mo' : '');
+  }
+  const TASKS = { 'yard work': 'Yard Work', 'pet care': 'Pet Care', cleaning: 'Cleaning', babysitting: 'Babysitting', 'tech help': 'Tech Help', other: 'Other' };
+  function weekKey(d) { const x = new Date(d + (/^\d{4}-\d{2}-\d{2}$/.test(d) ? 'T12:00:00' : '')); if (isNaN(x)) return ''; const m = new Date(x); m.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return m.toISOString().slice(0, 10); }
+  function realStats(u) {
+    const log = readJSON('tw_worklog', []).filter(e => e && DEMO_FILTER.tw_worklog(e) && parseFloat(e.hours) > 0);
+    const ratings = (typeof demoRatings !== 'undefined' && isReal(u)) ? demoRatings.slice() : reviewsFor(u);
+    const totalHours = log.reduce((s, e) => s + (parseFloat(e.hours) || 0), 0);
+    const weeks = new Set(log.map(e => weekKey(String(e.date || ''))).filter(Boolean)).size;
+    const avg = ratings.length ? (ratings.reduce((s, r) => s + r.stars, 0) / ratings.length).toFixed(1) : null;
+    const reviews = ratings.filter(r => r.comment && r.comment.trim().length > 5);
+    const types = [...new Set(log.map(e => TASKS[e.task] || (e.task ? String(e.task) : '')).concat(ratings.map(r => r.job)).filter(Boolean))];
+    let badges = '';
+    try { badges = (teenGameState.badges || []).map(b => { const d = (typeof BADGES !== 'undefined' ? BADGES : []).find(x => x.id === (b.id || b)); return d ? d.label : (b.label || b.id || b); }).join(', '); } catch (e) {}
+    return {
+      totalRatings: ratings.length, avgRating: avg, fiveStars: ratings.filter(r => r.stars === 5).length, reviews,
+      weeksWorked: weeks, totalHours: parseFloat(totalHours.toFixed(1)), jobTypes: types,
+      lessonsCompleted: lessonCount(typeof userActivity !== 'undefined' ? userActivity.lessonsCompleted : []), badges,
+      bestReview: reviews.slice().sort((a, b) => b.stars - a.stars)[0], jobsCompleted: log.length,
+      joined: joinedAt(u), isEmpty: !log.length && !ratings.length,
+    };
+  }
+  const _oCompile = window._compileteenStatsForLOR;
+  window._compileteenStatsForLOR = function () {
+    const u = me();
+    if (!isReal(u)) return _oCompile ? _oCompile.apply(this, arguments) : {};
+    return realStats(u);
+  };
+
+  const _oBanner = window.renderTeenLORStatsBanner;
+  window.renderTeenLORStatsBanner = function () {
+    const u = me();
+    if (!isReal(u)) return _oBanner ? _oBanner.apply(this, arguments) : undefined;
+    const grid = document.getElementById('teen-lor-stats-grid');
+    const typesEl = document.getElementById('teen-lor-job-types');
+    const timeEl = document.getElementById('teen-lor-time-on-app');
+    if (!grid) return;
+    const s = realStats(u), onApp = timeOnApp(s.joined);
+    const fmtH = h => (Math.round(h * 10) / 10) + (h === 1 ? ' hr' : ' hrs');
+    const items = [
+      { label: 'Hours Worked', val: fmtH(s.totalHours), col: '#92400e', bg: '#fff7ed', border: '#fcd34d' },
+      { label: 'Weeks Active', val: s.weeksWorked, col: '#1e40af', bg: '#eff6ff', border: '#93c5fd' },
+      { label: 'Jobs Completed', val: s.jobsCompleted, col: '#166534', bg: '#f0fdf4', border: '#86efac' },
+      { label: 'Avg Rating', val: s.avgRating ? s.avgRating + ' ★' : '—', col: '#7c3aed', bg: '#fdf4ff', border: '#d8b4fe' },
+      { label: '5-Star Reviews', val: s.fiveStars, col: '#b45309', bg: '#fefce8', border: '#fde047' },
+      { label: 'Time on App', val: onApp, col: '#0f766e', bg: '#f0fdfa', border: '#6ee7b7' },
+      { label: 'Lessons Done', val: s.lessonsCompleted, col: '#1a5276', bg: '#dbeafe', border: '#93c5fd' },
+    ];
+    grid.innerHTML = items.map(i => `
+    <div style="background:${i.bg};border:1.5px solid ${i.border};border-radius:12px;padding:.75rem 1rem;text-align:center">
+      <div style="font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;color:${i.col};line-height:1">${esc(i.val)}</div>
+      <div style="font-size:.68rem;font-weight:700;color:${i.col};opacity:.75;text-transform:uppercase;letter-spacing:.4px;margin-top:3px">${i.label}</div>
+    </div>`).join('');
+    if (typesEl) {
+      typesEl.innerHTML = s.jobTypes.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+             <span style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-right:2px">Job Types:</span>
+             ${s.jobTypes.map(j => `<span style="background:var(--green-pale);color:var(--green);border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:700">${esc(j)}</span>`).join('')}
+           </div>`
+        : `<div data-tw-empty="work-record" style="background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:.65rem .9rem;font-size:.8rem;color:var(--muted);line-height:1.5">
+             ${s.isEmpty ? '🌱 Nothing logged yet, and that\'s fine. ' : ''}When you finish a job, add your hours in <strong>Work → Hours</strong>. Your hours, weeks and job types fill in here, and reviews from employers add your rating.
+             <div style="margin-top:.45rem"><button type="button" class="btn-sm btn-ai" style="font-size:.72rem" onclick="if(typeof switchDashTab==='function')switchDashTab(null,'ttab-worklog')">⏱️ Log hours</button></div>
+           </div>`;
+    }
+    if (timeEl) {
+      const since = new Date(s.joined).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      timeEl.innerHTML = `<span style="font-size:.75rem;color:var(--muted)">Member since ${esc(since)} · ${onApp === 'Today' ? 'joined today' : esc(onApp) + ' on TeenWork'}</span>`;
+    }
+  };
+
+  const UPLOAD_BOX = `
+    <div data-tw-upload="1" style="border:2px dashed var(--border);border-radius:14px;padding:1rem 1.2rem;margin-top:.4rem;background:var(--bg)">
+      <div style="font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:.4rem">📤 Upload a Letter You Already Have</div>
+      <p style="font-size:.79rem;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Have a letter from a teacher, coach, or employer not on TeenWork? Upload it here to keep everything in one place.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <label style="background:var(--purple);color:#fff;border-radius:8px;padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-block">
+          📎 Choose File
+          <input type="file" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="teenUploadLetter(this)">
+        </label>
+        <span id="teen-upload-name" style="font-size:.8rem;color:var(--muted)">No file selected</span>
+      </div>
+      <div id="teen-upload-alert" style="margin-top:.6rem"></div>
+    </div>`;
+  const _oLetters = window.renderTeenLettersPanel;
+  window.renderTeenLettersPanel = function () {
+    const r = _oLetters ? _oLetters.apply(this, arguments) : undefined;
+    try {
+      const u = me();
+      if (isReal(u) && u.type === 'teen') {
+        const wrap = document.getElementById('teen-letters-inner');
+        if (wrap && !wrap.querySelector('input[type=file]')) wrap.insertAdjacentHTML('beforeend', UPLOAD_BOX);   // the app only drew it when letters existed
+        saveLetters(u);
+      }
+    } catch (e) {}
+    return r;
+  };
+
+  /* ── 5. Employer: Worker Performance Report ─────────────────────── */
+  const _oEmpStats = window.renderEmpStatsDashboard;
+  window.renderEmpStatsDashboard = function () {
+    const u = me();
+    if (!isReal(u)) { realHide(document.getElementById('emp-stats-gen-btn'), false); return _oEmpStats ? _oEmpStats.apply(this, arguments) : undefined; }
+    const cards = document.getElementById('emp-stats-cards'); if (!cards) return;
+    cards.innerHTML = `<div data-tw-empty="worker-report" style="grid-column:1/-1;text-align:center;padding:1.6rem 1rem;color:var(--muted);background:var(--card);border:1.5px dashed var(--border);border-radius:14px">
+      <div style="font-size:2rem;margin-bottom:.5rem">📊</div>
+      <div style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:.3rem">No worker records yet</div>
+      <div style="font-size:.84rem;line-height:1.5">When you hire a teen and rate their work, their hours, ratings and reviews show up here.</div></div>`;
+    const jobsRow = document.getElementById('emp-stats-jobs-row'); if (jobsRow) jobsRow.innerHTML = '';
+    const rev = document.getElementById('emp-stats-reviews'); if (rev) rev.innerHTML = '';
+    realHide(document.getElementById('emp-stats-gen-btn'), true);
+  };
+
+  /* ── 6. Parent: Ratings tab ─────────────────────────────────────── */
+  const _oRatings = window.renderRatings;
+  window.renderRatings = function () {
+    const r = _oRatings ? _oRatings.apply(this, arguments) : undefined;
+    try {
+      const u = me(), real = isReal(u);
+      const tab = document.getElementById('ptab-ratings');
+      if (tab) {
+        realText(tab.querySelector('.panel .panel-head h2'), real, 'Your Teen\'s Ratings & Feedback');
+        realText(tab.querySelector('#rating-suggestions-panel .badge'), real, 'Tips for your teen');
+        // its prompt has the sample ratings written into it
+        realHide(tab.querySelector('.panel .panel-head .btn-ai'), real);
+      }
+      if (!real) return r;
+      const list = document.getElementById('ratings-list');
+      if (list && !demoRatings.length) list.innerHTML = '<div data-tw-empty="ratings" style="text-align:center;padding:1.6rem 1rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:.5rem">⭐</div><div style="font-weight:700;color:var(--text);margin-bottom:.3rem">No ratings yet</div><div style="font-size:.84rem">When an employer rates your teen after a job, it shows up here.</div></div>';
+    } catch (e) {}
+    return r;
+  };
+
+  /* ── 7. "Learn how to ask for one" → the References lesson ──────── */
+  const _oOpen = window.openLesson;
+  if (typeof _oOpen === 'function') {
+    window.openLesson = function (id) {
+      const r = _oOpen.apply(this, arguments);
+      if (id === 'future_jobs_lor' && !document.getElementById('tw34l')) return _oOpen.call(this, 'references');
+      return r;
+    };
+  }
+
+  /* ── 8. Hook into sign-in ───────────────────────────────────────── */
+  function redrawTeen() {
+    try { if (typeof window.renderLessonsGrid === 'function') window.renderLessonsGrid(); } catch (e) {}
+    try { if (document.getElementById('ttab-letters')?.classList.contains('active')) window.renderTeenLettersPanel(); } catch (e) {}
+  }
+  function prepare() {
+    const u = me(); if (!u) return;
+    useDeviceDataOf(u);
+    useLettersOf(u);
+    applySampleGate(u);
+    restoreLessons(u);
+    if (isReal(u) && u.type === 'teen') {
+      try { teenGameState.hoursWorked = parseFloat(readJSON('tw_worklog', []).reduce((s, e) => s + (parseFloat(e.hours) || 0), 0).toFixed(1)); } catch (e) {}
+    }
+  }
+  const _oLaunch = window.launchDashboard;
+  window.launchDashboard = function () {
+    try { prepare(); } catch (e) { console.warn('real-stats prepare failed', e); }
+    syncCalled = false;
+    const r = _oLaunch ? _oLaunch.apply(this, arguments) : undefined;
+    try {
+      const u = me();
+      if (isReal(u)) {
+        applySampleGate(u); setTimeout(redrawTeen, 200);
+        // a teen still waiting for a parent link stops before the dashboard's own cloud sync
+        if (!syncCalled && u.type === 'teen' && typeof window._syncUserData === 'function') window._syncUserData();
+      }
+    } catch (e) {}
+    return r;
+  };
+  window._twRealStats = { stats: () => realStats(me()), owner: () => lsGet(OWNER), isReal: () => isReal(me()) };
 })();
 </script>
 

@@ -1,0 +1,4 @@
+# TeenWork is a single HTML page, so there is nothing to build.
+[build]
+  publish = "."
+  command = ""

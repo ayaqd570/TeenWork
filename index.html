@@ -6177,7 +6177,7 @@ async function doSignup() {
              : (selectedType === 'parent' ? (document.getElementById('su-dob')?.value || '') : '');
   const _existing = _twAccountsForEmail(email).filter(a => a.hash);   // v41: a copy without a password is decided by the cloud
   const _rules = _twAdminRules();
-  const _maxAccts = _rules.maxAccountsPerEmail || 5;
+  const _maxAccts = (window._twIsTesterEmail && window._twIsTesterEmail(email)) ? Infinity : (_rules.maxAccountsPerEmail || 5);   // v44: tester emails have no limit
   const _stopSignup = msg => { btn.disabled = false; btn.textContent = 'Create Account'; showAlert('su-alert', msg); };
   if (_existing.length) {
     // v39: the admin can allow specific emails or domains (Admin → 📧 Email Rules) to own more than one account.
@@ -6438,7 +6438,7 @@ function launchDashboard() {
     const linkState = currentUser?.parentLinked?.status;
     // First sign-in: ask (the screen has a Skip button). After that: approved = full access,
     // skipped / pending = the app opens in limited mode (see the v35 linking script).
-    if (!isDemo && !linkState) { showParentLockScreen(); return; }
+    if (!isDemo && !linkState && !(window._twIsTesterUser && window._twIsTesterUser(currentUser))) { showParentLockScreen(); return; }   // v44: tester accounts skip it
   }
 
   // Populate profile fields from currentUser so real accounts don't show demo data
@@ -25233,7 +25233,7 @@ function _styleRateFAB() {
     var l = linkOf(em(me())) || me().parentLinked || null;
     return (l && l.status) || 'none';
   }
-  function isLimited() { return isTeen() && teenStatus() !== 'approved'; }
+  function isLimited() { return isTeen() && teenStatus() !== 'approved' && !(window._twIsTesterUser && window._twIsTesterUser(me())); }   // v44: tester accounts are never limited
   function linkInfo() { return linkOf(em(me())) || me().parentLinked || {}; }
 
   function teenCodeFor(email) {
@@ -27767,19 +27767,29 @@ function _styleRateFAB() {
    usage policy allows searches a person asks for but forbids
    search-as-you-type, so it is never called while typing.
    addressAutocomplete() / selectAddress() from the old Nominatim code route here.
+
+   ZIP codes (fixed 2026-10-16 after Aya got a wrong one): OpenStreetMap only
+   knows a ZIP for sure when it has that exact house. For a street, its ZIP is
+   an estimate that can be off near ZIP borders, so it is never used. After a
+   pick with a house number, the ZIP comes from the US Census Bureau's address
+   list (geocoding.geo.census.gov, free, no key; it has no CORS, so it is called
+   the way it documents for browsers, JSONP). When neither has it, the ZIP box
+   is left empty and asks for it, rather than guessing.
    ════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
   if (window.TWAddress) return;
   var api = window.TWAddress = { picking: false };
 
-  var PHOTON_SEARCH = 'https://photon.komoot.io/api/', PHOTON_REVERSE = 'https://photon.komoot.io/reverse';
-  var OSM_SEARCH = 'https://nominatim.openstreetmap.org/search', OSM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
+  var PHOTON_SEARCH = 'https://photon.komoot.io/api/';
+  var OSM_SEARCH = 'https://nominatim.openstreetmap.org/search';
+  var CENSUS = 'https://geocoding.geo.census.gov/geocoder/locations/onelineaddress';
   var US_BBOX = '-180,15,-60,72';   // the US incl. Alaska and Hawaii; Canada/Mexico hits are dropped below
   var WAIT_MS = 300, MIN_CHARS = 4, MAX_SHOWN = 6;
   var PHOTON_LIMIT_MS = 4000;    // suggestions that take longer than this count as "not loading"
   var PHOTON_REST_MS = 90000;    // after a failure, skip suggestions for this long and go straight to "Find"
   var LOOKUP_LIMIT_MS = 8000;    // any other request
+  var ZIP_LIMIT_MS = 7000;       // the Census ZIP check
   var photonRestUntil = 0, osmNextAt = 0;
 
   // street input id → the fields a pick fills in
@@ -27817,6 +27827,7 @@ function _styleRateFAB() {
     '.tw-addr-row-sm select{background:#fff}html.dark .tw-addr-row-sm select{background:var(--card)}' +
     '.city-dropdown.tw-addr-drop{max-height:290px}' +
     'html.dark .city-dropdown.tw-addr-drop{background:var(--card)}' +
+    '.tw-addr-ask{border-color:#d97706!important}' +
     '.tw-addr-flash{background-color:var(--green-pale)!important;transition:background-color .9s ease}';
   (document.head || document.documentElement).appendChild(css);
 
@@ -27879,7 +27890,7 @@ function _styleRateFAB() {
       s.street = ((s.num || lead) ? (s.num || lead) + ' ' : '') + s.road;
       delete s.road; delete s.num;
       var key = (s.street + '|' + s.city + '|' + s.state).toLowerCase();   // one row per street, not per OSM segment
-      if (seen[key]) { if (!seen[key].zip && s.zip) seen[key].zip = s.zip; return; }
+      if (seen[key]) return;
       seen[key] = s; out.push(s);
     });
     return out.slice(0, MAX_SHOWN);
@@ -27889,8 +27900,9 @@ function _styleRateFAB() {
     return collect(features, typed, function (f) {
       var p = (f && f.properties) || {}, c = (f && f.geometry && f.geometry.coordinates) || [];
       if (String(p.countrycode || '').toUpperCase() !== 'US') return null;
+      // a street's ZIP is OSM's estimate for the whole street, so only an exact house keeps its ZIP
       return { road: p.street || ((p.osm_key === 'highway' || p.type === 'street') ? p.name : ''), num: p.housenumber || '',
-        city: p.city || (p.osm_key === 'place' ? p.name : '') || '', state: stateName(p.state), zip: zip5(p.postcode),
+        city: p.city || (p.osm_key === 'place' ? p.name : '') || '', state: stateName(p.state), zip: p.housenumber ? zip5(p.postcode) : '',
         lon: c[0] == null ? null : c[0], lat: c[1] == null ? null : c[1] };
     });
   }
@@ -27900,7 +27912,7 @@ function _styleRateFAB() {
       var a = (x && x.address) || {};
       if (String(a.country_code || '').toLowerCase() !== 'us') return null;
       return { road: a.road || a.pedestrian || a.footway || a.path || '', num: a.house_number || '',
-        city: a.city || a.town || a.village || a.hamlet || a.municipality || '', state: stateName(a.state), zip: zip5(a.postcode),
+        city: a.city || a.town || a.village || a.hamlet || a.municipality || '', state: stateName(a.state), zip: a.house_number ? zip5(a.postcode) : '',
         lon: x.lon == null ? null : +x.lon, lat: x.lat == null ? null : +x.lat, via: 'osm' };
     });
   }
@@ -28038,35 +28050,68 @@ function _styleRateFAB() {
     });
   }
 
-  // OSM street results often have no ZIP: ask what's at that spot and take the nearest US ZIP.
-  function photonZip(s) {
-    return fetchJSON(PHOTON_REVERSE + '?lon=' + s.lon + '&lat=' + s.lat + '&limit=10&lang=en', null, PHOTON_LIMIT_MS).then(function (data) {
-      var z = '';
-      ((data && data.features) || []).some(function (f) {
-        var p = (f && f.properties) || {};
-        if (String(p.countrycode || '').toUpperCase() === 'US' && zip5(p.postcode)) { z = zip5(p.postcode); return true; }
-        return false;
-      });
-      return z;
+  // ── ZIP from the US Census Bureau's address list ───────────────────
+  // JSONP: the service has no CORS. A late answer lands in a no-op instead of an error.
+  var jsonpSeq = 0;
+  function jsonp(url, limitMs) {
+    return new Promise(function (ok, fail) {
+      var name = '__twAddrZip' + (++jsonpSeq) + '_' + Date.now().toString(36), tag = document.createElement('script'), done = false;
+      var finish = function (err, data) {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        window[name] = function () {};
+        if (tag.parentNode) tag.parentNode.removeChild(tag);
+        if (err) fail(err); else ok(data);
+      };
+      var timer = setTimeout(function () { finish(new Error('no answer within ' + limitMs + ' ms')); }, limitMs);
+      window[name] = function (data) { finish(null, data); };
+      tag.onerror = function () { finish(new Error('could not reach the service')); };
+      tag.async = true;
+      tag.src = url + (url.indexOf('?') < 0 ? '?' : '&') + 'callback=' + name;
+      (document.head || document.documentElement).appendChild(tag);
     });
   }
-  function osmZip(s) {
-    return osmTurn().then(function () {
-      return fetchJSON(OSM_REVERSE + '?format=jsonv2&addressdetails=1&zoom=18&lat=' + s.lat + '&lon=' + s.lon);
-    }).then(function (x) { return zip5(x && x.address && x.address.postcode); });
+  // '' when the Census list has no match or its matches disagree
+  function censusZip(s) {
+    var where = [s.street, s.city, ABBR[String(s.state).toLowerCase()] || s.state].filter(Boolean).join(', ');
+    return jsonp(CENSUS + '?address=' + encodeURIComponent(where) + '&benchmark=Public_AR_Current&format=jsonp', ZIP_LIMIT_MS).then(function (data) {
+      var m = (data && data.result && data.result.addressMatches) || [];
+      var zips = m.map(function (x) { return zip5(x && x.addressComponents && x.addressComponents.zip); }).filter(Boolean);
+      if (!zips.length) return '';
+      if (zips.every(function (z) { return z === zips[0]; })) return zips[0];
+      var city = String(s.city || '').toLowerCase();
+      var same = m.filter(function (x) { return String((x.addressComponents || {}).city || '').toLowerCase() === city; });
+      return same.length === 1 ? zip5(same[0].addressComponents.zip) : '';
+    });
   }
-  function lookupZip(zipEl, s) {
-    if (s.lat == null || s.lon == null) return;
-    var before = zipEl.placeholder;
-    zipEl.placeholder = 'Looking up…';
-    var viaOsm = s.via === 'osm' || Date.now() < photonRestUntil;
-    (viaOsm ? osmZip(s) : photonZip(s).catch(function (err) { note('ZIP lookup via photon failed, trying nominatim', err); return osmZip(s); })).then(function (z) {
-      if (z && !String(zipEl.value || '').trim()) {
-        setField(zipEl, z);
-        api.picking = true;   // quietly joins the address that was just saved
-        try { zipEl.dispatchEvent(new Event('change', { bubbles: true })); } finally { api.picking = false; }
-      }
-    }).catch(function () {}).then(function () { zipEl.placeholder = before; });
+  function quietChange(el) {   // lets the field's own hooks see the new value without another "saved" toast
+    api.picking = true;
+    try { el.dispatchEvent(new Event('change', { bubbles: true })); } finally { api.picking = false; }
+  }
+  function placeholder(el, text) {
+    if (!el.hasAttribute('data-addr-ph')) el.setAttribute('data-addr-ph', el.placeholder || '');
+    el.placeholder = text == null ? el.getAttribute('data-addr-ph') : text;
+  }
+  function askZip(zipEl) {
+    if (String(zipEl.value || '').trim()) return;
+    placeholder(zipEl, 'Type your ZIP');
+    zipEl.classList.add('tw-addr-ask');
+  }
+  // After a pick: confirm or find the ZIP for that exact house number.
+  function checkZip(input, zipEl, s) {
+    var r = run(input), seq = r.zipSeq = (r.zipSeq || 0) + 1;
+    zipEl.classList.remove('tw-addr-ask');
+    placeholder(zipEl, null);
+    if (!/^\d/.test(s.street)) { if (!s.zip) askZip(zipEl); return; }   // no house number: the ZIP can't be pinned down
+    if (!s.zip) placeholder(zipEl, 'Looking up…');
+    censusZip(s).then(function (z) { return z; }, function (err) { note('ZIP check failed (geocoding.geo.census.gov)', err); return ''; }).then(function (z) {
+      if (seq !== r.zipSeq) return;   // another address was picked since
+      placeholder(zipEl, null);
+      var now = String(zipEl.value || '').trim(), ours = now === '' || now === zipEl.getAttribute('data-addr-filled');
+      if (z && ours) {
+        if (now !== z) { setField(zipEl, z); quietChange(zipEl); }
+      } else if (!z && !s.zip) askZip(zipEl);
+    });
   }
 
   // ── filling the form ───────────────────────────────────────────────
@@ -28113,15 +28158,19 @@ function _styleRateFAB() {
       var cityEl = $(c.city);
       fill(cityEl, s.city);
       if (cityEl) { var cd = cityEl.parentElement && cityEl.parentElement.querySelector('.city-dropdown'); if (cd) cd.style.display = 'none'; }
-      fill($(c.zip), s.zip);
+      fill($(c.zip), s.zip);   // an exact house's ZIP, or clears the one an earlier pick put there
     } finally { api.picking = false; }
     input.dispatchEvent(new Event('change', { bubbles: true }));   // e.g. the profile panel saves the address
     var zipEl = $(c.zip);
-    if (zipEl && !s.zip) lookupZip(zipEl, s);
+    if (zipEl) checkZip(input, zipEl, s);
   }
 
   // ── events (delegated, so forms added later work too) ──────────────
-  document.addEventListener('input', function (e) { if (isStreetInput(e.target)) onInput(e.target); }, true);
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (isStreetInput(el)) onInput(el);
+    else if (el && el.classList && el.classList.contains('tw-addr-ask')) el.classList.remove('tw-addr-ask');
+  }, true);
   document.addEventListener('keydown', function (e) {
     var input = e.target;
     if (!isStreetInput(input)) return;
@@ -28179,8 +28228,8 @@ function _styleRateFAB() {
     if (v('profile-city') !== null) next.city = v('profile-city');
     if (v('profile-state') !== null) next.state = v('profile-state');
     try { if (typeof _userAddress === 'object' && _userAddress) Object.assign(_userAddress, next); } catch (e) {}
-    if (api.picking) return;
     var sig = JSON.stringify(next);
+    if (api.picking) { lastSaved = sig; return; }   // a fill in progress, or the ZIP check refining what was just saved
     if (sig === lastSaved) return;
     lastSaved = sig;
     try { showToast('📍 Address saved (private — only used for distance)', 'success'); } catch (e) {}
@@ -29788,6 +29837,210 @@ function _styleRateFAB() {
   });
 
   window._twRealData = { linkedTeens: () => pTeens.map(t => Object.assign({}, t)), syncParent: () => syncParent(true), syncTeen, isReal: () => isReal(me()), newCode };
+})();
+</script>
+
+<script id="tester-accounts-v44">
+/* ═══════════════════════════════════════════════════════════════════
+   v44 · TESTER ACCOUNTS  (2026-10-16, Aya's request)
+   "allow unlimited accounts with ayaquarrierdraper@gmail.com email and
+    they dont require parent linking so i can test app"
+   Tester emails = ayaquarrierdraper@gmail.com and every Gmail spelling
+   that lands in the same inbox: ayaquarrierdraper+anything@gmail.com,
+   dots anywhere before the @, and @googlemail.com.
+   • Same email: no limit on how many accounts it can own, and no admin
+     Email Rule is needed. Extra accounts share that email's password, and
+     sign-in shows the "Which account?" list (which now scrolls).
+   • +name addresses are separate emails, so each one is its own Supabase
+     user with its own password. Best when making lots of accounts.
+   • Teen tester accounts skip the "Link a parent" screen and limited mode:
+     applying, messaging and logging work are open. Linking a parent still
+     works from Profile, to test it. While no parent is linked, a tester's
+     job applications go straight to the employer.
+   • A "🧪 Tester" pill shows in the dashboard header.
+   Tester accounts are otherwise real accounts: no sample data, saved in
+   the cloud like everyone else's. Demo logins and the admin are unchanged.
+   apply-tester-accounts.py also makes three one-line edits that call into
+   this block: the parent-link gate in launchDashboard, isLimited() in the
+   v35 linking script, and the per-email account limit in doSignup.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.__twTester44) return;
+  window.__twTester44 = true;
+
+  const TESTER_INBOXES = ['ayaquarrierdraper@gmail.com'];
+  const ROLES = ['teen', 'parent', 'employer'];
+  const me = () => window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+
+  // The inbox an address really reaches. Gmail ignores dots and anything after "+".
+  function inboxOf(email) {
+    let e = String(email || '').trim().toLowerCase().split('#')[0];   // "email#2" = an extra account's data key
+    const at = e.lastIndexOf('@');
+    if (at < 1) return '';
+    let local = e.slice(0, at), dom = e.slice(at + 1);
+    if (dom === 'gmail.com' || dom === 'googlemail.com') { local = local.split('+')[0].replace(/\./g, ''); dom = 'gmail.com'; }
+    return local + '@' + dom;
+  }
+  const TESTERS = TESTER_INBOXES.map(inboxOf);
+  const isTesterEmail = email => { const i = inboxOf(email); return !!i && TESTERS.includes(i); };
+  const isTesterUser = u => !!(u && !u.isAdmin && !u.isDemo && ROLES.includes(u.type) && isTesterEmail(u.email));
+  window._twIsTesterEmail = isTesterEmail;
+  window._twIsTesterUser = isTesterUser;
+
+  /* ── 1. No limit on accounts per tester email ───────────────────── */
+  // doSignup asks this before it lets an email own a second account (the admin's Email Rules).
+  // The limit itself is lifted by the one-line doSignup edit (Infinity for tester emails).
+  const _oMulti = window._twEmailAllowsMultiple;
+  if (typeof _oMulti === 'function') window._twEmailAllowsMultiple = function (email) { return isTesterEmail(email) || _oMulti.apply(this, arguments); };
+  // Supabase keeps one user per email, so extra accounts share its password. A different password
+  // on a device whose copies of this email are all in the cloud would quietly make a device-only
+  // account; say "use the same password" instead.
+  const _oCloudSignUp = window._twCloudSignUp;
+  if (typeof _oCloudSignUp === 'function') window._twCloudSignUp = async function (email) {
+    const r = await _oCloudSignUp.apply(this, arguments);
+    if (r && r.status === 'local' && r.why === 'not-in-cloud' && isTesterEmail(email)) {
+      const mine = (typeof window._twAccountsForEmail === 'function' ? window._twAccountsForEmail(email) : []).filter(a => a.hash);
+      if (mine.length && mine.every(a => a.cloud)) return { status: 'exists', why: 'password' };
+    }
+    return r;
+  };
+
+  /* ── 2. No parent link needed ───────────────────────────────────── */
+  // The lock screen and limited mode are skipped by the two one-line edits. Applications still
+  // wait for a parent's OK when the tester has linked one, so that flow can be tested too.
+  function linkStatus(u) {
+    let l = null;
+    try { l = (JSON.parse(localStorage.getItem('tw_parent_links') || '{}') || {})[String(u.email || '').toLowerCase()] || null; } catch (e) {}
+    return ((l || u.parentLinked || {}).status) || 'none';
+  }
+  const testerTeenWithoutParent = () => { const u = me(); return isTesterUser(u) && u.type === 'teen' && linkStatus(u) !== 'approved'; };
+
+  function wrapApply() {
+    const o = window.teenApply;   // wrapped once, at load; later wrappers (v35 gates) sit on top of this one
+    if (typeof o !== 'function' || o.__tw44) return;
+    const w = function () {
+      if (!testerTeenWithoutParent()) return o.apply(this, arguments);
+      let list = null; try { list = demoJobs; } catch (e) {}
+      const before = Array.isArray(list) ? list.slice() : null;
+      const _toast = window.showToast;
+      if (typeof _toast === 'function') window.showToast = function (msg) {
+        const a = [].slice.call(arguments);
+        if (/parent/i.test(String(msg)) && /review|approv/i.test(String(msg))) a[0] = '✅ Application sent to the employer. Tester account, so no parent approval is needed.';
+        return _toast.apply(this, a);
+      };
+      let r;
+      try { r = o.apply(this, arguments); } finally { if (typeof _toast === 'function') window.showToast = _toast; }
+      if (before) {
+        let n = 0;
+        list.forEach(j => { if (j && before.indexOf(j) < 0 && j.status === 'pending-approval') { j.status = 'applied'; j.parentApproved = true; j.testerNoParent = true; n++; } });
+        if (n) ['renderTeenApplications', 'renderAllApplications', 'renderBrowseJobs'].forEach(f => { try { if (typeof window[f] === 'function') window[f](); } catch (e) {} });
+      }
+      return r;
+    };
+    w.__tw44 = true;
+    window.teenApply = w;
+  }
+  wrapApply();
+
+  /* ── 3. Show that it's a tester account ─────────────────────────── */
+  const st = document.createElement('style');
+  st.id = 'tw44-tester-style';
+  st.textContent =
+    '.tw44-pill{display:inline-flex;align-items:center;gap:4px;margin-left:10px;vertical-align:middle;background:#ede9fe;color:#5b21b6;border:1.5px solid #c4b5fd;border-radius:999px;padding:2px 10px;font-family:"DM Sans",sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}' +
+    '.tw44-note{background:#ede9fe;color:#4c1d95;border-radius:10px;padding:9px 12px;font-size:.84rem;line-height:1.5;margin:0 0 10px}' +
+    'html.dark .tw44-pill{background:#2e1065;color:#ddd6fe;border-color:#6d28d9}' +
+    'html.dark .tw44-note{background:#2e1065;color:#ddd6fe}' +
+    // one email can now own many accounts: let the "Which account?" list scroll
+    '#tw-acct-chooser > div{max-height:calc(100vh - 2.4rem);max-height:calc(100dvh - 2.4rem);overflow-y:auto}';
+  document.head.appendChild(st);
+
+  function decorate() {
+    const u = me(), tester = isTesterUser(u);
+    document.querySelectorAll('.tw44-pill').forEach(p => { if (!tester || !p.closest('#page-' + u.type)) p.remove(); });
+    if (!tester) { document.querySelectorAll('.tw44-note').forEach(n => n.remove()); return; }
+    const h1 = document.querySelector('#page-' + u.type + ' .dash-header h1');
+    if (h1 && !h1.querySelector('.tw44-pill')) {
+      const p = document.createElement('span');
+      p.className = 'tw44-pill';
+      p.title = 'Tester account: as many as you like on this email, and no parent link needed.';
+      p.textContent = '🧪 Tester';
+      h1.appendChild(p);
+    }
+    const card = u.type === 'teen' ? document.getElementById('tw-link-card') : null;
+    if (card && !card.querySelector('.tw44-note')) {
+      const n = document.createElement('div');
+      n.className = 'tw44-note';
+      n.textContent = "🧪 Tester account: you don't need a parent link. You can still link one here to test it.";
+      const h3 = card.querySelector('h3');
+      if (h3 && h3.nextSibling) card.insertBefore(n, h3.nextSibling); else card.appendChild(n);
+    }
+  }
+
+  const _oLaunch = window.launchDashboard;
+  if (typeof _oLaunch === 'function') window.launchDashboard = function () {
+    const r = _oLaunch.apply(this, arguments);
+    [0, 120, 800, 1800].forEach(ms => setTimeout(() => { try { decorate(); } catch (e) {} }, ms));
+    return r;
+  };
+  setInterval(() => { try { decorate(); } catch (e) {} }, 1500);
+
+  window._twTester = { inboxOf, isTesterEmail, isTesterUser, inboxes: TESTER_INBOXES.slice() };
+})();
+</script>
+
+<script id="calendar-first-open-v44">
+/* ═══════════════════════════════════════════════════════════════════
+   v44 · CALENDARS DRAW THE FIRST TIME THEY OPEN  (2026-10-16, Aya's report)
+   Bug: the teen 📅 Calendar stayed blank (no month name, no days) until
+   ◀ or ▶ was pressed once. The employer 📅 Schedule week grid had the
+   same problem. Each calendar used to draw itself from a switchDashTab()
+   wrapper, but the later navfix-js block replaces window.switchDashTab
+   outright instead of wrapping it, so those wrappers never run.
+   Fix: watch each calendar panel and draw it whenever it becomes the open
+   section, whatever opened it (clean menu, old tab strip, app tour,
+   notification link). Nothing else changes.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.__twCalFirstOpenV44) return;
+  window.__twCalFirstOpenV44 = true;
+
+  const isReal = () => { try { return !!(window._twRealData && window._twRealData.isReal()); } catch (e) { return false; } };
+  // panel id → how to draw it (the same calls the lost switchDashTab wrappers made)
+  const DRAW = {
+    'ttab-calendar': () => { if (typeof window.calRender === 'function') window.calRender(); },
+    'etab-schedule': () => {
+      if (typeof window.renderEmpSchedGrid === 'function') window.renderEmpSchedGrid();
+      // the demo employer's sample chats can move shifts; real accounts have no sample chats
+      if (!isReal() && typeof window._empScanAllMsgsForEdits === 'function') window._empScanAllMsgsForEdits();
+    }
+  };
+  const isOn = cls => /(^|\s)active(\s|$)/.test(cls || '');
+
+  function watch(id) {
+    const panel = document.getElementById(id);
+    if (!panel) return false;
+    let queued = false;
+    const draw = () => {
+      queued = false;
+      if (!panel.classList.contains('active')) return;
+      try { DRAW[id](); } catch (e) { console.warn('calendar-first-open-v44: ' + id, e); }
+    };
+    // a panel "opens" when its class goes from not-active to active (re-picking the open tab redraws it too)
+    new MutationObserver(records => {
+      if (queued || !panel.classList.contains('active')) return;
+      if (records.some(r => !isOn(r.oldValue))) { queued = true; setTimeout(draw, 0); }
+    }).observe(panel, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+    if (panel.classList.contains('active')) draw();
+    return true;
+  }
+
+  function start() { Object.keys(DRAW).forEach(watch); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+
+  window._twCalFirstOpen = { draw: id => DRAW[id] && DRAW[id]() };
 })();
 </script>
 

@@ -49,8 +49,8 @@ const isLetter = (c: string | undefined) => !!c && c >= "a" && c <= "z";
 export function normalize(text: string): string {
   let s = String(text ?? "")
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[​-‏⁠﻿­]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u200b-\u200f\u2060\ufeff\u00ad]/g, "")
     .toLowerCase()
     .replace(/[а-яёіјѕԁⅼ]/g, (c) => LOOKALIKES[c] ?? c)
     .replace(/['’‘`´]/g, "");

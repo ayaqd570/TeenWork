@@ -1584,11 +1584,6 @@ input:checked+.slider:before{transform:translateX(20px);}
             <h3 style="font-size:.95rem;font-weight:800;color:var(--green);margin:0 0 .3rem">Vermont Labor Law Compliance</h3>
             <p style="font-size:.82rem;color:var(--muted);margin:0;line-height:1.5">TeenWork automatically enforces Vermont child labor law hour limits by age. Work permits, hour caps, and restricted job types are flagged automatically.</p>
           </div>
-          <div style="background:#fff;border-radius:14px;padding:1rem 1.1rem;border:1.5px solid var(--green-light)">
-            <div style="font-size:1.5rem;margin-bottom:.4rem">🚨</div>
-            <h3 style="font-size:.95rem;font-weight:800;color:var(--green);margin:0 0 .3rem">One-Tap SOS &amp; Safe Word</h3>
-            <p style="font-size:.82rem;color:var(--muted);margin:0;line-height:1.5">Every teen has a one-tap emergency SOS button that alerts their parent immediately. A private Safe Word feature lets teens signal for help discreetly.</p>
-          </div>
         </div>
       </section>
 
@@ -25549,7 +25544,7 @@ function _styleRateFAB() {
 
   window.twWelcomeEmail = function (to, first, type) {
     var f = esc(first || 'there'), body;
-    if (type === 'teen') body = '<p>Hi ' + f + ',</p><p>Welcome to <b>TeenWork</b> — your account is ready! Here is how to get started:</p><ul style="padding-left:20px;"><li>Finish your profile so employers can get to know you</li><li>Take the short lessons on workplace rights and safety</li><li>Link a parent or guardian to unlock applying for jobs and messaging employers</li></ul><p>Until a parent is linked, you are in <b>limited mode</b>: you can look around, take lessons and build your profile.</p>';
+    if (type === 'teen') body = '<p>Hi ' + f + ',</p><p>Welcome to <b>TeenWork</b> — your account is ready! Here is how to get started:</p><ul style="padding-left:20px;"><li>Finish your profile so employers can get to know you</li><li>Take the short lessons on being a great worker</li><li>Link a parent or guardian to unlock applying for jobs and messaging employers</li></ul><p>Until a parent is linked, you are in <b>limited mode</b>: you can look around, take lessons and build your profile.</p>';
     else if (type === 'parent') body = '<p>Hi ' + f + ',</p><p>Welcome to <b>TeenWork</b> — your parent account is ready. You can link your teen, approve what they apply for, and keep an eye on their work.</p><ul style="padding-left:20px;"><li>Approve link requests from your teen</li><li>Review jobs and messages</li><li>Use your invite code option to link another teen at any time</li></ul>';
     else body = '<p>Hi ' + f + ',</p><p>Welcome to <b>TeenWork</b> — your employer account is ready. Post a job, set up your business profile, and meet local teens looking for safe, legal work.</p><ul style="padding-left:20px;"><li>Complete your business profile</li><li>Post your first job</li><li>Review the teen work rules for hours and duties</li></ul>';
     return window.twSendEmail(to, 'Welcome to TeenWork, ' + String(first || '').replace(/[<>]/g, '') + '! 🎉', body + btn('Open TeenWork'));
@@ -27404,7 +27399,7 @@ function _styleRateFAB() {
       intro = 'Hi ' + f + ', your account is ready! Here&rsquo;s how to get started:';
       steps = [
         { icon: '&#129489;&#8205;&#128188;', color: C.green, tint: C.greenPale, title: 'Finish your profile', text: 'So employers can get to know you.' },
-        { icon: '&#128737;&#65039;', color: C.blue, tint: C.bluePale, title: 'Take the safety lessons', text: 'Short lessons on your workplace rights and staying safe.' },
+        { icon: '&#128218;', color: C.blue, tint: C.bluePale, title: 'Learn to be a great worker', text: 'Short lessons on first impressions, teamwork, interviews, your first paycheck and more.' },
         { icon: '&#128106;', color: C.amber, tint: C.amberPale, title: 'Link a parent or guardian', text: 'This unlocks applying for jobs and messaging employers.' }
       ];
       note = callout('&#128274;', '<b style="color:' + C.amberText + ';">You&rsquo;re in limited mode for now.</b> Until a parent is linked, you can look around, take lessons and build your profile.', 'amber');

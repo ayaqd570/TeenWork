@@ -37342,6 +37342,8 @@ If there are no shifts, reply {"shifts":[]}`;
       sendForm: function () { if (SB) return Promise.resolve({ status: 200, text: 'OK (demo: nothing was sent)' }); return typeof sendForm === 'function' ? sendForm.apply(ej, arguments) : Promise.reject(new Error('sendForm missing')); },
       __tw49: true,
     });
+    // branded-email-v41 marks its wrapper with a hidden __twBranded flag; keep it, or it wraps again and a failed Resend send is tried twice
+    if (ej.__twBranded) { try { Object.defineProperty(w, '__twBranded', { value: true }); } catch (e) {} }
     try { window.emailjs = w; } catch (e) {}
   }
 

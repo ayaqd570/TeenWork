@@ -5,9 +5,11 @@ It is published on Netlify at https://ayaqdteenwork.netlify.app and every push t
 
 ## What's here
 
-- `index.html` – the app (currently TeenWork v45).
+- `index.html` – the app (currently TeenWork v47).
 - `netlify.toml` – tells Netlify there is no build step and to publish this folder as is.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase, not Netlify.
+- `supabase/functions/delete-account/` – the Supabase Edge Function behind "Delete my account" and the admin Danger zone (deploy with Verify JWT off). It uses only the keys Supabase provides itself.
+- `supabase/migrations/20261018_closed_accounts.sql` – the `closed_accounts` table the app reads to hide deleted accounts.
 - `robots.txt`, `sitemap.xml` – tell search engines they may read the site and where its one page is.
 - `favicon.ico`, `icon-192.png`, `apple-touch-icon.png`, `logo.png`, `og-image.png` – site icon, logo and the picture shown when a link is shared.
 

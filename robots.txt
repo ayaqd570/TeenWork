@@ -1,0 +1,5 @@
+# TeenWork: let every search engine read the whole site.
+User-agent: *
+Allow: /
+
+Sitemap: https://ayaqdteenwork.netlify.app/sitemap.xml

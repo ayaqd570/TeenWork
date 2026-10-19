@@ -30239,7 +30239,8 @@ function _styleRateFAB() {
         if (meta && !tag) { tag = document.createElement('span'); meta.insertBefore(tag, meta.firstChild); }
         if (tag) {
           tag.className = 'tag twjt-tag ' + (res.tier === 3 ? 't3' : 't2');
-          tag.textContent = res.tier === 3 ? '📋 Tier 3 · Work permit' : '👪 Tier 2 · Parent OK';
+          const tierText = res.tier === 3 ? '📋 Tier 3 · Work permit' : '👪 Tier 2 · Parent OK';
+          if (tag.textContent !== tierText) tag.textContent = tierText;   // in-app-review-v49: an unconditional write re-ran this watcher ~30 times a second
           tag.title = res.tier === 3 ? (job.permit && !(res.rule && res.rule.needed) ? 'The employer asks for a work permit.' : (res.rule && res.rule.note) || '') : 'Needs a parent\'s OK.';
         }
         if (isFarmJob(job) && meta && !card.querySelector('.twjt-farm')) { const f = document.createElement('span'); f.className = 'tag twjt-farm'; f.textContent = '🚜 Farm'; meta.appendChild(f); }
@@ -30785,6 +30786,10 @@ function _styleRateFAB() {
     'etab-analytics':    () => call('renderEmpAnalytics'),
     'etab-profile':      () => call('renderEmpProfileReviews'),
     'etab-bulkmsg':      () => call('empBulkFilter', 'all'),
+    // in-app-review-v49: the parent's home counts and Approve list read one list; Post a Job is in steps
+    'ptab-overview':     () => call('twReviewDraw', 'ptab-overview'),
+    'ptab-approvals':    () => call('twReviewDraw', 'ptab-approvals'),
+    'etab-post':         () => call('twReviewDraw', 'etab-post'),
   };
   // v45: money-hours-v44 redraws the Work Log too, so the friendly empty note is added after every draw
   const _oWorkLog = window.renderWorkLogTab;
@@ -37740,6 +37745,881 @@ If there are no shifts, reply {"shifts":[]}`;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
 </script>
+<script id="in-app-review-v49">
+/* ═══════════════════════════════════════════════════════════════════
+   in-app-review-v49 — the in-app half of Aya's review (2026-10-19)
+   "Make the trust promise easier to believe", in-app suggestions App 1–4.
+
+   App 1 · Parent approvals. The homepage "Parent Demo" button (_directDemo)
+     never loaded the sample applications that demoLogin loads, so the home
+     page's hard-coded "2 awaiting approval" sat next to an empty Approve
+     screen ("0 Pending"). Now both buttons load the same samples, and the
+     home cards, the Approve screen, the All Applications list and a count on
+     the Approve menu button all read one list (demoJobs: samples for demo
+     logins, the account's own applications for real parents). "Waiting for
+     your OK" (the parent's step) is kept apart from "With the employer".
+     The home card opens the Approve screen; its filters fold away so the
+     waiting jobs come first.
+   App 2 · Teen Find Jobs. The long labor-law paragraph becomes a short
+     summary for the teen's age and state, with the full rules folded below.
+     Each job card has one main action (Apply); Safety Check and Report stay
+     in view, and the other tools sit behind "More".
+   App 3 · Employer Post a Job. The long form is split into 4 steps with a
+     progress bar (The job → Where → Who and when → Preview), a draft that
+     saves as you type (real accounts: this device; demo: this visit only),
+     location-privacy and age/hours guidance beside those fields, and a
+     teen's-eye preview before Post job. Field ids are unchanged, so postJob
+     and the other blocks (landmarks, job tiers, AI writer) work as before.
+   App 4 · Toasts. The welcome toast skips demo logins whose app tour is about
+     to open (and one already showing is put away when the tour opens), toasts
+     sit above the phone menu bar, and a faded toast no longer blocks taps.
+   Per-section draws are in calendar-first-open-v44's DRAW map (ptab-overview,
+   ptab-approvals, etab-post → window.twReviewDraw). Real accounts never see
+   sample data: counts for real parents skip the sample ids 1–12.
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.__twInAppReviewV49) return;
+  window.__twInAppReviewV49 = true;
+
+  const $ = id => document.getElementById(id);
+  const me = () => window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+  const isDemoUser = u => !!(u && (u.isDemo || /\.demo$/i.test(String(u.email || ''))));
+  const isReal = u => !!(u && !isDemoUser(u) && /@/.test(String(u.email || '')));
+  // v49's empty practice demos (demo-sandbox-v49) look like a new real account, so they get real-account
+  // screens, but nothing from them is kept on the device
+  const isSandbox = u => { try { return !!(u && typeof window._twIsDemoSandboxUser === 'function' && window._twIsDemoSandboxUser(u)); } catch (e) { return false; } };
+  const keepsDraft = u => isReal(u) && !isSandbox(u);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const plural = (n, one, many) => n + ' ' + (n === 1 ? one : (many || one + 's'));
+  const later = (fn, ms) => setTimeout(() => { try { fn(); } catch (e) { console.warn('in-app-review-v49:', e); } }, ms || 0);
+  const setText = (el, t) => { if (el && el.textContent !== t) el.textContent = t; };
+  const firstName = s => String(s || '').trim().split(/\s+/)[0] || '';
+
+  // Wrap a global function once; keep other blocks' "already wrapped" marks so they don't wrap twice.
+  function wrapAfter(name, after) {
+    const o = window[name];
+    if (typeof o !== 'function' || o.__twr) return false;
+    const w = function () {
+      const r = o.apply(this, arguments);
+      try { after.apply(this, arguments); } catch (e) { console.warn('in-app-review-v49 ' + name + ':', e); }
+      return r;
+    };
+    Object.keys(o).forEach(k => { if (/^__tw/.test(k)) w[k] = o[k]; });
+    w.__twr = true;
+    window[name] = w;
+    return true;
+  }
+
+  const CSS = [
+    /* App 1 */
+    '#ptab-overview .stat-card.twr-link{cursor:pointer;transition:box-shadow .15s,transform .15s}',
+    '#ptab-overview .stat-card.twr-link:hover{box-shadow:0 6px 18px rgba(0,0,0,.10);transform:translateY(-1px)}',
+    '#ptab-overview .stat-card.twr-link:focus-visible{outline:3px solid var(--green);outline-offset:2px}',
+    '#ptab-overview .stat-card.twr-link .stat-sub{color:var(--green);font-weight:700}',
+    '.twr-count{display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 5px;border-radius:9px;background:#c2410c;color:#fff;font-size:.68rem;font-weight:800;text-align:center;box-sizing:border-box}',
+    '#twm-bottom .twm-tab{position:relative}',
+    '#twm-bottom .twr-count{position:absolute;top:2px;left:calc(50% + 6px)}',
+    '#twm-side .twr-count,#twm-sheet .twr-count{margin-left:auto}',
+    '#ptab-approvals .filters-bar.twr-fold:not(.twr-open){display:none}',
+    '.twr-filter-btn{background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:8px;padding:4px 10px;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;margin-left:auto}',
+    '.twr-filter-btn[aria-expanded="true"]{border-color:var(--green);color:var(--green)}',
+    '#ptab-approvals .panel-head{gap:8px;flex-wrap:wrap}',
+    '#approval-jobs .job-card.twr-flash{box-shadow:0 0 0 3px var(--green-light,#95d5b2);transition:box-shadow .6s}',
+    '.twr-empty-btn{background:none;border:none;color:var(--green);font-weight:700;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit}',
+    /* App 2 */
+    '#teen-state-rules-banner.twr-rules ul{margin:6px 0 4px;padding-left:18px}',
+    '#teen-state-rules-banner.twr-rules li{margin:2px 0;line-height:1.45}',
+    '#teen-state-rules-banner.twr-rules details{margin-top:4px}',
+    '#teen-state-rules-banner.twr-rules summary{cursor:pointer;font-weight:700;color:var(--blue,#1a5276);width:max-content;max-width:100%}',
+    '#teen-state-rules-banner.twr-rules details p{margin:6px 0 0;line-height:1.5}',
+    '.twr-rules-btn{background:none;border:none;padding:0;color:inherit;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}',
+    '.browse-actions.twr-acts{flex-direction:column;align-items:stretch;gap:8px}',
+    '.browse-actions.twr-acts > .twr-main{display:flex}',
+    '.browse-actions.twr-acts > .twr-main > button{flex:1 1 auto;font-size:.9rem;padding:10px 16px;min-height:42px}',
+    '.browse-actions.twr-acts > .twr-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}',
+    '.browse-actions.twr-acts > .twr-panel{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px dashed var(--border);border-radius:10px}',
+    '.browse-actions.twr-acts > .twr-panel[hidden]{display:none}',
+    '.twr-more-btn{background:var(--bg,#f6f3ee);color:var(--text);border:1px solid var(--border);font-size:.74rem}',
+    '@media (min-width:769px){.browse-actions.twr-acts > .twr-main > button{flex:0 0 auto;min-width:220px}}',
+    /* App 3 */
+    '.post-form.twr-steps .twr-progress{list-style:none;display:flex;gap:6px;margin:0 0 14px;padding:0;counter-reset:none}',
+    '.post-form.twr-steps .twr-progress li{flex:1 1 0;min-width:0}',
+    '.post-form.twr-steps .twr-progress button{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;color:var(--muted);text-align:left}',
+    '.post-form.twr-steps .twr-progress .twr-bar{display:block;width:100%;height:6px;border-radius:3px;background:var(--border)}',
+    '.post-form.twr-steps .twr-progress .twr-lab{font-size:.74rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+    '.post-form.twr-steps .twr-progress .done .twr-bar,.post-form.twr-steps .twr-progress [aria-current="step"] .twr-bar{background:var(--green)}',
+    '.post-form.twr-steps .twr-progress [aria-current="step"]{color:var(--green)}',
+    '.post-form.twr-steps .twr-progress .done{color:var(--text)}',
+    '.post-form.twr-steps .twr-step[hidden]{display:none}',
+    '.post-form.twr-steps .twr-h{font-family:"Fraunces",serif;font-size:1.02rem;color:var(--text);margin:0 0 4px;outline:none}',
+    '.post-form.twr-steps .twr-sub{font-size:.82rem;color:var(--muted);margin:0 0 12px;line-height:1.5}',
+    '.post-form.twr-steps .twr-guide{background:var(--green-pale,#e9f5ee);border:1px solid var(--green-light,#b7e4c7);color:var(--text);border-radius:10px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin:0 0 14px}',
+    '.post-form.twr-steps .twr-guide b{color:var(--green)}',
+    '.post-form.twr-steps .twr-warn{background:var(--amber-pale,#fff4e0);border:1px solid #f4b740;color:#7a4700;border-radius:10px;padding:9px 12px;font-size:.82rem;line-height:1.5;margin:-4px 0 14px}',
+    '.post-form.twr-steps .twr-warn[hidden]{display:none}',
+    '.post-form.twr-steps .twr-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:1rem;padding-top:12px;border-top:1px solid var(--border)}',
+    '.post-form.twr-steps .twr-nav .twr-next{margin-left:auto}',
+    '.post-form.twr-steps .twr-nav button{min-height:42px}',
+    '.post-form.twr-steps .twr-ghost{background:none;border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:8px 14px;font-family:inherit;font-size:.86rem;font-weight:700;cursor:pointer}',
+    '.post-form.twr-steps .twr-saved{font-size:.76rem;color:var(--muted);flex-basis:100%}',
+    '.post-form.twr-steps .twr-saved:empty{display:none}',
+    '@media (max-width:768px){.post-form.twr-steps .twr-nav .twr-next{order:-1;flex:1 1 100%;margin-left:0}.post-form.twr-steps .twr-nav .twr-ghost{flex:1 1 0}}',
+    '.post-form.twr-steps .twr-draft{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--bg,#f6f3ee);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:.82rem;margin:0 0 12px}',
+    '.post-form.twr-steps .twr-draft[hidden]{display:none}',
+    '.post-form.twr-steps .twr-post-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}',
+    '.post-form.twr-steps #emp-transport-options label{text-transform:none;letter-spacing:0;font-weight:600;margin:0}',
+    '.post-form.twr-steps #emp-transport-options input[type=checkbox]{width:auto;margin:0}',
+    '.twr-prev-head{font-weight:700;font-size:.9rem;color:var(--text);margin:0 0 4px}',
+    '.twr-prev-note{font-size:.8rem;color:var(--muted);margin:0 0 10px;line-height:1.5}',
+    '.twr-prev-card{background:var(--card,#fff);border:1px solid var(--border);border-radius:14px;padding:1rem;box-shadow:0 2px 10px rgba(0,0,0,.05)}',
+    '.twr-prev-card .twr-prev-actions{display:flex;margin-top:8px}',
+    '.twr-prev-card .twr-prev-actions button{flex:1 1 auto;opacity:.75;cursor:default}',
+    '.twr-prev-missing{color:var(--muted);font-style:italic}',
+    '.twr-checks{list-style:none;margin:12px 0 0;padding:0;font-size:.84rem;line-height:1.5}',
+    '.twr-checks li{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)}',
+    '.twr-checks li:last-child{border-bottom:none}',
+    '.twr-checks .twr-edit{margin-left:auto;background:none;border:none;color:var(--green);font-weight:700;cursor:pointer;font-family:inherit;font-size:.8rem;text-decoration:underline;white-space:nowrap}',
+    /* App 4 */
+    '#global-toast{pointer-events:none;box-sizing:border-box;width:max-content;max-width:calc(100vw - 32px);text-align:center}',
+    '@media (max-width:768px){body.twm-on #global-toast{bottom:calc(var(--twr-bar-h,62px) + 12px) !important}}'
+  ].join('\n');
+  function injectCss() {
+    if ($('in-app-review-v49-css')) return;
+    const st = document.createElement('style');
+    st.id = 'in-app-review-v49-css';
+    st.textContent = CSS;
+    document.head.appendChild(st);
+  }
+  injectCss();
+
+  /* ═══ 1. DEMO BUTTONS LOAD THE SAME SAMPLES AS demoLogin ═════════════ */
+  function wrapDirectDemo() {
+    const orig = window._directDemo;
+    if (typeof orig !== 'function' || orig.__twr) return;
+    if (window._twDemoSandbox) return;   // v49's empty demos start every demo from a clean slate themselves
+    const w = function (type) {
+      if (['teen', 'parent', 'employer'].indexOf(type) >= 0) {
+        try { if (typeof resetSessionState === 'function') resetSessionState(); } catch (e) { console.warn('in-app-review-v49 resetSessionState:', e); }
+      }
+      return orig.apply(this, arguments);
+    };
+    Object.keys(orig).forEach(k => { if (/^__tw/.test(k)) w[k] = orig[k]; });
+    w.__twr = true;
+    window._directDemo = w;
+  }
+
+  /* ═══ 2. PARENT: ONE LIST FOR HOME, APPROVE AND THE MENU ═════════════ */
+  const isSampleJob = j => !!j && typeof j.id === 'number' && j.id >= 1 && j.id <= 12;
+  const STATUS = {
+    'pending-approval': 'Waiting for your OK',
+    applied: 'With the employer',
+    accepted: 'Hired ✓',
+    rejected: 'Not chosen',
+    'parent-denied': 'You said no'
+  };
+  const asParent = () => { const u = me(); return u && u.type === 'parent' ? u : null; };
+  function parentApps() {
+    let list = [];
+    try { list = (typeof demoJobs !== 'undefined' && Array.isArray(demoJobs)) ? demoJobs.filter(Boolean) : []; } catch (e) { list = []; }
+    return isReal(me()) ? list.filter(j => !isSampleJob(j)) : list;
+  }
+  function counts() {
+    const a = parentApps(), by = s => a.filter(j => j.status === s).length;
+    return { all: a.length, waiting: by('pending-approval'), employer: by('applied'), hired: by('accepted'), closed: by('rejected') + by('parent-denied') };
+  }
+  function breakdown(c) {
+    const parts = [];
+    if (c.waiting) parts.push(c.waiting + ' waiting for you');
+    if (c.employer) parts.push(c.employer + ' with the employer');
+    if (c.hired) parts.push(c.hired + ' hired');
+    if (!parts.length && c.closed) parts.push(plural(c.closed, 'closed', 'closed'));
+    return parts.length ? parts.join(' · ') : 'None yet';
+  }
+
+  let homeObs = null;
+  function setCard(card, label, value, sub) {
+    if (!card) return;
+    setText(card.querySelector('.stat-label'), label);
+    setText(card.querySelector('.stat-value'), String(value));
+    setText(card.querySelector('.stat-sub'), sub);
+  }
+  function linkCard(card, n) {
+    if (!card) return;
+    if (!card.dataset.twrLink) {
+      card.dataset.twrLink = '1';
+      card.classList.add('twr-link');
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.addEventListener('click', openApprovals);
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openApprovals(); } });
+    }
+    card.setAttribute('aria-label', n ? plural(n, 'job') + ' waiting for your OK. Open Approve.' : 'Nothing waiting for your OK. Open Approve.');
+  }
+  function paintParentHome() {
+    const u = asParent(); if (!u) return;
+    const cards = document.querySelectorAll('#ptab-overview .stats-row .stat-card');
+    if (cards.length < 2) return;
+    const c = counts();
+    setCard(cards[0], 'Applications', c.all, breakdown(c));
+    setCard(cards[1], 'Waiting for your OK', c.waiting, c.waiting ? 'Tap to review →' : 'Nothing waiting');
+    linkCard(cards[1], c.waiting);
+    paintMenuBadge();
+    watchHome();
+    if (homeObs) homeObs.takeRecords();
+  }
+  // real-data-v43 (and job-board syncs) rewrite these cards with their own wording; put ours back after them
+  function watchHome() {
+    const row = document.querySelector('#ptab-overview .stats-row');
+    if (!row || homeObs) return;
+    let t = 0;
+    homeObs = new MutationObserver(() => { clearTimeout(t); t = setTimeout(() => { try { paintParentHome(); } catch (e) {} }, 20); });
+    homeObs.observe(row, { childList: true, subtree: true, characterData: true });
+  }
+
+  function paintMenuBadge() {
+    const u = asParent(), n = u ? counts().waiting : 0;
+    document.querySelectorAll('#twm-bottom [data-twm="ptab-approvals"], #twm-side [data-twm="ptab-approvals"], #twm-sheet [data-twm="ptab-approvals"]').forEach(b => {
+      let s = b.querySelector('.twr-count');
+      if (!n) { if (s) s.remove(); return; }
+      if (!s) { s = document.createElement('span'); s.className = 'twr-count'; b.appendChild(s); }
+      setText(s, String(n));
+      s.setAttribute('aria-label', plural(n, 'job') + ' waiting for your OK');
+    });
+  }
+
+  function openApprovals() {
+    const item = document.querySelector('#twm-side [data-twm="ptab-approvals"]') || document.querySelector('#twm-bottom [data-twm="ptab-approvals"]');
+    if (item && document.body.classList.contains('twm-on')) item.click();
+    else if (typeof window.switchParentTab === 'function') window.switchParentTab('ptab-approvals', 'pdtab-approvals');
+    later(() => {
+      const list = $('approval-jobs'), first = list && list.querySelector('.job-card');
+      const panel = list && list.closest('.panel');
+      if (panel) panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      const head = panel && panel.querySelector('.panel-head h2');
+      if (head) { head.setAttribute('tabindex', '-1'); head.focus({ preventScroll: true }); }
+      if (list) list.querySelectorAll('.job-card').forEach(card => {
+        if (!card.querySelector('.btn-approve')) return;
+        card.classList.add('twr-flash');
+        setTimeout(() => card.classList.remove('twr-flash'), 1400);
+      });
+      if (!first) return;
+    }, 160);
+  }
+
+  function filtersActive() {
+    const anyType = document.querySelectorAll('#ptab-approvals .type-cb:checked').length > 0;
+    const v = id => String(($(id) || {}).value || '');
+    return anyType || !!v('filter-pay') || (v('filter-min-rating') && v('filter-min-rating') !== '0') || (v('filter-max-hours') && v('filter-max-hours') !== '999') || !!v('filter-city').trim();
+  }
+  function clearFilters() {
+    document.querySelectorAll('#ptab-approvals .type-cb:checked').forEach(cb => { cb.checked = false; });
+    const set = (id, val) => { const el = $(id); if (el) el.value = val; };
+    set('filter-pay', ''); set('filter-min-rating', '0'); set('filter-max-hours', '999'); set('filter-city', '');
+    if (typeof window.filterJobs === 'function') window.filterJobs();
+  }
+  function foldFilters() {
+    const panel = document.querySelector('#ptab-approvals > .panel');
+    const bar = panel && panel.querySelector('.filters-bar');
+    const head = panel && panel.querySelector('.panel-head');
+    if (!bar || !head) return;
+    if (!bar.classList.contains('twr-fold')) {
+      bar.classList.add('twr-fold');
+      bar.id = bar.id || 'twr-approval-filters';
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'twr-filter-btn'; btn.id = 'twr-filter-btn';
+      btn.setAttribute('aria-controls', bar.id); btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = '🔍 Filter';
+      btn.addEventListener('click', () => {
+        const open = !bar.classList.contains('twr-open');
+        bar.classList.toggle('twr-open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      const badge = $('approval-count-badge');
+      if (badge && badge.parentNode === head) badge.insertAdjacentElement('afterend', btn); else head.appendChild(btn);
+    }
+    const btn = $('twr-filter-btn'), on = filtersActive();
+    if (on && !bar.classList.contains('twr-open')) { bar.classList.add('twr-open'); }
+    if (btn) { btn.setAttribute('aria-expanded', String(bar.classList.contains('twr-open'))); setText(btn, on ? '🔍 Filter (on)' : '🔍 Filter'); }
+  }
+  function paintApprovals() {
+    if (!asParent()) return;
+    const c = counts();
+    const list = $('approval-jobs');
+    setText(document.querySelector('#ptab-approvals > .panel .panel-head h2'), 'Waiting for your approval');
+    foldFilters();
+    const shown = list ? list.querySelectorAll('.job-card .btn-approve').length : 0;
+    const badge = $('approval-count-badge');
+    setText(badge, shown < c.waiting ? shown + ' of ' + c.waiting + ' shown' : (c.waiting ? c.waiting + ' waiting' : 'None waiting'));
+    if (list) {
+      list.querySelectorAll('.job-card .tag.status-pending').forEach(t => setText(t, STATUS['pending-approval']));
+      if (!shown && !list.querySelector('[data-twr-empty]')) {
+        const p = document.createElement('p');
+        p.dataset.twrEmpty = '1';
+        p.style.cssText = 'color:var(--muted);font-size:.88rem;text-align:center;padding:1rem';
+        if (c.waiting) {
+          p.innerHTML = 'No waiting jobs match your filters. <button type="button" class="twr-empty-btn">Show all ' + c.waiting + '</button>';
+          p.querySelector('button').addEventListener('click', clearFilters);
+        } else p.textContent = 'Nothing is waiting for your OK right now ✓';
+        const old = [...list.children].find(x => x.tagName === 'P' && /No jobs awaiting approval/.test(x.textContent));
+        if (old) old.replaceWith(p); else list.insertBefore(p, list.firstChild);
+      }
+    }
+    paintMenuBadge();
+  }
+  function paintAllApps() {
+    if (!asParent()) return;
+    const box = $('all-applications'); if (!box) return;
+    let src = [];
+    try { src = (typeof demoJobs !== 'undefined' && Array.isArray(demoJobs)) ? demoJobs : []; } catch (e) {}
+    const c = counts();
+    setText(box.closest('.panel') && box.closest('.panel').querySelector('.panel-head .badge'), c.all + ' total');
+    // the cards are drawn from demoJobs in order (renderAllApplications)
+    box.querySelectorAll(':scope > .job-card').forEach((card, i) => {
+      const j = src[i], t = card.querySelector('.job-card-top .tag');
+      if (!j || !t || !STATUS[j.status]) return;
+      const label = j.status === 'accepted' && j._teenName ? firstName(j._teenName) + ' was hired ✓' : STATUS[j.status];
+      setText(t, label);
+    });
+  }
+  function drawApprovals() {
+    if (!asParent()) return;
+    if (filtersActive() && typeof window.filterJobs === 'function') window.filterJobs();
+    else if (typeof window.renderApprovalJobs === 'function') { try { window.renderApprovalJobs(typeof demoJobs !== 'undefined' ? demoJobs : []); } catch (e) {} }
+    paintApprovals();
+  }
+
+  /* ═══ 3. TEEN FIND JOBS: SHORT RULES, ONE MAIN ACTION ════════════════ */
+  function teenAge() {
+    try { const a = typeof window.getTeenAge === 'function' ? window.getTeenAge() : NaN; return Number(a) > 0 ? Number(a) : 16; } catch (e) { return 16; }
+  }
+  function permitLine(state, age) {
+    const T = window.twJobTiers;
+    if (!T || typeof T.permitNeeded !== 'function') return '';
+    let p; try { p = T.permitNeeded(state, age); } catch (e) { return ''; }
+    if (!p || !p.known) return p && p.note ? '<li>📋 ' + esc(p.note) + '</li>' : '';
+    if (!p.needed) return '<li>✅ No work permit needed at ' + esc(age) + ' in ' + esc(p.state || state) + '.</li>';
+    let have = false; try { have = typeof T.permitStatus === 'function' && !!(T.permitStatus() || {}).ok; } catch (e) {}
+    if (have) return '<li>✅ Your work permit is on file.</li>';
+    return '<li>📋 You need a work permit in ' + esc(p.state || state) + '. ' +
+      (typeof window.showVerifyPage === 'function' ? '<button type="button" class="twr-rules-btn" data-twr-verify="1">Add it on the Verification page</button>' : 'Add it on the Verification page.') + '</li>';
+  }
+  function rulesSummary(state, rules, age) {
+    const day = Number(rules.schoolDayMax) || 3, week = Number(rules.schoolWeekMax) || 18, off = Number(rules.summerMax) || 40;
+    const items = [];
+    if (age < 14) {
+      items.push('At ' + age + ', most jobs are casual ones like babysitting, pet care and yard work for neighbors. Most jobs at businesses start at 14.');
+    } else if (age < 16) {
+      items.push('Up to ' + day + ' hours on a school day and ' + week + ' hours in a school week, outside school hours.');
+      items.push('Up to 8 hours on a day off and ' + off + ' hours in a week with no school, between 7 am and 7 pm (9 pm from June 1 to Labor Day).');
+    } else {
+      items.push('No federal limit on your hours at 16 or 17, but school comes first' + (state ? ' and ' + state + ' may set its own limits (see below)' : '') + '.');
+      items.push('Hazardous work, like most driving for work, power saws or roofing, waits until you turn 18.');
+    }
+    return items.map(t => '<li>' + esc(t) + '</li>').join('');
+  }
+  function showRules(state) {
+    const banner = $('teen-state-rules-banner'); if (!banner) return false;
+    const u = me(); if (!u || u.type !== 'teen') return false;
+    const st = state || (typeof window.getTeenState === 'function' ? window.getTeenState() : '') || 'Vermont';
+    let rules = {}; try { rules = (typeof window.getStateRules === 'function' ? window.getStateRules(st) : null) || {}; } catch (e) {}
+    const age = teenAge();
+    const wasOpen = !!banner.querySelector('details[open]');
+    banner.classList.add('twr-rules', 'show');
+    banner.innerHTML = '<strong>📋 Your work rules · age ' + esc(age) + ' in ' + esc(st) + '</strong>' +
+      '<ul>' + rulesSummary(st, rules, age) + permitLine(st, age) + '</ul>' +
+      '<details' + (wasOpen ? ' open' : '') + '><summary>Full ' + esc(st) + ' rules</summary><p>' + esc(rules.notes || '') + '</p>' +
+      '<p>Hour limits for ages 14–15 come from the federal Fair Labor Standards Act. Some states and some jobs have stricter rules, so check with your parent or the state labor department if you\'re not sure.</p></details>';
+    const v = banner.querySelector('[data-twr-verify]');
+    if (v) v.addEventListener('click', () => { try { window.showVerifyPage(); } catch (e) {} });
+    return true;
+  }
+  function wrapRulesBanner() {
+    const o = window.showStateRulesBanner;
+    if (typeof o !== 'function' || o.__twr) return;
+    const w = function (state) {
+      try { if (showRules(state)) return; } catch (e) { console.warn('in-app-review-v49 rules:', e); }
+      return o.apply(this, arguments);
+    };
+    w.__twr = true;
+    window.showStateRulesBanner = w;
+  }
+
+  // Job cards: Apply first; Safety Check and Report stay in view; the rest goes behind "More".
+  const isApply = b => /teenApply\(/.test(b.getAttribute('onclick') || '') || b.classList.contains('btn-apply');
+  const isKeep = b => b.classList.contains('btn-safety') || /openDisputeModal\(/.test(b.getAttribute('onclick') || '');
+  let moreSeq = 0;
+  function tidyCard(card) {
+    const acts = card.querySelector('.browse-actions'); if (!acts) return;
+    let main = acts.querySelector(':scope > .twr-main'), row = acts.querySelector(':scope > .twr-row'), panel = acts.querySelector(':scope > .twr-panel');
+    if (!main) {
+      acts.classList.add('twr-acts');
+      main = document.createElement('div'); main.className = 'twr-main';
+      row = document.createElement('div'); row.className = 'twr-row';
+      panel = document.createElement('div'); panel.className = 'twr-panel'; panel.hidden = true; panel.id = 'twr-more-' + (++moreSeq);
+      const more = document.createElement('button');
+      more.type = 'button'; more.className = 'btn-sm twr-more-btn'; more.textContent = 'More ▾';
+      more.setAttribute('aria-expanded', 'false'); more.setAttribute('aria-controls', panel.id);
+      more.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        more.setAttribute('aria-expanded', String(!panel.hidden));
+        more.textContent = panel.hidden ? 'More ▾' : 'Less ▴';
+      });
+      row.appendChild(more);
+      acts.insertBefore(panel, acts.firstChild);
+      acts.insertBefore(row, panel);
+      acts.insertBefore(main, row);
+    }
+    const more = row.querySelector('.twr-more-btn');
+    [...acts.querySelectorAll('button')].forEach(b => {
+      if (b === more) return;
+      const home = isApply(b) ? main : isKeep(b) ? row : panel;
+      if (b.parentNode === home) return;
+      if (home === row) row.insertBefore(b, more); else home.appendChild(b);
+    });
+    const safety = row.querySelector('.btn-safety'), first = row.firstElementChild;
+    if (safety && first !== safety) row.insertBefore(safety, first);   // Safety Check, then Report, then More
+    // a stray non-button the other blocks add stays visible under the main button
+    [...acts.children].forEach(el => { if (el !== main && el !== row && el !== panel && el.tagName !== 'BUTTON') acts.insertBefore(el, row); });
+    more.hidden = !panel.children.length;
+  }
+  let listObs = null, tidyT = 0;
+  function tidyAll() {
+    const list = $('browse-jobs-list'); if (!list) return;
+    list.querySelectorAll('.browse-card').forEach(card => { try { tidyCard(card); } catch (e) {} });
+    if (listObs) listObs.takeRecords();
+  }
+  function watchList() {
+    const list = $('browse-jobs-list'); if (!list || listObs) return;
+    // throttled, not debounced: other blocks keep touching the list, and a debounce would never fire
+    listObs = new MutationObserver(() => { if (tidyT) return; tidyT = setTimeout(() => { tidyT = 0; tidyAll(); }, 40); });
+    listObs.observe(list, { childList: true, subtree: true });
+    tidyAll();
+  }
+
+  // Demo teen: the badge counted all 12 sample jobs while the list leaves out the 3 already applied to.
+  // real-data-v43 keeps putting the page's original "12 Open" back for demo logins, so watch the badge.
+  let badgeObs = null;
+  function demoJobsBadge() {
+    const panel = $('browse-jobs-list') && $('browse-jobs-list').closest('.panel');
+    const head = panel && panel.querySelector('.panel-head'), badge = head && head.querySelector('.badge');
+    if (!badge) return;
+    if (!badgeObs) {
+      badgeObs = new MutationObserver(() => { try { demoJobsBadge(); } catch (e) {} });
+      badgeObs.observe(head, { childList: true, subtree: true, characterData: true });
+    }
+    const u = me(); if (!u || u.type !== 'teen' || !isDemoUser(u)) return;
+    let n = 0;
+    try { const applied = new Set(demoJobs.map(j => j.id)); n = browsableJobs.filter(j => !applied.has(j.id)).length; } catch (e) { return; }
+    setText(badge, plural(n, 'sample job'));
+    badgeObs.takeRecords();
+  }
+
+  /* ═══ 4. EMPLOYER: POST A JOB IN 4 STEPS ═════════════════════════════ */
+  const STEPS = [
+    { title: 'The job', short: 'The job', sub: 'What the work is and what it pays.' },
+    { title: 'Where', short: 'Where', sub: 'Where the job is and how a teen can get there.' },
+    { title: 'Who and when', short: 'Who', sub: 'The youngest age you\'ll hire and the most hours a week.' },
+    { title: 'Preview and post', short: 'Preview', sub: 'Check what teens will see, then post.' }
+  ];
+  const FIELDS = ['emp-title', 'emp-type', 'emp-pay', 'emp-pay-type', 'emp-desc', 'emp-city', 'emp-state', 'emp-landmark', 'emp-min-age', 'emp-max-hours'];
+  const CHECKS = ['twjt-emp-permit', 'twjt-emp-hazard'];
+  let step = 0, formFor = null, saveT = 0, memDrafts = {}, restoring = false;
+  const form = () => document.querySelector('#etab-post .post-form');
+  const val = id => String(($(id) || {}).value || '').trim();
+  const asEmployer = () => { const u = me(); return u && u.type === 'employer' ? u : null; };
+  const acctKey = u => String((u && (u.dataKey || u.email)) || '').trim().toLowerCase();
+  const draftKey = u => 'tw_jobdraft_' + acctKey(u).replace(/[^a-z0-9]/gi, '_');
+
+  function groupOf(id, sel) { const el = $(id); return el ? el.closest(sel || '.form-row') || el.closest('.form-group') : null; }
+  function buildStepper() {
+    const f = form();
+    if (!f || f.classList.contains('twr-steps') || !$('emp-title')) return !!(f && f.classList.contains('twr-steps'));
+    const h3 = f.querySelector('h3');
+    const postBtn = f.querySelector('button[onclick^="postJob"]');
+    const btnRow = postBtn ? postBtn.parentElement : null;
+    const parts = [
+      [groupOf('emp-title'), groupOf('emp-desc', '.form-group'), groupOf('emp-pay')],
+      [groupOf('emp-city'), groupOf('emp-landmark', '.form-group'), groupOf('emp-transport-options', '.form-group')],
+      [groupOf('emp-min-age'), $('twjt-emp-row')],
+      []
+    ];
+    f.classList.add('twr-steps');
+    const prog = document.createElement('ol');
+    prog.className = 'twr-progress';
+    prog.setAttribute('aria-label', 'Steps to post a job');
+    prog.innerHTML = STEPS.map((s, i) => '<li><button type="button" data-twr-go="' + i + '"><span class="twr-bar" aria-hidden="true"></span><span class="twr-lab">' + (i + 1) + ' · ' + esc(s.short) + '</span></button></li>').join('');
+    if (h3) h3.insertAdjacentElement('afterend', prog); else f.insertBefore(prog, f.firstChild);
+    const alert = $('emp-post-alert');
+    if (alert) prog.insertAdjacentElement('afterend', alert);
+    const draft = document.createElement('div');
+    draft.className = 'twr-draft'; draft.id = 'twr-draft-note'; draft.hidden = true;
+    draft.innerHTML = '<span id="twr-draft-text"></span><button type="button" class="twr-ghost" id="twr-start-over">Start over</button>';
+    (alert || prog).insertAdjacentElement('afterend', draft);
+    let anchor = draft;
+    const sections = STEPS.map((s, i) => {
+      const sec = document.createElement('section');
+      sec.className = 'twr-step'; sec.dataset.twrStep = String(i); sec.hidden = i !== 0;
+      sec.innerHTML = '<h4 class="twr-h" tabindex="-1">Step ' + (i + 1) + ' of ' + STEPS.length + ' · ' + esc(s.title) + '</h4><p class="twr-sub">' + esc(s.sub) + '</p>';
+      anchor.insertAdjacentElement('afterend', sec); anchor = sec;
+      parts[i].forEach(el => { if (el && !sec.contains(el)) sec.appendChild(el); });
+      return sec;
+    });
+    // guidance beside the fields it is about
+    const where = document.createElement('div');
+    where.className = 'twr-guide';
+    where.innerHTML = '🔒 <b>Your address stays private.</b> Teens see the town and the nearest landmark you pick, not a street address. Share the exact address in chat after a parent has approved the application.';
+    sections[1].querySelector('.twr-sub').insertAdjacentElement('afterend', where);
+    const hours = document.createElement('div');
+    hours.className = 'twr-guide'; hours.id = 'twr-hours-guide';
+    const warn = document.createElement('div');
+    warn.className = 'twr-warn'; warn.id = 'twr-hours-warn'; warn.hidden = true; warn.setAttribute('role', 'status');
+    sections[2].querySelector('.twr-sub').insertAdjacentElement('afterend', hours);
+    hours.insertAdjacentElement('afterend', warn);
+    const prev = document.createElement('div');
+    prev.id = 'twr-preview';
+    sections[3].appendChild(prev);
+    if (btnRow) { btnRow.classList.add('twr-post-row'); btnRow.removeAttribute('style'); sections[3].appendChild(btnRow); }
+    if (postBtn) postBtn.textContent = 'Post job';
+    const nav = document.createElement('div');
+    nav.className = 'twr-nav';
+    nav.innerHTML = '<button type="button" class="twr-ghost" id="twr-back">← Back</button>' +
+      '<button type="button" class="twr-ghost" id="twr-save">💾 Save draft</button>' +
+      '<button type="button" class="btn-primary twr-next" id="twr-next">Next →</button>' +
+      '<span class="twr-saved" id="twr-saved" aria-live="polite"></span>';
+    anchor.insertAdjacentElement('afterend', nav);
+
+    prog.addEventListener('click', e => { const b = e.target.closest('[data-twr-go]'); if (b) jump(Number(b.dataset.twrGo)); });
+    $('twr-back').addEventListener('click', () => go(step - 1));
+    $('twr-next').addEventListener('click', () => jump(step + 1));
+    $('twr-save').addEventListener('click', () => saveDraft(false));
+    $('twr-start-over').addEventListener('click', startOver);
+    prev.addEventListener('click', e => { const b = e.target.closest('[data-twr-edit]'); if (b) go(Number(b.dataset.twrEdit)); });
+    f.addEventListener('input', onEdit);
+    f.addEventListener('change', onEdit);
+    // other blocks add their fields next to ours later (landmark picker, job tiers): they land in the right step
+    new MutationObserver(() => {
+      const lm = groupOf('emp-landmark', '.form-group'), tr = $('twjt-emp-row');
+      if (lm && !sections[1].contains(lm)) { const tp = groupOf('emp-transport-options', '.form-group'); if (tp && sections[1].contains(tp)) sections[1].insertBefore(lm, tp); else sections[1].appendChild(lm); }
+      if (tr && !sections[2].contains(tr)) sections[2].appendChild(tr);
+    }).observe(f, { childList: true });
+    // a successful post clears the title: start the next job at step 1 with no draft
+    if (alert) new MutationObserver(() => {
+      if (/alert-success/.test(alert.className) && !val('emp-title') && /✅/.test(alert.textContent || '')) {
+        dropDraft(); go(0, true);
+        later(() => alert.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50);
+      }
+    }).observe(alert, { attributes: true, attributeFilter: ['class'], childList: true });
+    go(0, true);
+    return true;
+  }
+
+  function missing(i) {
+    const need = i === 0 ? [['emp-title', 'a job title'], ['emp-type', 'the job type'], ['emp-pay', 'the pay']]
+      : i === 1 ? [['emp-city', 'the town or city']] : [];
+    return need.filter(([id]) => !val(id) || (id === 'emp-pay' && !(parseFloat(val(id)) > 0)));
+  }
+  function clearError() {
+    const a = $('emp-post-alert');
+    if (a && /alert-error/.test(a.className)) { a.className = 'alert'; a.innerHTML = ''; }
+  }
+  function jump(target) {
+    target = Math.max(0, Math.min(STEPS.length - 1, target));
+    for (let i = 0; i < target; i++) {
+      const m = missing(i);
+      if (m.length) {
+        go(i);
+        const list = m.map(x => x[1]);
+        const text = 'Add ' + (list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : list[0]) + ' to keep going.';
+        const a = $('emp-post-alert');
+        if (a) { a.className = 'alert alert-error show'; a.textContent = text; }
+        const el = $(m[0][0]); if (el) try { el.focus(); } catch (e) {}
+        return;
+      }
+    }
+    go(target);
+  }
+  function go(i, quiet) {
+    const f = form(); if (!f || !f.classList.contains('twr-steps')) return;
+    step = Math.max(0, Math.min(STEPS.length - 1, i));
+    f.querySelectorAll('.twr-step').forEach(s => { s.hidden = Number(s.dataset.twrStep) !== step; });
+    f.querySelectorAll('.twr-progress [data-twr-go]').forEach(b => {
+      const n = Number(b.dataset.twrGo);
+      b.classList.toggle('done', n < step);
+      if (n === step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      b.setAttribute('aria-label', 'Step ' + (n + 1) + ': ' + STEPS[n].title + (n < step ? ' (done)' : n === step ? ' (current)' : ''));
+    });
+    const back = $('twr-back'), next = $('twr-next');
+    if (back) back.hidden = step === 0;
+    if (next) { next.hidden = step === STEPS.length - 1; if (step < STEPS.length - 1) setText(next, 'Next: ' + STEPS[step + 1].short + ' →'); }
+    if (!quiet) clearError();
+    if (step === 2) hoursGuide();
+    if (step === 3) preview();
+    if (!quiet) {
+      const h = f.querySelector('.twr-step:not([hidden]) .twr-h');
+      const top = f.getBoundingClientRect().top;
+      if (top < 0 || top > window.innerHeight * 0.6) f.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      if (h) try { h.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+
+  function stateRules(state) { try { return (typeof window.getStateRules === 'function' ? window.getStateRules(state) : null) || {}; } catch (e) { return {}; } }
+  // the rule-based check featpack-v24 runs on Post (window.complianceCheck), run early so problems show beside the fields
+  function formJob() {
+    return { title: val('emp-title'), type: val('emp-type'), pay: parseFloat(val('emp-pay')) || 0, payType: val('emp-pay-type'), state: val('emp-state'),
+      minAge: parseInt(val('emp-min-age'), 10) || 14, maxHours: parseInt(val('emp-max-hours'), 10) || 15, desc: val('emp-desc') };
+  }
+  function blockers() {
+    if (typeof window.complianceCheck !== 'function') return [];
+    try { return (window.complianceCheck(formJob()) || []).filter(i => i && i.level === 'block').map(i => String(i.reason || '')); } catch (e) { return []; }
+  }
+  const AGE_HOURS = /age|hrs|hours|week/i;
+  // the youngest age Post accepts, asked of the same check Post runs, so the guide never promises an age Post then blocks
+  function youngestAge(state) {
+    try {
+      const hit = (window.complianceCheck({ state: state, minAge: 0 }) || []).map(i => /minimum age (\d+)/.exec(String(i && i.reason || ''))).find(Boolean);
+      if (hit) return Number(hit[1]);
+    } catch (e) {}
+    return 14;
+  }
+  function hoursGuide() {
+    const g = $('twr-hours-guide'), w = $('twr-hours-warn'); if (!g || !w) return;
+    const state = val('emp-state') || 'your state', r = stateRules(val('emp-state'));
+    const day = Number(r.schoolDayMax) || 3, week = Number(r.schoolWeekMax) || 18, youngest = youngestAge(val('emp-state'));
+    g.innerHTML = '⏱ <b>Youngest age for paid work in ' + esc(state) + ':</b> ' + youngest + '. <b>Teens under 16</b> may work up to ' + day + ' hours on a school day and ' + week +
+      ' hours in a school week, outside school hours and between 7 am and 7 pm (9 pm in summer). <b>16 and 17:</b> no federal hour limit, but no hazardous work like power saws, roofing or most driving.';
+    const j = formJob(), lines = blockers().filter(t => AGE_HOURS.test(t)).map(t => '🚫 ' + t + ' Change it before you post.');
+    if (j.minAge < 16 && j.maxHours > week && j.maxHours <= 40) lines.push('⚠️ ' + j.maxHours + ' hours a week is more than teens under 16 may work in a school week (' + week + '). Set the minimum age to 16, or lower the hours to ' + week + ' or less.');
+    w.hidden = !lines.length;
+    w.innerHTML = lines.map(esc).join('<br>');
+  }
+
+  function preview() {
+    const box = $('twr-preview'); if (!box) return;
+    const u = me() || {};
+    const title = val('emp-title'), type = val('emp-type'), pay = parseFloat(val('emp-pay')), payType = val('emp-pay-type') || 'hourly';
+    const city = val('emp-city'), state = val('emp-state'), desc = val('emp-desc');
+    const minAge = parseInt(val('emp-min-age'), 10) || 14, maxH = parseInt(val('emp-max-hours'), 10) || 15;
+    const lmSel = $('emp-landmark'), lmText = lmSel && lmSel.value && lmSel.selectedIndex >= 0 ? (lmSel.options[lmSel.selectedIndex].textContent || '').trim() : '';
+    const transport = [...document.querySelectorAll('#emp-transport-options input[type=checkbox]:checked')].map(cb => {
+      const o = (typeof TRANSPORT_OPTIONS !== 'undefined' ? TRANSPORT_OPTIONS : []).find(x => x.id === cb.value);
+      return o ? o.label : cb.value;
+    });
+    const askPermit = !!($('twjt-emp-permit') || {}).checked;
+    let tier = askPermit ? 3 : 2, tierNote = '';
+    try {
+      const T = window.twJobTiers;
+      if (!askPermit && T && typeof T.permitNeeded === 'function' && state) {
+        const p17 = T.permitNeeded(state, 17), p13 = T.permitNeeded(state, 13);
+        if (p17.needed) tier = 3; else if (p13.needed) tierNote = ' (Tier 3 for teens under ' + p13.under + ')';
+      }
+    } catch (e) {}
+    const miss = t => '<span class="twr-prev-missing">' + esc(t) + '</span>';
+    const typeName = type ? ((($('emp-type') || {}).selectedOptions || [])[0] || {}).textContent || type : '';
+    const r = stateRules(state), week = Number(r.schoolWeekMax) || 18;
+    const hoursOk = !(minAge < 16 && maxH > week);
+    const missingAll = [0, 1].reduce((a, i) => a.concat(missing(i)), []);
+    box.innerHTML =
+      '<p class="twr-prev-head">👀 What teens will see</p>' +
+      '<p class="twr-prev-note">This is how the job shows in Find Jobs. A parent has to OK each application before it reaches you.</p>' +
+      '<div class="twr-prev-card" aria-label="Preview of your job post">' +
+        '<div class="browse-card-head"><div>' +
+          '<div class="browse-title">' + (title ? esc(title) : miss('Job title')) + '</div>' +
+          '<div class="browse-employer">' + esc(u.name || 'Your business') + ' · ' + (city ? esc(city) + (state ? ', ' + esc(state) : '') : miss('Town')) + '</div>' +
+        '</div><span class="tag pay">' + (pay > 0 ? '$' + esc(pay) + (payType === 'hourly' ? '/hr' : ' flat') : 'Pay?') + '</span></div>' +
+        (lmText ? '<div class="twlm-near">📍 Near ' + esc(lmText) + '</div>' : '') +
+        '<div class="browse-desc">' + (desc ? esc(desc) : miss('No description yet. Teens apply more when they know what the job involves.')) + '</div>' +
+        '<div class="job-meta" style="margin-bottom:6px">' +
+          '<span class="tag">' + (tier === 3 ? '📋 Tier 3 · Work permit' : '👪 Tier 2 · Parent OK') + '</span>' +
+          (typeName ? '<span class="tag">🏷 ' + esc(String(typeName).trim().toLowerCase()) + '</span>' : '') +
+          '<span class="tag">Age ' + esc(minAge) + '+</span><span class="tag">Max ' + esc(maxH) + 'h/wk</span>' +
+        '</div>' +
+        (transport.length ? '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Getting there:</span>' +
+          transport.map(t => '<span class="tag" style="background:var(--blue-pale);color:var(--blue);border:none">' + esc(t) + '</span>').join('') + '</div>' : '') +
+        '<div class="twr-prev-actions"><button type="button" class="btn-sm btn-apply" disabled tabindex="-1">Apply (needs parent OK)</button></div>' +
+      '</div>' +
+      '<ul class="twr-checks">' +
+        blockers().map(t => '<li>🚫<span>' + esc(t) + ' Posting will stop here until it\'s fixed.</span><button type="button" class="twr-edit" data-twr-edit="' + (AGE_HOURS.test(t) ? 2 : 0) + '">Fix</button></li>').join('') +
+        '<li>' + (title && type && pay > 0 ? '✅' : '⚠️') + '<span>' + (title && type && pay > 0 ? esc(title) + ', ' + (pay > 0 ? '$' + esc(pay) + (payType === 'hourly' ? ' an hour' : ' flat') : '') : 'Add a title, type and pay') + '</span><button type="button" class="twr-edit" data-twr-edit="0">Edit</button></li>' +
+        '<li>' + (city ? '🔒' : '⚠️') + '<span>' + (city ? 'Teens see ' + esc(city) + (lmText ? ' and the landmark' : '') + ', not your street address' : 'Add the town') + '</span><button type="button" class="twr-edit" data-twr-edit="1">Edit</button></li>' +
+        '<li>' + (hoursOk ? '✅' : '⚠️') + '<span>Ages ' + esc(minAge) + '+, up to ' + esc(maxH) + ' hours a week' + (hoursOk ? '' : ': more than under-16s may work in a school week (' + week + ')') + '</span><button type="button" class="twr-edit" data-twr-edit="2">Edit</button></li>' +
+        '<li>' + (tier === 3 ? '📋' : '👪') + '<span>' + (tier === 3 ? 'Tier 3: teens need a work permit and a parent\'s OK' : 'Tier 2: teens need a parent\'s OK' + esc(tierNote)) + '</span><button type="button" class="twr-edit" data-twr-edit="2">Edit</button></li>' +
+      '</ul>';
+    const post = form() && form().querySelector('button[onclick^="postJob"]');
+    if (post) post.title = missingAll.length ? 'Add ' + missingAll.map(x => x[1]).join(', ') + ' first' : '';
+  }
+
+  /* drafts: real accounts keep one on this device; demo logins keep it for this visit only */
+  function readForm() {
+    const d = { step, at: Date.now() };
+    FIELDS.forEach(id => { const el = $(id); if (el) d[id] = el.value; });
+    CHECKS.forEach(id => { const el = $(id); if (el) d[id] = !!el.checked; });
+    d.transport = [...document.querySelectorAll('#emp-transport-options input[type=checkbox]')].filter(cb => cb.checked).map(cb => cb.value);
+    return d;
+  }
+  const hasContent = d => !!(d && (d['emp-title'] || d['emp-desc'] || d['emp-pay'] || d['emp-city'] || d['emp-type'] || (d.transport && d.transport.length)));
+  function loadDraft(u) {
+    if (!u) return null;
+    if (!keepsDraft(u)) return memDrafts[acctKey(u)] || null;
+    try { return JSON.parse(localStorage.getItem(draftKey(u)) || 'null'); } catch (e) { return null; }
+  }
+  function storeDraft(u, d) {
+    if (!keepsDraft(u)) { memDrafts[acctKey(u)] = d; return true; }
+    try { localStorage.setItem(draftKey(u), JSON.stringify(d)); return true; } catch (e) { return false; }
+  }
+  function dropDraft() {
+    const u = asEmployer(); if (!u) return;
+    delete memDrafts[acctKey(u)];
+    try { localStorage.removeItem(draftKey(u)); } catch (e) {}
+    const s = $('twr-saved'); if (s) s.textContent = '';
+    const n = $('twr-draft-note'); if (n) n.hidden = true;
+  }
+  const clock = t => { try { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+  function saveDraft(auto) {
+    const u = asEmployer(); if (!u) return;
+    const d = readForm();
+    if (auto && !hasContent(d)) return;
+    const ok = storeDraft(u, d);
+    const s = $('twr-saved');
+    if (s) s.textContent = ok ? (keepsDraft(u) ? 'Draft saved on this device at ' : 'Demo: draft kept for this visit, at ') + clock(d.at) : 'Couldn\'t save the draft on this device.';
+    if (!auto && typeof window.showToast === 'function') window.showToast(ok ? '💾 Draft saved' : 'Couldn\'t save the draft', ok ? 'success' : 'error');
+  }
+  function onEdit(e) {
+    if (restoring) return;
+    const t = e && e.target;
+    if (!t || !t.id && !(t.closest && t.closest('#emp-transport-options'))) return;
+    if (step === 2) hoursGuide();
+    if (step === 3) preview();
+    clearTimeout(saveT);
+    saveT = setTimeout(() => saveDraft(true), 700);
+  }
+  function setField(id, v) {
+    const el = $(id); if (!el || v == null) return;
+    if (el.tagName === 'SELECT' && v !== '' && ![...el.options].some(o => o.value === v)) return;
+    el.value = v;
+  }
+  function fillForm(d) {
+    restoring = true;
+    const fire = (id, types) => { const el = $(id); if (!el) return; types.forEach(t => { try { el.dispatchEvent(new Event(t, { bubbles: true })); } catch (e) {} }); };
+    try {
+      const blank = id => id === 'emp-pay-type' ? 'hourly' : id === 'emp-state' ? (($('emp-state') || {}).value || '') : '';
+      // the state first: changing it clears the town (clearCityOnStateChange), so the town goes in after
+      setField('emp-state', d ? (d['emp-state'] == null ? '' : d['emp-state']) : blank('emp-state'));
+      fire('emp-state', ['change']);
+      FIELDS.forEach(id => { if (id !== 'emp-landmark' && id !== 'emp-state') setField(id, d ? (d[id] == null ? '' : d[id]) : blank(id)); });
+      CHECKS.forEach(id => { const el = $(id); if (el) el.checked = !!(d && d[id]); });
+      const want = (d && d.transport) || [];
+      document.querySelectorAll('#emp-transport-options input[type=checkbox]').forEach(cb => {
+        cb.checked = want.indexOf(cb.value) >= 0;
+        const lab = cb.closest('label');
+        if (lab && lab.id && typeof window.styleTransportOpt === 'function') { try { window.styleTransportOpt(cb, lab.id); } catch (e) {} }
+      });
+      ['emp-type', 'twjt-emp-permit', 'twjt-emp-hazard', 'emp-min-age'].forEach(id => fire(id, ['change', 'input']));
+      fire('emp-city', ['change']);   // the landmark picker loads the town's landmarks (no 'input': that opens the town list)
+      const lm = $('emp-landmark');
+      if (lm) {
+        const pick = d && d['emp-landmark'];
+        lm.value = '';
+        if (pick) { let tries = 0; const t = setInterval(() => { if ([...lm.options].some(o => o.value === pick)) { lm.value = pick; clearInterval(t); } else if (++tries > 20) clearInterval(t); }, 300); }
+      }
+    } finally { restoring = false; }
+  }
+  function startOver() {
+    dropDraft();
+    fillForm(null);
+    clearError();
+    go(0);
+  }
+  // An employer's typing never shows for the next account in this tab; their own draft comes back.
+  function syncEmployerForm() {
+    const u = asEmployer(); if (!u) return;
+    if (!buildStepper()) return;
+    const key = acctKey(u);
+    if (formFor === key) return;
+    const first = formFor === null;
+    formFor = key;
+    const d = loadDraft(u);
+    if (d && hasContent(d)) {
+      fillForm(d);
+      const n = $('twr-draft-note'), t = $('twr-draft-text');
+      if (t) t.textContent = '📝 Your draft from ' + clock(d.at) + ' is back.';
+      if (n) n.hidden = false;
+      go(Math.min(Number(d.step) || 0, STEPS.length - 1), true);
+    } else {
+      if (!first) fillForm(null);
+      const n = $('twr-draft-note'); if (n) n.hidden = true;
+      go(0, true);
+    }
+    const s = $('twr-saved'); if (s) s.textContent = '';
+  }
+
+  /* ═══ 5. TOASTS: CLEAR OF THE MENU BAR AND THE TOUR ══════════════════ */
+  const WELCOME = /^(👋\s*)?Welcome to the (Teen|Parent|Employer) Demo!?$|^This demo uses sample data|^This demo starts empty/;
+  const tourOpen = () => !!$('tw34-tour');
+  function tourPending() {
+    const emails = [];
+    try { if (typeof currentUser !== 'undefined' && currentUser && currentUser.email) emails.push(currentUser.email); } catch (e) {}
+    if (window.currentUser && window.currentUser.email) emails.push(window.currentUser.email);
+    if (!emails.length) return false;
+    try { return emails.every(em => !localStorage.getItem('tw_tour34_' + em)); } catch (e) { return false; }
+  }
+  // only a welcome is put away when the tour opens; other messages (like "only works on this device") stay
+  function endWelcomeToast() {
+    const t = $('global-toast'); if (!t || !WELCOME.test(String(t.textContent || '').trim())) return;
+    clearTimeout(t._timer);
+    t.style.opacity = '0';
+  }
+  function wrapToast() {
+    const o = window.showToast;
+    if (typeof o !== 'function' || o.__twr) return;
+    const w = function (msg) {
+      // the tour's first card already says welcome; a second welcome under it just covers the menu bar
+      if (WELCOME.test(String(msg || '').trim()) && (tourOpen() || tourPending())) return;
+      return o.apply(this, arguments);
+    };
+    Object.keys(o).forEach(k => { if (/^__tw/.test(k)) w[k] = o[k]; });
+    w.__twr = true;
+    window.showToast = w;
+  }
+  function onBody() {
+    const open = tourOpen();
+    if (open !== document.body.classList.contains('twr-tour')) {
+      document.body.classList.toggle('twr-tour', open);
+      if (open) endWelcomeToast();
+    }
+    const bar = $('twm-bottom');
+    if (bar && bar.offsetHeight) document.documentElement.style.setProperty('--twr-bar-h', bar.offsetHeight + 'px');
+    paintMenuBadge();
+  }
+
+  /* ═══ WIRING ══════════════════════════════════════════════════════════ */
+  window.twReviewDraw = function (id) {
+    if (id === 'ptab-overview') paintParentHome();
+    else if (id === 'ptab-approvals') drawApprovals();
+    else if (id === 'etab-post') syncEmployerForm();
+  };
+  function install() {
+    wrapDirectDemo();
+    wrapToast();
+    wrapRulesBanner();
+    wrapAfter('renderApprovalJobs', () => { paintApprovals(); paintParentHome(); });
+    wrapAfter('renderAllApplications', () => { paintAllApps(); paintParentHome(); });
+    wrapAfter('renderParentDashboard', () => { paintApprovals(); paintAllApps(); paintParentHome(); later(paintParentHome, 120); });
+    wrapAfter('renderEmployerDashboard', () => later(syncEmployerForm, 0));
+    wrapAfter('renderBrowseJobs', demoJobsBadge);
+    watchList();
+    buildStepper();
+  }
+  install();
+  // later blocks and the dashboards' own start-up wrap some of these again: install on top once the page settles
+  [300, 1500].forEach(ms => later(install, ms));
+  if (document.body) new MutationObserver(onBody).observe(document.body, { childList: true });
+  window.addEventListener('resize', () => later(onBody, 50));
+
+  window._twInAppReview = { counts, parentApps, paintParentHome, paintApprovals, drawApprovals, openApprovals, tidyAll, showRules, go: i => go(i), jump, step: () => step, preview, syncEmployerForm, loadDraft, saveDraft, STATUS };
+})();
+</script>
+
 <script id="real-stats-v42">
 /* ═══════════════════════════════════════════════════════════════════
    v42 · REAL STATS FOR REAL ACCOUNTS  (2026-10-15, Aya's request)

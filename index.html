@@ -1481,6 +1481,25 @@ input:checked+.slider:before{transform:translateX(20px);}
 #page-landing .tw48-demo-note{font-size:.95rem;color:var(--muted);margin:.8rem 0 0;line-height:1.5}
 #page-landing .tw49-photo{position:relative;margin:0;border-radius:32px;overflow:hidden;box-shadow:0 24px 60px rgba(27,67,50,.22);aspect-ratio:1/1;max-height:min(76vh,720px);width:100%;justify-self:end;background:linear-gradient(135deg,#d8f3dc,#b7e4c7)}
 #page-landing #tw-hero-img{display:block;width:100%;height:100%;object-fit:cover;object-position:40% 50%}
+/* computers: the headline, buttons, demos and the whole photo fit on the first screen, also on short laptop
+   screens and with browser toolbars (sizes follow the window's height as well as its width) */
+@media (min-width:901px){
+  #page-landing .tw49-hero-in{--tw49-hy:clamp(16px,4vh,64px);padding-top:var(--tw49-hy);padding-bottom:var(--tw49-hy)}
+  #page-landing .tw49-kicker{margin-bottom:clamp(.5rem,1.6vh,1.2rem)}
+  #page-landing #tw48-h1{font-size:clamp(2.1rem,min(5.4vw,7.4vh),4.6rem);margin-bottom:clamp(.5rem,1.8vh,1.2rem)}
+  #page-landing .tw49-lead{font-size:clamp(1.05rem,min(1.55vw,2.5vh),1.4rem);margin-bottom:clamp(.8rem,2.6vh,1.8rem)}
+  #page-landing .tw49-cta{margin-bottom:clamp(.8rem,2.6vh,1.8rem)}
+  #page-landing .tw49-btn{min-height:clamp(50px,7.4vh,60px)}
+  #page-landing #tw48-demo{padding:clamp(.75rem,1.8vh,1.1rem) 1.25rem}
+  #page-landing .tw49-demo-title{margin-bottom:clamp(.45rem,1.2vh,.75rem)}
+  #page-landing .tw49-demo-row button{min-height:clamp(42px,6.4vh,50px)}
+  #page-landing .tw48-demo-note{margin-top:clamp(.45rem,1.2vh,.8rem)}
+  #page-landing .tw49-photo{width:min(100%,720px,calc(100vh - 68px - 2 * var(--tw49-hy)));max-height:none;align-self:center}
+}
+@media (min-width:901px) and (max-height:660px){
+  #page-landing .tw49-kicker{display:none}
+  #page-landing .tw48-demo-note{font-size:.88rem}
+}
 
 /* sections */
 #page-landing .tw49-band{padding:var(--tw49-band) 0;background:var(--card)}
@@ -1536,11 +1555,6 @@ input:checked+.slider:before{transform:translateX(20px);}
 #page-landing .tw49-pro .tw49-more:hover{background:#fff7ed}
 
 /* Vermont towns */
-#page-landing .tw49-towns{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:12px}
-#page-landing .tw49-town{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1rem 1.15rem}
-#page-landing .tw49-town h3{font-size:1.1rem;font-weight:800;color:var(--green);margin:0 0 .25rem;font-family:'DM Sans',system-ui,sans-serif}
-#page-landing .tw49-town p{font-size:.98rem;color:var(--muted);margin:0;line-height:1.5}
-#page-landing .tw49-note{text-align:center;margin:clamp(20px,2.4vw,28px) 0 0;font-size:1.08rem;color:var(--muted)}
 
 /* sign up */
 #page-landing .tw49-final{background:linear-gradient(135deg,var(--tw49-deep),var(--green));color:#fff;text-align:center;padding:var(--tw49-band) 0}
@@ -1778,31 +1792,6 @@ body.tw48-landing #mobileNav{display:none !important}
         <p><strong>⭐ Pro is free during early access.</strong> Pro adds the AI resume builder, unlimited applications and more. No credit card needed.</p>
         <button class="tw49-more" onclick="gotoPage('pricing')">See plans</button>
       </div>
-    </div>
-  </section>
-
-  <!-- VERMONT TOWNS -->
-  <section class="tw49-band" id="vermont-local-seo" aria-labelledby="tw49-vt-h">
-    <div class="tw49-wrap">
-      <div class="tw49-head">
-        <p class="tw49-eyebrow">Vermont</p>
-        <h2 id="tw49-vt-h">Teen jobs across Vermont</h2>
-        <p>TeenWork is open to teens, parents and employers in every Vermont town, from Burlington to Brattleboro. Jobs show up where local employers post them.</p>
-      </div>
-      <div class="tw49-towns">
-        <div class="tw49-town"><h3>Burlington, VT</h3><p>Lawn care, pet sitting &amp; gigs in Chittenden County</p></div>
-        <div class="tw49-town"><h3>South Burlington, VT</h3><p>Neighborhood jobs for teens near Williston &amp; Shelburne</p></div>
-        <div class="tw49-town"><h3>Montpelier, VT</h3><p>Teen yard work &amp; dog walking in the capital region</p></div>
-        <div class="tw49-town"><h3>Rutland, VT</h3><p>Local jobs for teens in Rutland City &amp; County</p></div>
-        <div class="tw49-town"><h3>Essex &amp; Williston, VT</h3><p>Suburban lawn care &amp; pet sitting near Burlington</p></div>
-        <div class="tw49-town"><h3>Colchester, VT</h3><p>Teen jobs in Colchester, Malletts Bay &amp; surrounding neighborhoods</p></div>
-        <div class="tw49-town"><h3>Milton &amp; Georgia, VT</h3><p>Franklin County teen gigs &amp; lawn care jobs</p></div>
-        <div class="tw49-town"><h3>Springfield &amp; Windsor, VT</h3><p>Windsor County teen employment &amp; pet sitting</p></div>
-        <div class="tw49-town"><h3>Stowe &amp; Morrisville, VT</h3><p>Seasonal teen jobs in the Lamoille Valley</p></div>
-        <div class="tw49-town"><h3>Barre &amp; Northfield, VT</h3><p>Teen gigs in Washington County communities</p></div>
-        <div class="tw49-town"><h3>Brattleboro &amp; Bellows Falls, VT</h3><p>Southern Vermont teen jobs in Windham County</p></div>
-      </div>
-      <p class="tw49-note">Don&#39;t see your town? <strong>You can sign up from anywhere in Vermont.</strong> Jobs show up when employers near you post them.</p>
     </div>
   </section>
 

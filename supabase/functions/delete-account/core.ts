@@ -16,7 +16,7 @@
 // purge_after, purged_at). The app reads that table to hide closed accounts everywhere and to tell
 // people an account they worked with was closed. Only this function can write it.
 
-export type Env = { url: string; serviceKey: string; anonKey: string; adminSalt: string; adminHash: string; origin: string };
+export type Env = { url: string; serviceKey: string; anonKey: string; adminSalt: string; adminHash: string; origin: string; adminEmail?: string };
 type Row = { email: string; key: string; value: string };
 type Json = Record<string, unknown>;
 
@@ -25,6 +25,10 @@ const ROLES = ["teen", "parent", "employer"];
 // rows other people see (or that link other people to this account)
 const PUBLIC_KEYS = ["account_profile", "emp_profile", "link_code", "contacts", "linked_teens"];
 const PUBLIC_PREFIXES = ["job_post:", "job_app:", "code:", "consent:", "link_request:", "found_shift:"];
+// the admin's own settings live under the admin email too (plan_settings): deleting a teen/parent/employer
+// account on that email must never take them
+const ADMIN_KEYS = ["plan_settings"];
+export const ADMIN_EMAIL = "ayaquarrierdraper@gmail.com";
 
 const low = (s: unknown) => String(s ?? "").trim().toLowerCase();
 export const validKey = (k: unknown) => typeof k === "string" && k.length <= 254 && /^[^\s@#,()"*]+@[^\s@#,()"*]+\.[^\s@#,()"*]+(#\d{1,3})?$/.test(k);
@@ -139,8 +143,9 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
     await del("messages", `from_key=eq.${q(key)}`);
     await del("messages", `to_key=eq.${q(key)}`);
   }
+  const adminEmail = low(env.adminEmail || ADMIN_EMAIL);
   async function deleteOwn(key: string, all: boolean) {
-    if (all) { await del("user_data", `email=eq.${q(key)}`); return; }
+    if (all) { await del("user_data", `email=eq.${q(key)}` + (key === adminEmail ? `&key=not.in.(${ADMIN_KEYS.join(",")})` : "")); return; }
     await del("user_data", `email=eq.${q(key)}&key=in.(${PUBLIC_KEYS.join(",")})`);
     for (const p of PUBLIC_PREFIXES) await del("user_data", `email=eq.${q(key)}&key=like.${q(p + "*")}`);
   }

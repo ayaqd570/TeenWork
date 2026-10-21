@@ -43,8 +43,8 @@
   #page-landing .landing-hero{grid-template-columns:1fr}
   #tw48-h1{font-family:'Fraunces',Georgia,serif;font-size:clamp(1.75rem,4.4vw,2.7rem);font-weight:900;line-height:1.15;color:var(--green);max-width:none;margin:0 auto 1rem;letter-spacing:-.01em}
   @media (min-width:900px){
-    #tw-hero-outer > div{min-height:0 !important;max-height:min(46vh,460px)}
-    #tw-hero-img{height:min(46vh,460px) !important;object-position:50% 15%}
+    #tw-hero-outer > div{min-height:0 !important;max-height:none}
+    #tw-hero-img{height:auto !important;object-fit:contain;object-position:center}
   }
   @media (max-width:900px){#tw48-how .landing-steps,#tw48-how .landing-audience-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:600px){#tw48-how .landing-steps,#tw48-how .landing-audience-grid{grid-template-columns:1fr}}

@@ -231,3 +231,4 @@ export async function checkMessage(text: string, opts: GuardOptions = {}): Promi
   }
   return { allowed: true, moderation: m.status };
 }
+

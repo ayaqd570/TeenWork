@@ -1,0 +1,17 @@
+
+/* v18: Lessons grid — smaller cards */
+.lesson-card { padding: 8px 10px !important; }
+.lesson-card .lesson-icon { font-size: 1.2rem !important; }
+.lesson-card .lesson-title { font-size: .78rem !important; }
+.lesson-card .lesson-meta { font-size: .68rem !important; }
+/* v18: AI section highlight */
+#ttab-ai .panel-head { background: linear-gradient(135deg,var(--blue-pale),#fff) !important; }
+/* v18: Support FAB override */
+#v17-support-fab { background: #fff !important; color: var(--green) !important; border: 1.5px solid var(--green) !important; }
+/* (duplicate 💬 removed: the label already has one) */
+/* v18: Other text input in improve grid */
+#v18-other-improve-wrap { display:none; margin-top:6px; }
+#v18-other-improve-wrap.show { display:block; }
+#v18-other-improve-input { width:100%; padding:7px 10px; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.84rem; outline:none; background:var(--bg); color:var(--text); }
+#v18-other-improve-input:focus { border-color:var(--green); }
+/* v18: "How did you find" AI option styling — uses default radio-btn colors, no blue override */

@@ -1,0 +1,211 @@
+
+
+/* ══════════════════════════════════════════════════════
+   AI TOOLS MODALS — Resume PDF, Interview Prep, Cover Letter
+   ══════════════════════════════════════════════════════ */
+.ai-tools-modal-overlay {
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:1rem;
+}
+.ai-tools-modal-overlay.open { display:flex; }
+.ai-tools-modal {
+  background:var(--surface);border-radius:18px;padding:0;
+  width:100%;max-width:560px;max-height:90vh;overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.22);
+  border:1.5px solid var(--border);
+}
+.ai-tools-modal-header {
+  padding:1.1rem 1.3rem .9rem;
+  border-bottom:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);flex-shrink:0;
+}
+.ai-tools-modal-header h3 {
+  font-family:'Fraunces',Georgia,serif;font-size:1.15rem;
+  color:var(--green);margin:0;display:flex;align-items:center;gap:.5rem;
+}
+.ai-tools-modal-close {
+  background:none;border:none;font-size:1.4rem;cursor:pointer;
+  color:var(--muted);padding:0 4px;line-height:1;
+  transition:color .15s;
+}
+.ai-tools-modal-close:hover { color:var(--text); }
+.ai-tools-modal-body {
+  padding:1.1rem 1.3rem;overflow-y:auto;flex:1;
+}
+.ai-tools-modal-footer {
+  padding:.85rem 1.3rem;border-top:1.5px solid var(--border);
+  display:flex;gap:8px;flex-wrap:wrap;background:var(--surface);flex-shrink:0;
+}
+/* Resume form grid */
+.resume-form-grid {
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;
+}
+.resume-form-grid .full { grid-column:1/-1; }
+.resume-form-label {
+  font-size:.75rem;font-weight:700;display:block;
+  margin-bottom:4px;color:var(--text);
+}
+.resume-form-input {
+  width:100%;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;
+  outline:none;background:var(--bg);color:var(--text);box-sizing:border-box;
+  transition:border-color .15s;
+}
+.resume-form-input:focus { border-color:var(--green); }
+.resume-form-textarea {
+  width:100%;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;
+  outline:none;background:var(--bg);color:var(--text);resize:vertical;
+  min-height:64px;box-sizing:border-box;transition:border-color .15s;
+}
+.resume-form-textarea:focus { border-color:var(--green); }
+/* Interview chat */
+.interview-chat-box {
+  background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+  padding:10px 12px;min-height:200px;max-height:320px;overflow-y:auto;
+  font-size:.85rem;line-height:1.6;color:var(--text);margin-bottom:10px;
+}
+.interview-q {
+  background:var(--green-pale);border-left:3px solid var(--green);
+  border-radius:6px;padding:8px 11px;margin-bottom:8px;font-weight:600;
+  color:var(--green);font-size:.84rem;
+}
+.interview-feedback {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:8px;padding:8px 11px;margin-bottom:8px;
+  font-size:.82rem;color:var(--text);
+}
+.interview-score-pill {
+  display:inline-block;padding:2px 10px;border-radius:20px;
+  font-size:.74rem;font-weight:700;margin-left:6px;
+}
+.interview-score-great { background:var(--green-pale);color:var(--green); }
+.interview-score-ok    { background:#fff8e1;color:#b7791f; }
+.interview-score-improve { background:var(--red-pale);color:var(--red); }
+/* Cover letter output */
+.cover-letter-output {
+  background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+  padding:14px 16px;font-size:.85rem;line-height:1.7;color:var(--text);
+  white-space:pre-wrap;min-height:120px;max-height:350px;overflow-y:auto;
+}
+/* Resume PDF preview */
+.resume-pdf-preview {
+  background:#fff;border:1.5px solid var(--border);border-radius:10px;
+  padding:20px 22px;font-size:.82rem;line-height:1.6;color:#222;
+  max-height:340px;overflow-y:auto;
+}
+.resume-pdf-preview h1 { font-size:1.2rem;margin:0 0 2px;color:#1a1a1a; }
+.resume-pdf-preview h2 { font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--green);border-bottom:1px solid #e0e0e0;padding-bottom:3px;margin:12px 0 6px; }
+.resume-pdf-preview p, .resume-pdf-preview li { margin:2px 0;font-size:.8rem; }
+.resume-pdf-preview ul { padding-left:1.2em; }
+/* Step indicators */
+.ai-tool-steps {
+  display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;
+}
+.ai-tool-step {
+  padding:4px 12px;border-radius:20px;font-size:.74rem;font-weight:700;
+  background:var(--border);color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.ai-tool-step.active { background:var(--green);color:#fff; }
+.ai-tool-step.done { background:var(--green-pale);color:var(--green); }
+/* ── DARK MODE ── */
+html.dark{color-scheme:dark;}
+html.dark body{background:#14171a;color:#e8ebef;}
+html.dark{
+  --bg:#14171a;--card:#1e2328;--text:#e8ebef;--muted:#9aa3ad;
+  --border:#2c333b;--green-pale:#16352a;--amber-pale:#3a2a12;
+  --blue-pale:#102a44;--purple-pale:#24173d;--red-pale:#3a1818;
+  --shadow:0 2px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+html.dark .panel,html.dark .stat-card,html.dark .tracker-card,html.dark .msg-modal,html.dark .modal,html.dark .auth-card,html.dark input,html.dark select,html.dark textarea{background:var(--card);color:var(--text);}
+html.dark nav,html.dark .msg-sidebar{background:#1a1e23 !important;}
+html.dark .msg-bubble.incoming{background:#262c34 !important;color:var(--text);}
+.darkmode-toggle{background:none;border:1.5px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.darkmode-toggle:hover{border-color:var(--green);color:var(--green);}
+
+/* ── SKELETON LOADERS ── */
+.sk{display:inline-block;background:linear-gradient(90deg,#e9e4da 25%,#f5f0e8 50%,#e9e4da 75%);background-size:200% 100%;animation:sk-shimmer 1.3s linear infinite;border-radius:6px;}
+html.dark .sk{background:linear-gradient(90deg,#222830 25%,#2d353e 50%,#222830 75%);background-size:200% 100%;}
+.sk-line{height:12px;margin:6px 0;}
+.sk-line.w40{width:40%;}.sk-line.w60{width:60%;}.sk-line.w80{width:80%;}
+.sk-card{padding:1rem;background:var(--card);border:1.5px solid var(--border);border-radius:12px;}
+@keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── BADGE MICRO-ANIMATION ── */
+@keyframes badge-pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes badge-glow{0%,100%{box-shadow:0 0 0 0 rgba(231,111,0,.55)}50%{box-shadow:0 0 0 12px rgba(231,111,0,0)}}
+.badge-unlocked{animation:badge-pop .55s ease-out, badge-glow 1.6s ease-out;}
+
+/* ── CONFETTI ── */
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;}
+
+/* ── PROFILE COMPLETION BAR ── */
+.profile-strength-bar{position:relative;height:10px;background:var(--border);border-radius:20px;overflow:hidden;margin:6px 0;}
+.profile-strength-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--amber),var(--green));border-radius:20px;transition:width .6s cubic-bezier(.2,.8,.2,1);}
+
+/* ── FEATURED / PREMIUM BADGES ── */
+.feat-ribbon{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ffd35a,#e76f00);color:#3d2200;font-size:.66rem;font-weight:900;letter-spacing:.4px;padding:3px 9px;border-radius:20px;text-transform:uppercase;box-shadow:0 2px 8px rgba(231,111,0,.35);}
+.premium-teen-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#6d28d9,#c026d3);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:.4px;padding:3px 9px;border-radius:20px;}
+.job-card.featured{border:2px solid #e76f00;box-shadow:0 2px 18px rgba(231,111,0,.2);}
+
+/* ── SWIPE CARDS (teen browse) ── */
+.swipe-stack{position:relative;max-width:340px;margin:0 auto;height:420px;}
+.swipe-card{position:absolute;inset:0;background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:1.2rem;box-shadow:var(--shadow-lg);cursor:grab;user-select:none;touch-action:pan-y;display:flex;flex-direction:column;gap:.6rem;transition:transform .25s ease, opacity .25s ease;}
+.swipe-card.gone-left{transform:translateX(-140%) rotate(-18deg);opacity:0;}
+.swipe-card.gone-right{transform:translateX(140%) rotate(18deg);opacity:0;}
+.swipe-card h4{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--green);}
+.swipe-stamp{position:absolute;top:20px;padding:6px 14px;font-size:1.2rem;font-weight:900;border-radius:10px;opacity:0;transition:opacity .15s;font-family:'Fraunces',serif;letter-spacing:2px;}
+.swipe-stamp.save{right:20px;border:3px solid var(--green);color:var(--green);transform:rotate(12deg);}
+.swipe-stamp.skip{left:20px;border:3px solid var(--red);color:var(--red);transform:rotate(-12deg);}
+
+/* ── SWIPE TO DISMISS (notifications) ── */
+.swipe-dismissable{position:relative;touch-action:pan-y;}
+.swipe-dismissable.dismissing{transition:transform .25s ease, opacity .25s ease;transform:translateX(120%);opacity:0;}
+
+/* ── BOTTOM SHEET / INSTALL / EMERGENCY ── */
+.bottom-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9800;background:var(--card);border-top:2px solid var(--border);border-radius:20px 20px 0 0;padding:1.2rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(0,0,0,.14);transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1);}
+.bottom-sheet.open{transform:translateY(0);}
+
+/* ── JOB MAP ── */
+.job-map-wrap{position:relative;background:linear-gradient(135deg,#d8f3dc 0%,#e8f8ef 100%);border:1.5px solid var(--border);border-radius:14px;min-height:360px;overflow:hidden;}
+html.dark .job-map-wrap{background:linear-gradient(135deg,#16352a 0%,#1a3d30 100%);}
+.job-map-pin{position:absolute;transform:translate(-50%,-100%);background:var(--red);color:#fff;border-radius:50% 50% 50% 0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;cursor:pointer;transition:transform .2s;box-shadow:0 4px 10px rgba(0,0,0,.2);}
+.job-map-pin::before{content:'';position:absolute;inset:4px;background:#fff;border-radius:50%;color:var(--red);z-index:0;}
+.job-map-pin span{position:relative;z-index:1;color:var(--red);}
+.job-map-pin:hover{transform:translate(-50%,-110%) scale(1.15);}
+
+/* ── Q&A BOARD ── */
+.qa-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1rem;margin-bottom:10px;}
+.qa-card h4{font-size:.95rem;color:var(--green);margin-bottom:4px;}
+.qa-card p{font-size:.83rem;color:var(--muted);margin-bottom:6px;line-height:1.5;}
+.qa-meta{font-size:.72rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
+.qa-answer{margin-top:8px;padding:8px 10px;background:var(--green-pale);border-radius:8px;font-size:.82rem;}
+
+/* ── KEYBOARD SHORTCUT OVERLAY ── */
+.kbd-help{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;box-shadow:var(--shadow-lg);z-index:9900;max-width:420px;width:92%;}
+.kbd{display:inline-block;padding:2px 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;font-weight:700;min-width:28px;text-align:center;}
+
+/* ── PRICING ── */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.pricing-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.4rem;display:flex;flex-direction:column;gap:.6rem;}
+.pricing-card.featured{border:2px solid var(--green);box-shadow:0 6px 24px rgba(45,106,79,.18);}
+.pricing-price{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;color:var(--green);}
+.pricing-li{font-size:.86rem;color:var(--muted);padding:4px 0;border-bottom:1px dashed var(--border);}
+.pricing-li:last-child{border-bottom:none;}
+
+/* ── ATTACHMENT CHIP in chat ── */
+.msg-att{display:inline-flex;align-items:center;gap:6px;background:var(--green-pale);border:1px solid var(--green-light);color:var(--green);font-size:.78rem;font-weight:600;padding:4px 9px;border-radius:8px;text-decoration:none;margin-top:4px;}
+
+/* ── PRINT-FRIENDLY ── */
+@media print{
+  nav,.mobile-nav,.dash-header button,#featpack-install,#featpack-emergency,
+  #msgModal,.modal-overlay,#confetti-canvas,#parent-desktop-tabs,
+  #teen-desktop-tabs,#employer-desktop-tabs,.darkmode-toggle,
+  .verify-banner,.landing-orb{display:none !important;}
+  body{background:#fff !important;color:#000 !important;padding:0 !important;}
+  .page.active{display:block !important;}
+  .panel,.tab-panel{break-inside:avoid;border:1px solid #ccc !important;box-shadow:none !important;}
+}

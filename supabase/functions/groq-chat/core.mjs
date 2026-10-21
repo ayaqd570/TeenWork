@@ -1,6 +1,6 @@
-const MODELS = new Set(['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'openai/gpt-oss-20b']);
+const MODELS = new Set(['openai/gpt-oss-20b']);
 
-export function makeHandler(env, fetchImpl = fetch) {
+export function makeHandler(env, fetchImpl = fetch, checkMessage = async () => ({ allowed: true })) {
   const cors = {
     'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || 'https://ayaqdteenwork.netlify.app',
     'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
@@ -61,11 +61,20 @@ export function makeHandler(env, fetchImpl = fetch) {
       });
       if (!quota.ok) return error('AI usage checks are temporarily unavailable.', 503);
       if (await quota.json() !== true) return error('AI request limit reached. Please try again later.', 429);
+      // Preserve the live function's moderation before any request reaches Groq.
+      const userText = body.messages.filter(m => m.role === 'user').map(m => m.content).join('\n\n');
+      const guard = await checkMessage(userText, { policy: false, openaiKey: env.OPENAI_API_KEY || '', fetchFn: fetchImpl });
+      if (!guard.allowed) return json({
+        id: 'teenwork-blocked', object: 'chat.completion', model: 'teenwork-safety',
+        choices: [{ index: 0, message: { role: 'assistant', content: `🛡️ ${guard.title}. ${guard.message}` }, finish_reason: 'content_filter' }],
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        teenwork_blocked: { layer: guard.layer, reason: guard.reason, rule: guard.rule, categories: guard.categories },
+      });
       const upstream = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify({ model: MODELS.has(body.model) ? body.model : 'llama-3.3-70b-versatile',
-          messages: body.messages.map(({role, content}) => ({role, content})), max_tokens: maxTokens, temperature }),
+        body: JSON.stringify({ model: MODELS.has(body.model) ? body.model : 'openai/gpt-oss-20b',
+          messages: body.messages.map(({role, content}) => ({role, content})), max_tokens: Math.max(600, maxTokens), temperature, reasoning_effort: 'low' }),
         signal: AbortSignal.timeout(45000),
       });
       if (!upstream.ok) return error('The AI provider is temporarily unavailable. Please try again later.', upstream.status === 429 ? 429 : 502);

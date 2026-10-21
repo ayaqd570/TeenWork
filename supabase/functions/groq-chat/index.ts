@@ -1,4 +1,4 @@
-// Gateway JWT verification may remain off for publishable-key compatibility.
-// core.mjs validates every bearer token against Supabase Auth before allowing AI.
+// Authenticate bearer tokens in the handler; gateway JWT verification remains off.
 import { makeHandler } from './core.mjs';
-Deno.serve(makeHandler(Deno.env.toObject()));
+import { checkMessage } from '../_shared/message-guard.ts';
+Deno.serve(makeHandler(Deno.env.toObject(), fetch, checkMessage));

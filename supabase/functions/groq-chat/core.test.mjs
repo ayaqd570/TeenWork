@@ -38,3 +38,21 @@ test('invalid and oversized prompts do not spend quota',async()=>{
 test('preflight works without authentication',async()=>{
  const b=backend(); assert.equal((await b.handle(new Request('https://example.invalid',{method:'OPTIONS'}))).status,200); assert.equal(b.calls.length,0);
 });
+
+test('moderation blocks before Groq and preserves the safety response',async()=>{
+ const b=backend();
+ let calls=0;
+ const handle=makeHandler(env, async (url, opts)=>{
+  calls++;
+  if(url.endsWith('/auth/v1/user')) return response({id:'user-id'});
+  if(url.endsWith('/rpc/tw_consume_ai_quota')) return response(true);
+  throw new Error('Groq must not be called');
+ },async()=>({allowed:false,title:'Safety check',message:'Blocked',layer:'moderation'}));
+ const r=await handle(request()); assert.equal(r.status,200);
+ assert.equal((await r.json()).choices[0].finish_reason,'content_filter');assert.equal(calls,2);
+});
+test('model fallback and reasoning settings preserve the production model',async()=>{
+ const b=backend();await b.handle(request({model:'llama-3.3-70b-versatile',max_tokens:10}));
+ const payload=JSON.parse(b.calls[2].opts.body);
+ assert.equal(payload.model,'openai/gpt-oss-20b');assert.equal(payload.max_tokens,600);assert.equal(payload.reasoning_effort,'low');
+});

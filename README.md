@@ -69,3 +69,5 @@ Run backend checks with:
 ```sh
 node --test supabase/functions/groq-chat/core.test.mjs
 ```
+
+The deployed moderation guard is preserved in `supabase/functions/_shared/message-guard.ts`. The AI function continues using `openai/gpt-oss-20b`, low reasoning effort, and at least 600 completion tokens, matching the live configuration.

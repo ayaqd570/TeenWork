@@ -10,3 +10,23 @@
 #tw49-review-error{color:var(--red);font-size:.85rem;margin:.75rem 0}
 .tw49-consent{display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;line-height:1.5;margin:1rem 0}
 .tw49-consent input{margin-top:.3rem;flex-shrink:0}
+/* The existing introduction occupies the opening screen, then the page continues. */
+#page-landing .landing{padding-top:0}
+#page-landing #tw48-hero{min-height:calc(100svh - 60px);box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1rem;padding:clamp(1.5rem,5vh,4rem) 0;width:100%}
+#page-landing #tw48-hero .landing-inner{max-width:100% !important;width:100%;box-sizing:border-box;padding:clamp(1.5rem,4vw,3.5rem) clamp(1rem,5vw,4rem) !important}
+#page-landing #tw48-h1{max-width:960px;font-size:clamp(2rem,4.8vw,4rem) !important;line-height:1.12}
+#page-landing #tw48-hero .landing-lead{max-width:720px !important;font-size:clamp(1rem,1.8vw,1.2rem) !important;line-height:1.7 !important}
+#page-landing #tw48-demo{max-width:620px !important}
+#page-landing #tw48-hero button{min-height:44px}
+.tw50-scroll{margin:0;text-align:center}
+#tw50-details{display:grid;gap:1.2rem}
+#tw48-how{scroll-margin-top:80px}
+.tw50-faq{border-top:1px solid var(--border);padding:1rem 0}
+.tw50-faq summary{cursor:pointer;font-weight:700;color:var(--green);line-height:1.5}
+.tw50-faq p{line-height:1.7;color:var(--muted);margin:.75rem 0 0;max-width:80ch}
+@media(max-width:480px){
+ #page-landing #tw48-hero{padding:1rem 0}
+ #page-landing #tw48-h1{font-size:clamp(1.7rem,7vw,2.1rem) !important}
+ #page-landing #tw48-demo{padding:.8rem !important}
+ #page-landing #tw48-demo button{padding:10px 12px !important}
+}

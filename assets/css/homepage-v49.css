@@ -52,3 +52,9 @@
  #tw-slogan-wrap{font-size:clamp(2rem,9vw,2.8rem);min-height:3.5em}
  #page-landing #tw48-hero button:not(#tw51-pause):not(.tw50-scroll){padding:12px 18px !important}
 }
+
+/* Keep account actions at the upper left and the photo before the introduction. */
+#page-landing > nav > div{justify-content:flex-start !important}
+#page-landing > nav > div > div:first-child:empty{display:none}
+#page-landing > nav > div > div:last-child{flex-wrap:wrap}
+#page-landing > nav > div > div:last-child > button:first-child{order:3}

@@ -87,7 +87,7 @@
    setInterval(()=>{if(paused || document.hidden || !$('page-landing')?.classList.contains('active'))return;const items=$('tw-slogan-wrap').children;items[current].classList.remove('active');items[current].setAttribute('aria-hidden','true');current=(current+1)%items.length;items[current].classList.add('active');items[current].setAttribute('aria-hidden','false');},3200);
   }
   // Keep the existing introduction and controls; give them the first screen.
-  if(image?.parentElement===hero.parentElement)image.before(hero);
+  if(image?.parentElement===hero.parentElement)hero.before(image);
   hero.insertAdjacentHTML('beforeend','<button class="tw48-link tw50-scroll" type="button" id="tw50-discover">See how TeenWork works ↓</button>');
   $('tw50-discover').addEventListener('click',()=>$('tw48-how')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
   const details=document.createElement('div');details.id='tw50-details';

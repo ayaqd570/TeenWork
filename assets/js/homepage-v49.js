@@ -76,6 +76,16 @@
  function expandHomepage(){
   const hero=$('tw48-hero'), image=$('tw-hero-outer');
   if(!hero || $('tw50-details'))return;
+  const headline=$('tw48-h1');
+  if(headline && !$('tw-slogan-wrap')){
+   const slogans=['From teen jobs <em>to adult jobs.</em>','Learn <em>how to work well.</em>','Work <em>your first job.</em>','Join the job world <em>early.</em>','Connect with neighbors <em>through work.</em>','Expand your <em>knowledge of jobs.</em>'];
+   headline.insertAdjacentHTML('beforebegin','<div id="tw-slogan-wrap">'+slogans.map((s,i)=>'<div class="tw-slogan'+(i?'':' active')+'" aria-hidden="'+!!i+'">'+s+'</div>').join('')+'</div><button type="button" id="tw51-pause" aria-pressed="false">Pause headlines</button>');
+   let current=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   const pause=$('tw51-pause');
+   const sync=()=>{pause.textContent=paused?'Play headlines':'Pause headlines';pause.setAttribute('aria-pressed',String(paused));};sync();
+   pause.addEventListener('click',()=>{paused=!paused;sync();});
+   setInterval(()=>{if(paused || document.hidden || !$('page-landing')?.classList.contains('active'))return;const items=$('tw-slogan-wrap').children;items[current].classList.remove('active');items[current].setAttribute('aria-hidden','true');current=(current+1)%items.length;items[current].classList.add('active');items[current].setAttribute('aria-hidden','false');},3200);
+  }
   // Keep the existing introduction and controls; give them the first screen.
   if(image?.parentElement===hero.parentElement)image.before(hero);
   hero.insertAdjacentHTML('beforeend','<button class="tw48-link tw50-scroll" type="button" id="tw50-discover">See how TeenWork works ↓</button>');

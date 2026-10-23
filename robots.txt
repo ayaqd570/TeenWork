@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ayaqdteenwork.netlify.app/sitemap.xml
+Sitemap: https://teenwork.ayaqd.com/sitemap.xml

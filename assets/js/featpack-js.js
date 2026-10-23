@@ -335,7 +335,7 @@
     } catch(e) {}
 
     closeFeelsWrong();
-    showToast?.('🚨 Alert sent! Parent & TeenWork support have been notified.','warn');
+    showToast?.('Alert saved on this device; delivery is not confirmed. If an email draft opened, send it. Contact a trusted adult directly if you need help.','warn');
   };
 
   /* ─── SAFE WORD ─── */
@@ -544,7 +544,7 @@
   const SEED_STORIES = [
     {name:'Maya, 15 · TX', role:'teen', quote:'I made $320 in my first month cleaning cars — the AI cover letter got me 3 interviews in a week.'},
     {name:'James, 14 · CA', role:'teen', quote:"The safety filter caught a sketchy job post before I even applied. My mom felt way better about me using this."},
-    {name:'Riverbed Landscaping', role:'employer', quote:"Verified employer badge plus parent approval means the teens we hire actually show up. Game changer."},
+    {name:'Riverbed Landscaping', role:'employer', quote:"Clear job details and parent involvement means the teens we hire actually show up. Game changer."},
     {name:'Dana · Parent, VT', role:'parent', quote:"The weekly digest email is gold. I know what my kid is up to without hovering."},
   ];
   window.renderStories = function(containerId){

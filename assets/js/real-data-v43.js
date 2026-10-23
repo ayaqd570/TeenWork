@@ -793,8 +793,8 @@
 
   /* ── 5. Parent screens ──────────────────────────────────────────── */
   function parentActivity() {
-    const apps = realApps(), ratings = (typeof demoRatings !== 'undefined' ? demoRatings : []);
-    const pending = apps.filter(j => j.status === 'pending-approval'), accepted = apps.filter(j => j.status === 'accepted');
+    const apps = isReal(me()) ? realApps() : (typeof demoJobs !== 'undefined' ? demoJobs : []), ratings = (typeof demoRatings !== 'undefined' ? demoRatings : []);
+    const pending = parentApprovalRecords(apps), accepted = apps.filter(j => j.status === 'accepted');
     const avg = ratings.length ? (ratings.reduce((s, r) => s + (Number(r.stars) || 0), 0) / ratings.length).toFixed(1) : '';
     return { apps, pending, accepted, ratings, avg, total: apps.length + ratings.length };
   }
@@ -825,7 +825,8 @@
       [a.accepted.length, 'This season'], [a.avg ? a.avg + '⭐' : '—', a.ratings.length ? 'From ' + plural(a.ratings.length, 'rating') : 'No ratings yet']];
     document.querySelectorAll('#ptab-overview .stats-row .stat-card').forEach((c, i) => {
       if (!vals[i]) return;
-      realText(c.querySelector('.stat-value'), real, String(vals[i][0])); realText(c.querySelector('.stat-sub'), real, vals[i][1]);
+      if (i < 2) { c.querySelector('.stat-value').textContent = String(vals[i][0]); c.querySelector('.stat-sub').textContent = vals[i][1]; }
+      else { realText(c.querySelector('.stat-value'), real, String(vals[i][0])); realText(c.querySelector('.stat-sub'), real, vals[i][1]); }
     });
     let card = document.querySelector('[data-tw-teen-card]');
     if (!card) { const tc = document.querySelector('#ptab-overview .teen-profile-card'); card = tc && tc.closest('.panel-body'); if (card) card.dataset.twTeenCard = '1'; }
@@ -972,7 +973,7 @@
     const p = real ? empProfile(u) : {};
     realText($('emp-profile-name-display'), real, p.name || u.name || 'Your business');
     realText($('emp-profile-loc-display'), real, [placeOf(p) ? '📍 ' + placeOf(p) : '', p.type || ''].filter(Boolean).join(' · ') || '📍 Add your town and type of work in Edit Profile');
-    const verified = [...document.querySelectorAll('#etab-profile .badge.badge-green')].find(b => /Verified Employer/.test(b.textContent));
+    const verified = [...document.querySelectorAll('#etab-profile .badge.badge-green')].find(b => /Employer profile (not screened)/.test(b.textContent));
     realHide(verified, real);
     realText($('emp-profile-rating-badge'), real, 'No reviews yet');
     realText($('emp-profile-about-display'), real, p.about || 'Tell teens and parents about your business: what you do, the kind of work, and what makes it a good first job. Tap ✏️ Edit Profile.');

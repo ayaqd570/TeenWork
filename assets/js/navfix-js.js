@@ -44,7 +44,7 @@ const NAV = {
     ],
     groups: [
       { label:'🏠 Home',    tabs:[['ptab-overview','Overview'],['ptab-approvals','Approvals'],['ptab-ratings','Ratings']] },
-      { label:'🛡 Safety',  tabs:[['ptab-controls','Controls'],['ptab-notifications','Alerts'],['ptab-trusted','Trusted Employers']] },
+      { label:'🛡 Safety',  tabs:[['ptab-controls','Controls'],['ptab-notifications','Alerts'],['ptab-trusted','Employers saved by you']] },
       { label:'📬 Updates', tabs:[['ptab-weekly','Weekly Digest'],['ptab-savings','Savings Goals']] },
       { label:'👨‍👩‍👧 Family',  tabs:[['ptab-teens','My Teens']] },
     ],
@@ -53,7 +53,7 @@ const NAV = {
         { icon:'👨‍👩‍👧', label:'My Teens',  tab:'ptab-teens' },
         { icon:'⭐', label:'Ratings',    tab:'ptab-ratings' },
         { icon:'🔔', label:'Alerts',     tab:'ptab-notifications' },
-        { icon:'✅', label:'Trusted',    tab:'ptab-trusted' },
+        { icon:'✅', label:'Saved',    tab:'ptab-trusted' },
         { icon:'🎯', label:'Savings',    tab:'ptab-savings' },
         { icon:'📬', label:'Digest',     tab:'ptab-weekly' },
         { icon:'📊', label:'Admin',      action:'admin' },

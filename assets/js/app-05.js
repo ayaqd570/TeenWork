@@ -1270,12 +1270,7 @@ async function adminRunHealthCheck() {
 const REVIEWS_KEY = 'tw_admin_reviews';
 
 function _getReviews() {
-  const defaults = [
-    { id:'r1', name:'Maya, 15 · TX', role:'teen', rating:5, body:'I made $320 in my first month cleaning cars — the AI cover letter got me 3 interviews in a week.', published:true, date:'2024-05-10' },
-    { id:'r2', name:'James, 14 · CA', role:'teen', rating:5, body:'The safety filter caught a sketchy job post before I even applied. My mom felt way better.', published:true, date:'2024-06-01' },
-    { id:'r3', name:'Riverbed Landscaping', role:'employer', rating:5, body:'Verified employer badge plus parent approval means the teens we hire actually show up. Game changer.', published:true, date:'2024-06-15' },
-    { id:'r4', name:'Dana · Parent, VT', role:'parent', rating:5, body:'The weekly digest email is gold. I know what my kid is up to without hovering.', published:true, date:'2024-07-01' },
-  ];
+  const defaults = []; // No seeded member reviews.
   try {
     const stored = localStorage.getItem(REVIEWS_KEY);
     return stored ? JSON.parse(stored) : defaults;
@@ -1288,6 +1283,7 @@ function _saveReviews(reviews) {
 }
 
 function _injectReviewSchema(reviews) {
+  return; // Device-local reviews cannot establish authorized public review data.
   const published = reviews.filter(r => r.published);
   const avg = published.length
     ? (published.reduce((s,r) => s + (r.rating||5), 0) / published.length).toFixed(1)
@@ -2541,7 +2537,7 @@ function renderEmpReviewsTab() {
     <!-- Teen Lessons Completed (visible to employer for hired workers) -->
     ${hired.length ? `
     <div class="panel">
-      <div class="panel-head"><h2>📚 Worker Lesson Progress</h2><span class="badge badge-blue">Verified Learning</span></div>
+      <div class="panel-head"><h2>📚 Worker Lesson Progress</h2><span class="badge badge-blue">Lesson progress</span></div>
       <div class="panel-body">
         <p style="font-size:.83rem;color:var(--muted);margin-bottom:.8rem">TeenWork tracks professional development lessons completed by your workers. Teens who complete more lessons tend to be better communicators and more reliable.</p>
         <div id="emp-lessons-progress-list">
@@ -2676,7 +2672,7 @@ function renderTeenLettersPanel() {
         <div style="font-weight:700;font-size:.95rem;color:var(--text)">${safeText(l.job||'Letter of Recommendation')}</div>
         <div style="font-size:.8rem;color:var(--muted);margin-top:2px">From <strong>${safeText(l.from)}</strong>${l.fromTitle?', '+safeText(l.fromTitle):''} · ${safeText(l.date)}</div>
         <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-          <span class="badge badge-green">✅ Verified</span>
+          <span class="badge badge-green">Profile supplied</span>
           ${l.rating==='exceptional'?'<span class="badge badge-amber">⭐ Exceptional</span>':l.rating==='excellent'?'<span class="badge badge-blue">⭐ Excellent</span>':''}
         </div>
       </div>
@@ -2749,7 +2745,7 @@ ${'<'}/style></head><body>
   <div class="from">Written by ${safeText(l.from)}${l.fromTitle?', '+safeText(l.fromTitle):''} · ${safeText(l.date)}</div>
 </div>
 <pre>${l.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
-<div class="footer">This letter was transmitted via TeenWork — the verified teen employment platform. Printed ${today}.</div>
+<div class="footer">This letter was transmitted via TeenWork — the teen employment platform. Printed ${today}.</div>
 </body></html>`);
   win.document.close();
   win.focus();
@@ -3173,7 +3169,7 @@ async function openJobSafetyCheck(jobIdx) {
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
         <span style="font-size:1.8rem">🛡</span>
         <div>
-          <div style="font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--green)">AI Safety Check</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--green)">AI job guidance</div>
           <div style="font-size:.78rem;color:var(--muted)">${job.title} · ${job.employer}</div>
         </div>
       </div>
@@ -4244,64 +4240,8 @@ window.setCurfew = setCurfew;
 // ═══════════════════════════════════════════════════════
 //  FEATURE: EMPLOYER BACKGROUND CHECK REQUEST (Teen)
 // ═══════════════════════════════════════════════════════
-function requestEmployerBGC(employer, job) {
-  const modal = document.getElementById('bgc-request-modal');
-  if (!modal) return;
-  const empInput = document.getElementById('bgcreq-employer');
-  const jobInput = document.getElementById('bgcreq-job');
-  if (empInput) empInput.value = employer;
-  if (jobInput) jobInput.value = job;
-  document.getElementById('bgc-ai-result').style.display = 'none';
-  modal.classList.add('open');
-}
-
-async function runBGCRequest() {
-  const employer = document.getElementById('bgcreq-employer')?.value || 'Unknown Employer';
-  const job      = document.getElementById('bgcreq-job')?.value || 'Unknown Job';
-  const result   = document.getElementById('bgc-ai-result');
-  if (!result) return;
-
-  result.style.display = 'block';
-  result.innerHTML = '<div class="ai-chat-box"><span class="loading-dots">Running AI background check</span></div>';
-
-  const prompt = `You are an employer safety checker for TeenWork, a teen employment platform. A parent/teen is requesting a background check on this employer before applying.
-
-Employer: "${employer}"
-Job: "${job}"
-
-Write a 4-5 sentence safety assessment that:
-1. Gives a Trust Score (0-100) on the first line as "Trust Score: XX/100"
-2. Describes what type of employer this likely is and whether it's appropriate for teens aged 13-17
-3. Lists any red flags or green flags
-4. Ends with either "✅ SAFE TO APPLY" or "⚠️ PARENT REVIEW RECOMMENDED"
-
-Be realistic and helpful.`;
-
-  const text = await callGemini(prompt);
-  const scoreMatch = text.match(/Trust Score:\s*(\d+)/i);
-  const score = scoreMatch ? parseInt(scoreMatch[1]) : 70;
-  const color = score >= 75 ? 'var(--green)' : score >= 50 ? 'var(--amber)' : 'var(--red)';
-  const barColor = color;
-
-  result.innerHTML = `
-    <div style="background:var(--purple-pale);border:1.5px solid #c4b5fd;border-radius:12px;padding:14px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div style="text-align:center;flex-shrink:0">
-          <div style="font-family:'Fraunces',serif;font-size:1.8rem;font-weight:900;color:${barColor}">${score}</div>
-          <div style="font-size:.65rem;color:var(--muted);font-weight:700">/ 100</div>
-          <div style="font-size:.65rem;font-weight:700;color:${barColor}">Trust Score</div>
-        </div>
-        <div style="flex:1">
-          <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;margin-bottom:6px">
-            <div style="width:${score}%;height:100%;background:${barColor};border-radius:4px"></div>
-          </div>
-          <div style="font-size:.78rem;color:var(--muted);line-height:1.6">${text.replace(/Trust Score:\s*\d+\/100\s*/i,'').replace(/\n/g,'<br>')}</div>
-        </div>
-      </div>
-    </div>`;
-
-  showToast('Background check complete!', 'success');
-}
+function requestEmployerBGC() { showToast('Background checks are not available. Open How safety works for the current checks and limits.', 'info'); }
+async function runBGCRequest() { requestEmployerBGC(); }
 
 function closeBGCRequest() {
   document.getElementById('bgc-request-modal')?.classList.remove('open');
@@ -4350,12 +4290,13 @@ async function submitDispute() {
 
 Give them 3 short, practical next steps they can take right now (numbered list). Be supportive, age-appropriate, and encouraging. Under 100 words total.`;
 
-    const text = await callGemini(prompt);
+    let text;
+    try { text = await callGemini(prompt); } catch { text = 'AI guidance is unavailable. Talk with a trusted adult. In immediate danger, call 911.'; }
     adviceEl.innerHTML = '<strong style="color:var(--green)">💡 What you can do next:</strong><br><br>' +
       text.replace(/\n/g, '<br>');
   }
 
-  showToast('Report submitted — our team will review within 24 hours', 'success');
+  showToast('Guidance requested. This form does not send a report or notify a parent.', 'success');
 }
 
 function closeDisputeModal() {
@@ -4595,11 +4536,11 @@ function renderTrustedEmployers() {
           <span style="font-size:1.1rem">✅</span>
           <div>
             <div style="font-size:.85rem;font-weight:700;color:var(--green)">${emp.name}</div>
-            <div style="font-size:.72rem;color:var(--muted)">Added ${emp.date} · Auto-approve ON</div>
+            <div style="font-size:.72rem;color:var(--muted)">Added ${emp.date} · Saved by you · not a screening check</div>
           </div>
         </div>
         <button onclick="removeTrusted(${i})" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;cursor:pointer;font-size:.75rem">Remove</button>
-      </div>`).join('') : '<p style="color:var(--muted);font-size:.84rem;padding:4px 0">No trusted employers yet.</p>';
+      </div>`).join('') : '<p style="color:var(--muted);font-size:.84rem;padding:4px 0">No employers saved by you yet.</p>';
   }
 
   if (bList) {
@@ -4622,7 +4563,7 @@ function addTrustedEmployer() {
   saveTrustedEmployers();
   document.getElementById('te-name').value = '';
   renderTrustedEmployers();
-  showToast(name+' added to trusted employers ✅','success');
+  showToast(name+' added to employers saved by you ✅','success');
 }
 
 function addBlockedEmployer() {
@@ -4856,11 +4797,11 @@ const OB_STEPS = {
     { icon:'🔗', title:'Link your teen\'s account', body:'Your teen will share their <strong>Invite Code</strong> from their Profile tab. Enter it in your account settings under <strong>Teen\'s Invite Code</strong> to connect your accounts.', action: null },
     { icon:'🛡', title:'Set parental controls', body:'Go to the <strong>Controls</strong> tab to set hour limits, restrict transport options, and configure message safety filters. These apply immediately.', action: null },
     { icon:'📬', title:'Get weekly summaries', body:'Head to the <strong>Weekly Summary</strong> tab and turn on email digests. Every Sunday you\'ll get an AI-written rundown of everything your teen did that week.', action: null },
-    { icon:'✅', title:'Approve with confidence', body:'When your teen applies for a job, you\'ll get an alert. Click <strong>🤖 AI Safety Check</strong> on any job to get an instant safety report before you approve.', action: null },
+    { icon:'✅', title:'Approve with confidence', body:'When your teen applies for a job, you\'ll get an alert. Click <strong>🤖 AI job guidance</strong> on any job to get an instant safety report before you approve.', action: null },
     { icon:'🚀', title:"You're all set!", body:'You\'re in control. Head to your <strong>Approvals</strong> tab to see any pending applications from your teen.', action: 'gotoPage("parent")' }
   ],
   employer: [
-    { icon:'🏢', title:'Welcome, employer!', body:'TeenWork helps you hire reliable local teens safely and legally. Every teen\'s parent has already approved their account — so you\'re working with verified, supervised workers.', action: null },
+    { icon:'🏢', title:'Welcome, employer!', body:'TeenWork helps you hire reliable local teens safely and legally. Every teen\'s parent has already approved their account — so you\'re reviewing applications with parent involvement.', action: null },
     { icon:'📝', title:'Post your first job', body:'Click the <strong>Post a Job</strong> tab and fill in the details. The AI will automatically review your posting for child labor law compliance before it goes live.', action: null },
     { icon:'👥', title:'Review applicants', body:'Go to the <strong>Applicants</strong> tab to see who\'s applied. Each profile shows age, skills, ratings, and letters of recommendation from past employers.', action: null },
     { icon:'💬', title:'Message teens safely', body:'All messages go through TeenWork\'s safety filter — no personal contact info is ever shared. Parents can see all messages between you and their teen.', action: null },

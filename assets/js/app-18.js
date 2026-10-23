@@ -14,17 +14,17 @@
       { icon: '👋', title: 'Welcome to TeenWork!', body: "Here's a quick tour of where everything lives. Use Next to move along, or Skip tour any time." },
       { find: ['Jobs'], icon: '🔍', title: 'Jobs', body: 'Browse real jobs near you, filtered for your age. Tap a job to apply — a parent approves it before anything moves forward.' },
       { find: ['Work'], icon: '💼', title: 'Work', body: 'Your hours log, calendar, applications and earnings all live here.' },
-      { find: ['Chat', 'Grow'], icon: '💬', title: 'Chat & Grow', body: 'Message employers safely (a parent can see it), and use lessons and the AI coach to build your skills.' },
+      { find: ['Chat', 'Grow'], icon: '💬', title: 'Chat & Grow', body: 'Keep employer conversations in the app. AI screening can miss things or be unavailable; parents do not automatically see chats. Lessons and the AI coach can help you prepare.' },
       { find: ['Account'], icon: '👤', title: 'Account', body: 'Your profile, badges and settings. A complete profile gets more employers looking at you.' },
       { icon: '🎉', title: "You're all set!", body: 'You can replay this tour any time with the Tour button on your dashboard. Good luck finding your first job! 💚' }
     ],
     parent: [
       { icon: '👪', title: 'Welcome, parent!', body: "This is your oversight center. Here's a quick look at the key places. Use Next, or Skip tour any time." },
       { find: ['Home'], icon: '🏠', title: 'Home', body: "A snapshot of your teen's activity, hours and anything waiting on you." },
-      { find: ['Approve', 'Safety'], icon: '✅', title: 'Approvals', body: "When your teen applies for a job it shows up for your OK first. Check the employer's safety report before approving." },
+      { find: ['Approve', 'Safety'], icon: '✅', title: 'Approvals', body: "When your teen applies for a job it shows up for your OK first. Review the employer and job together; identity and background screening are not available." },
       { find: ['Safety'], icon: '🛡️', title: 'Safety & controls', body: 'Set hour limits, review flagged messages and safety alerts.' },
       { find: ['Chat', 'Updates'], icon: '💬', title: 'Messages & updates', body: 'Read your teen\'s conversations with employers and see the latest updates.' },
-      { icon: '✨', title: "You're ready!", body: 'You can replay this tour any time with the App Tour button. TeenWork keeps your teen safe while they build real work experience. 💚' }
+      { icon: '✨', title: "You're ready!", body: 'You can replay this tour any time with the App Tour button. Stay involved as your teen builds work experience. No app can guarantee safety. 💚' }
     ],
     employer: [
       { icon: '🏢', title: 'Welcome, employer!', body: "Here's a quick tour of your hiring tools. Use Next, or Skip tour any time." },
@@ -226,7 +226,7 @@
   }
 
   // Automatic launches (from login) honour "already seen"; the Tour buttons pass true to replay.
-  function auto(role) { if (!isDone()) start(role); }
+  function auto(role) { if (!matchMedia('(max-width:768px)').matches && !isDone()) start(role); }
 
   window.tourStart = function (force) { if (force === true) start(); else auto(); };
   window.startTour = window._startAdvancedTour = function (role) { auto(role); };

@@ -75,7 +75,7 @@
     const name = teenLabel(t), first = firstName(name) || 'my teen';
     return ['I am the parent or legal guardian of ' + name + '.',
       'I understand I can withdraw this consent and block any job application at any time.',
-      'I agree that TeenWork may share ' + first + "'s first name and verified age with approved employers only."];
+      'I agree that TeenWork may share ' + first + "'s first name and self-reported age with approved employers only."];
   };
   const demoGet = () => { try { const v = JSON.parse(sessionStorage.getItem(DEMO_KEY)); return v && v.status === 'given' ? v : null; } catch (e) { return null; } };
   const demoSet = v => { try { if (v) sessionStorage.setItem(DEMO_KEY, JSON.stringify(v)); else sessionStorage.removeItem(DEMO_KEY); } catch (e) {} };
@@ -270,7 +270,7 @@
     if (u.type === 'parent') return !!givenFor(vTeen);
     return false;
   }
-  const BADGES = [['identity', '🪪 Identity Verified', 'identity'], ['parentConsent', '👪 Parent Approved', 'parent'], ['workPermit', '📋 Work Permit', 'permit'], ['bgc', '✦ Trusted+', 'bgc']];
+  const BADGES = [['parentConsent', '👪 Parent Approved', 'parent'], ['workPermit', '📋 Work Permit', 'permit']];
   function badges() {
     let b = [];
     try { b = (typeof TW_Verify !== 'undefined' && TW_Verify && TW_Verify.__tw44cBadges) ? TW_Verify.__tw44cBadges() : []; } catch (e) {}

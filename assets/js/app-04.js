@@ -311,9 +311,9 @@ const BADGES = [
   {id:'five_star',     icon:'⭐', label:'5-Star Worker',   desc:'Received a 5-star rating',     pts:60},
   {id:'lesson_1',      icon:'📖', label:'Quick Learner',   desc:'Completed your first lesson',  pts:30},
   {id:'lesson_all',    icon:'🎓', label:'Grad',            desc:'Completed all lessons',        pts:150},
-  {id:'verified',      icon:'🪪', label:'Verified',        desc:'Completed identity verification', pts:40},
+  {id:'verified',      icon:'🪪', label:'Profile details', desc:'Profile details supplied by the member', pts:40},
   {id:'profile_done',  icon:'✍️', label:'Profile Pro',    desc:'Built out your full profile',  pts:25},
-  {id:'safety_check',  icon:'🛡️', label:'Safety First',   desc:'Passed the background check',  pts:200},
+  {id:'safety_check',  icon:'🛡️', label:'Safety lesson', desc:'Completed a safety lesson',  pts:200},
 ];
 
 // Teen points/badges state — loaded per-user from localStorage
@@ -483,7 +483,7 @@ function buildNavTabs(role) {
     const mobileMoreItems = {
       parent:   [['⭐','Ratings','ptab-ratings'],['🔔','Notifications','ptab-notifications']],
       teen:     [['👤','Profile & Account','ttab-resume'],['📚','Lessons','ttab-lessons']],
-      employer: [['🤖','AI Tools','etab-ai'],['🛡','Get Verified','etab-bgcheck']],
+      employer: [['🤖','AI Tools','etab-ai'],['🛡','Screening limits','etab-bgcheck']],
     };
     window._mobileMoreItems = mobileMoreItems[role] || [];
     const icons = mobileIcons[role] || mobileIcons.teen;
@@ -2063,7 +2063,7 @@ async function submitVerifyCode() {
       }, 1500);
       return;
     }
-    if (alertEl) { alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Verified! Setting up your account...'; }
+    if (alertEl) { alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Email confirmed. Setting up your account...'; }
     // Set password now that OTP verified identity
     if (_pendingSignupData?.password) {
       try {
@@ -2087,7 +2087,7 @@ async function submitVerifyCode() {
 
   if (entered === _pendingVerifyCode) {
     // Success! (demo mode)
-    if (alertEl) { alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Verified! Signing you in...'; }
+    if (alertEl) { alertEl.className = 'alert alert-success show'; alertEl.textContent = 'Email confirmed. Signing you in...'; }
     setTimeout(() => {
     // Set up the user from pending signup data
     if (_pendingSignupData) {
@@ -2356,11 +2356,19 @@ function renderParentDashboard() {
   setTimeout(initParentalControls, 50);
 }
 
+function parentApprovalRecords(jobs) {
+  return (Array.isArray(jobs) ? jobs : []).filter(j => j && j.status === 'pending-approval');
+}
 function renderApprovalJobs(jobs) {
-  const pending = jobs.filter(j => j.status === 'pending-approval');
+  const pending = parentApprovalRecords(jobs);
+  const allPending = parentApprovalRecords(demoJobs);
+  const count = document.querySelector('#parent-awaiting-count');
+  if (count) count.textContent = String(allPending.length);
+  const sub = document.querySelector('#parent-active-sub');
+  if (sub) sub.textContent = allPending.length + ' pending review';
   const accepted = jobs.filter(j => j.status === 'accepted');
   const badge = document.getElementById('approval-count-badge');
-  if (badge) badge.textContent = `${pending.length} Pending`;
+  if (badge) badge.textContent = `${allPending.length} Pending` + (pending.length !== allPending.length ? ` · ${pending.length} shown by filters` : '');
   const c = document.getElementById('approval-jobs');
   if (!c) return;
   const pendingHtml = pending.length
@@ -2378,13 +2386,13 @@ function renderApprovalJobs(jobs) {
       </div>
       <p style="font-size:.82rem;color:var(--muted);margin-top:6px">${job.desc||''}</p>
       <div style="font-size:.78rem;color:var(--muted);margin-top:4px">
-        ${(()=>{const r=getEmployerRating(job.employer);const c=r>=4.5?'var(--green)':r>=4?'var(--amber)':'var(--red)';return `Employer rating: <span style="color:${c};font-weight:700">⭐ ${r.toFixed(1)}</span>`;})()}
+        ${(()=>{const r=getEmployerRating(job.employer);if(r==null)return 'Employer rating: no reviews yet';const c=r>=4.5?'var(--green)':r>=4?'var(--amber)':'var(--red)';return `Employer rating: <span style="color:${c};font-weight:700">⭐ ${r.toFixed(1)}</span>`;})()}
       </div>
       <div class="job-actions">
         <button class="btn-sm btn-approve" onclick="parentApproveJob(${job.id})">✓ Approve This Job</button>
         <button class="btn-sm btn-deny" onclick="parentDenyJob(${job.id})">✗ Deny This Job</button>
         <button class="btn-sm btn-msg" onclick="openMsgModal('${job.employer}','employer')">💬 Message Employer</button>
-        <button class="btn-sm btn-ai" onclick="openAI('A parent is reviewing this job for their 16-year-old: ${job.title} at ${job.employer} in ${job.city}. Pay $${job.pay}/${job.payType}. Type: ${job.type}. Max ${job.maxHours}h/week. Min age: ${job.minAge}. Job description: ${job.desc}. Give a 3-4 sentence safety and suitability assessment from a parent\'s perspective. Include any red flags or green flags.')">🤖 AI Safety Check</button>
+        <button class="btn-sm btn-ai" onclick="openAI('A parent is reviewing this job for their 16-year-old: ${job.title} at ${job.employer} in ${job.city}. Pay $${job.pay}/${job.payType}. Type: ${job.type}. Max ${job.maxHours}h/week. Min age: ${job.minAge}. Job description: ${job.desc}. Give a 3-4 sentence safety and suitability assessment from a parent\'s perspective. Include any red flags or green flags.')">🤖 AI job guidance</button>
       </div>
     </div>`).join('')
     : '<p style="color:var(--muted);font-size:.88rem;text-align:center;padding:1rem">No jobs awaiting approval ✓</p>';
@@ -2783,7 +2791,8 @@ const EMPLOYER_RATINGS = {
   "Davis Household": 4.7,
 };
 function getEmployerRating(employer) {
-  return EMPLOYER_RATINGS[employer] || 4.0; // default 4.0 if unknown
+  const u = window.currentUser;
+  return u && (u.isDemo || /\.demo$/i.test(u.email || '')) ? (EMPLOYER_RATINGS[employer] ?? null) : null;
 }
 
 function filterJobs() {
@@ -2806,7 +2815,7 @@ function filterJobs() {
     if (checkedTypes.length > 0 && !checkedTypes.includes(j.type)) return false;
     if (j.pay < minPay) return false;
     if (j.maxHours > maxHours) return false;
-    if (minRating > 0 && getEmployerRating(j.employer) < minRating) return false;
+    if (minRating > 0 && (getEmployerRating(j.employer) == null || getEmployerRating(j.employer) < minRating)) return false;
     if (city && !j.city.toLowerCase().includes(city)) return false;
     return true;
   }));
@@ -3031,10 +3040,15 @@ function showToast(msg, type='success') {
   }
   const colors = {success:'background:#2d6a4f;color:#fff', info:'background:#1a5276;color:#fff', error:'background:#c0392b;color:#fff'};
   toast.style.cssText += ';' + (colors[type]||colors.success);
-  toast.textContent = msg;
+  toast.replaceChildren(document.createTextNode(msg));
+  toast.setAttribute('role', 'status');
+  const close = document.createElement('button'); close.type = 'button'; close.textContent = '×';
+  close.setAttribute('aria-label', 'Dismiss notification');
+  close.onclick = () => { toast.style.opacity = '0'; toast.style.pointerEvents = 'none'; };
+  toast.appendChild(close); toast.style.pointerEvents = 'auto';
   toast.style.opacity = '1';
   clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+  toast._timer = setTimeout(() => { toast.style.opacity = '0'; toast.style.pointerEvents = 'none'; }, 5000);
 }
 
 async function postJob() {
@@ -3049,8 +3063,8 @@ async function postJob() {
   const desc     = document.getElementById('emp-desc').value.trim();
   if (!title || !type || !pay || !city) { showAlert('emp-post-alert','Please fill in all required fields (Job Title, Type, Pay, and City).','error'); return; }
 
-  // ── AI Compliance Check: only block genuinely illegal/dangerous jobs ──
-  showAlert('emp-post-alert', '🤖 Running compliance check…', 'info');
+  // ── AI content review: only block genuinely illegal/dangerous jobs ──
+  showAlert('emp-post-alert', '🤖 Screening job content with AI…', 'info');
   try {
     const compliancePrompt = `You are a lenient compliance helper for a teen job platform (ages 13-17). Only block genuinely illegal or dangerous postings — not normal jobs.
 
@@ -3094,7 +3108,7 @@ Suggestion: [one sentence fix]`;
   document.getElementById('emp-type').value = '';
   renderEmployerDashboard();
   renderBrowseJobs();
-  showAlert('emp-post-alert', `✅ "${title}" posted! AI compliance check passed. Teens in ${city} can now apply.`, 'success');
+  showAlert('emp-post-alert', `✅ "${title}" posted! This is not a compliance certification. Teens in ${city} can now apply.`, 'success');
   // Check if new job matches any tracked teen profile
   setTimeout(aiJobMatchForParent, 500);
 }
@@ -3555,10 +3569,10 @@ const TW_Verify = (() => {
   };
 
   const _badgeDefs = {
-    identity:      { label:'🪪 Identity Verified', cls:'identity' },
+    identity:      { label:'🪪 Profile details (self-reported)', cls:'identity' },
     parentConsent: { label:'👪 Parent Approved',   cls:'parent'   },
     workPermit:    { label:'📋 Work Permit',        cls:'permit'   },
-    bgc:           { label:'✦ Trusted+',            cls:'bgc'      },
+    bgc:           { label:'Screening unavailable',            cls:'bgc'      },
   };
 
   function _sa(id,msg,type='info'){
@@ -3568,7 +3582,7 @@ const TW_Verify = (() => {
   }
 
   function _getTier(){
-    if(_state.bgcPurchased) return 4;
+    // No screening tier is awarded.
     if(_state.workPermit)   return 3;
     if(_state.parentConsent)return 2;
     if(_state.identity)     return 1;
@@ -3623,7 +3637,7 @@ const TW_Verify = (() => {
             to_name: name,
             to_email: email,
             subject: `Action Required — TeenWork Parent Consent for ${teenName}`,
-            message: `Hi ${name},\n\n${teenName} has created a TeenWork account and you have been listed as their parent or guardian.\n\nYou signed the following consent:\n✓ I confirm I am the parent or legal guardian.\n✓ I can revoke consent and block any job application at any time.\n✓ TeenWork may share my teen's first name and verified age with approved employers only.\n\nIf this is correct, no further action is needed — consent is recorded. If you did NOT authorize this, please contact support immediately at ayaquarrierdraper@gmail.com.\n\nThank you,\nThe TeenWork Team`,
+            message: `Hi ${name},\n\n${teenName} has created a TeenWork account and you have been listed as their parent or guardian.\n\nYou signed the following consent:\n✓ I confirm I am the parent or legal guardian.\n✓ I can revoke consent and block any job application at any time.\n✓ TeenWork may share my teen's first name and self-reported age with approved employers only.\n\nIf this is correct, no further action is needed — consent is recorded. If you did NOT authorize this, please contact support immediately at ayaquarrierdraper@gmail.com.\n\nThank you,\nThe TeenWork Team`,
             reply_to: 'ayaquarrierdraper@gmail.com'
           });
         }
@@ -3698,74 +3712,22 @@ const TW_Verify = (() => {
       showToast(`📄 Opening ${state} work permit form…`,'info');
     },
 
-    async checkEmployer(){
-      const name=document.getElementById('tw-ver-emp-name')?.value.trim();
-      if(!name){showToast('Enter an employer name to check.','info');return;}
-      const scoreEl=document.getElementById('tw-ver-emp-score');
-      const subEl=document.getElementById('tw-ver-emp-score-sub');
-      const aiBox=document.getElementById('tw-ver-emp-ai');
-      if(scoreEl)scoreEl.textContent='…';
-      if(subEl)subEl.textContent='Checking…';
-      if(aiBox){aiBox.textContent='Running AI vetting check…';aiBox.classList.add('show');}
-      try{
-        const text = await callClaudeAI(`You are an employer vetting assistant for a teen job platform. Evaluate "${name}" as a potential employer for teens aged 13-17. Give a trust score 0-100 (just the number on its own first line), then 2-3 sentences: what type of business this likely is, whether it's safe for teens, and any red flags. If unknown small business give ~60 and recommend local verification.`);
-        const lines=text.trim().split('\n');
-        const score=parseInt(lines[0])||65;
-        const summary=lines.slice(1).join(' ').trim();
-        if(scoreEl)scoreEl.textContent=score;
-        if(subEl)subEl.textContent=score>=75?'Trusted Employer ✓':score>=50?'Moderate — verify locally':'Caution — review carefully';
-        if(aiBox)aiBox.textContent=summary||text;
-      }catch{
-        if(scoreEl)scoreEl.textContent='?';
-        if(aiBox)aiBox.textContent='AI unavailable. Ask a parent to verify this employer.';
-      }
-    },
-
-    fmtCard(input){
-      let v=input.value.replace(/\D/g,'').substring(0,16);
-      input.value=v.replace(/(.{4})/g,'$1 ').trim();
-    },
-
-    previewBGC(){
-      alert('✦ AI Background Check includes:\n\n• Public records name match\n• AI social media public post scan for safety flags\n• Identity consistency check\n\nNo SSN, no hard credit pull. ~2 minutes.\nParent receives a copy of the report.');
-    },
-
-    async purchaseBGC(){
-      const name=document.getElementById('tw-ver-cc-name')?.value.trim();
-      const num=document.getElementById('tw-ver-cc-num')?.value.replace(/\s/g,'');
-      if(!name||num.length<16){showToast('Please enter valid card details.','error');return;}
-      const btn=document.querySelector('#tw-ver-step-5 .tw-ver-btn.purple');
-      if(btn){btn.disabled=true;btn.textContent='Processing…';}
-      const aiBox=document.getElementById('tw-ver-bgc-result');
-      if(aiBox){aiBox.textContent='🔮 Running AI background check…';aiBox.classList.add('show');}
-      try{
-        const text = await callClaudeAI(`Generate a mock AI background check result certificate for teen Alex Johnson, age 16, Vermont, for the TeenWork platform. Write 4-5 sentences confirming: identity verified, no concerning public records, social media scan clear, positive recommendation for employment. Start with "✦ AI Background Check — CLEAR". Make it sound official but friendly.`);
-        if(aiBox)aiBox.textContent=text;
-        _state.bgcPurchased=true;
-        _updateTierBar(); _renderBadges();
-        if(btn)btn.textContent='✓ Purchased';
-        const s5=document.getElementById('tw-ver-step-5');
-        if(s5)s5.classList.add('done');
-        const st5=s5?.querySelector('.tw-ver-step-status');
-        if(st5){st5.className='tw-ver-step-status done';st5.textContent='✓ Complete';}
-        showToast('✦ Trusted+ badge earned! Certificate emailed to parent.','success');
-      }catch{
-        if(aiBox)aiBox.innerHTML='Payment processed but the AI check hit a snag. <a href="#" onclick="openSupportModal(\'BGC AI Error\',\'Background check AI unavailable after payment\');return false" style="font-weight:700">Contact support</a> and we\'ll sort it out.';
-        if(btn){btn.disabled=false;btn.textContent='Pay $9.99 & Run Check';}
-      }
-    },
+    checkEmployer(){ showToast('Employer screening is not available. Review the employer with a parent.', 'info'); },
+    fmtCard(){},
+    previewBGC(){ showToast('Background checks are not available. No payment is collected.', 'info'); },
+    purchaseBGC(){ showToast('Background checks are not available. No payment is collected.', 'info'); },
 
     getTrustTier(){ return _getTier(); },
     getBadges(){
       const out=[];
-      if(_state.identity)       out.push('identity');
+
       if(_state.parentConsent)  out.push('parentConsent');
       if(_state.workPermit)     out.push('workPermit');
-      if(_state.bgcPurchased)   out.push('bgc');
+
       return out;
     },
     canApply(job){
-      if(!_state.identity) return {allowed:false,reason:'Identity verification required'};
+      if(!_state.identity) return {allowed:false,reason:'Profile details required'};
       if(job.minAge&&_state.teenAge<job.minAge) return {allowed:false,reason:`Must be ${job.minAge}+ for this job`};
       if(['Manufacturing','Construction'].includes(job.type)) return {allowed:false,reason:'Hazardous jobs not permitted under 18'};
       return {allowed:true};
@@ -3780,8 +3742,8 @@ window.showVerifyPage = function() {
   const role = currentUser?.type || 'teen';
   const roleConfig = {
     teen: { icon: '🧑', label: 'Teen Verification', sub: 'Complete these steps to unlock more jobs, build trust, and show employers you\'re serious.', steps: 5 },
-    parent: { icon: '👪', label: 'Parent Verification', sub: 'Verify your identity to oversee your teen\'s job activity and approve applications.', steps: 3 },
-    employer: { icon: '🏢', label: 'Employer Verification', sub: 'Complete verification to post jobs and hire teen workers on TeenWork.', steps: 4 },
+    parent: { icon: '👪', label: 'Parent Verification', sub: 'Use your linked parent account to oversee your teen\'s job activity and approve applications.', steps: 3 },
+    employer: { icon: '🏢', label: 'Employer Verification', sub: 'Add your profile details and review the screening limits before posting.', steps: 4 },
   };
   const cfg = roleConfig[role] || roleConfig.teen;
   const titleEl = document.getElementById('tw-ver-page-title');
@@ -4182,7 +4144,7 @@ function openMsgChat(contactId) {
       <button class="msg-header-close" onclick="closeMsgModal()" title="Close">✕</button>
     </div>
     <div class="msg-body" id="msg-chat-body-${contactId}"></div>
-    <div class="msg-safety-notice">🛡️ All messages are monitored by TeenWork for safety. Never share personal contact info or meet someone alone.</div>
+    <div class="msg-safety-notice">🛡️ AI screens messages but can miss things or be unavailable. Alerts are not monitored 24/7. Never share personal contact info or meet someone alone.</div>
     <div class="msg-input-bar">
       <textarea class="msg-input" id="msg-input-${contactId}" placeholder="Type a message… (Tip: keep it professional!)" rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('${contactId}');}"
@@ -4352,7 +4314,7 @@ function generateAutoReply(contact, lastMsg) {
     if (lower.includes('start') || lower.includes('begin')) return "Sounds good! We'll send a confirmation before the start date.";
     if (lower.includes('thank') || lower.includes('thanks')) return 'Of course! Looking forward to working with you. 😊';
     if (lower.includes('question') || lower.includes('?')) return 'Good question! Please allow 24 hours for a full response, or ask your parent to contact us by phone.';
-    return "Thanks for your message! We'll get back to you within 24 hours.";
+    return "Thanks for your message! Response times vary; this is not an emergency service.";
   }
   if (contact.role === 'teen') {
     if (lower.includes('available') || lower.includes('schedule')) return "I'm free most afternoons after 3pm and weekends. Let me know what works!";
@@ -4800,8 +4762,7 @@ function updateHoursTracker() {
 function showStateRulesBanner(state) {
   const banner = document.getElementById('teen-state-rules-banner');
   if (!banner) return;
-  const rules = getStateRules(state);
-  banner.innerHTML = `<strong>📋 ${state} Teen Labor Rules (Auto-applied)</strong>${rules.notes}`;
+  window.twRenderLaborSummary?.(banner, state);
   banner.classList.add('show');
 }
 
@@ -4901,11 +4862,9 @@ If no clear schedule is found, respond: NONE`;
 // ════════════════════════════════════
 //  VERIFIED EMPLOYER BADGE (visible to teens)
 // ════════════════════════════════════
-const VERIFIED_EMPLOYERS = new Set(['Mike\'s Landscaping','Green Thumb Gardens','The Hendersons','Sarah Chen','Burlington Pets','Maple Street Bakery']);
-function isVerifiedEmployer(name) { return VERIFIED_EMPLOYERS.has(name); }
-function getVerifiedBadge(employer) {
-  return isVerifiedEmployer(employer) ? '<span class="verified-emp-badge" title="Verified Employer — identity and background confirmed" style="display:inline-flex;align-items:center;gap:3px;background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:6px">✅ Verified</span>' : '';
-}
+// Employer identity/background screening is not available.
+function isVerifiedEmployer() { return false; }
+function getVerifiedBadge() { return ''; }
 window.isVerifiedEmployer = isVerifiedEmployer;
 
 function renderBrowseJobs() {
@@ -4996,7 +4955,7 @@ function renderBrowseJobs() {
         <button class="btn-sm btn-apply" onclick="teenApply(${job.id},'${safeTitle}')">${parentalControls['approval'] ? 'Apply (needs parent OK)' : 'Apply Now'}</button>
         <button class="btn-sm btn-msg" onclick="openMsgModal('${safeEmployer}','employer')">💬 Message Employer</button>
         <button class="btn-sm btn-ai" onclick="openAI('${safePrompt}')">🤖 AI Job Review</button>
-        <button class="btn-sm" style="background:var(--purple-pale);color:var(--purple);border:1px solid #c4b5fd;font-size:.74rem" onclick="requestEmployerBGC('${safeEmployer}','${safeTitle}')">🛡 Request BG Check</button>
+
         <button class="btn-sm" style="background:var(--red-pale);color:var(--red);border:1px solid #f5b7b1;font-size:.74rem" onclick="openDisputeModal('${safeEmployer}','${safeTitle}')">⚠️ Report Issue</button>
       </div>`}
     </div>`;
@@ -5053,35 +5012,8 @@ function styleTransportOpt(checkbox, labelId) {
 }
 
 // ── Employer BGC ──────────────────────────────────────
-async function runEmployerBGC() {
-  const biz = document.getElementById('bgc-biz-name')?.value.trim();
-  const type = document.getElementById('bgc-biz-type')?.value;
-  const years = document.getElementById('bgc-years')?.value;
-  const web = document.getElementById('bgc-website')?.value.trim();
-  if (!biz || !type) { showAlert('emp-bgc-alert','Please enter your business name and type.','error'); return; }
-  showAlert('emp-bgc-alert','Processing payment and running AI check…','info');
-  const prompt = `You are a teen employment safety reviewer. An employer wants a background check badge on TeenWork. Business: "${biz}" (${type}, ${years||'unknown'} years, website: ${web||'none'}). Write a 3-4 sentence assessment: is this business appropriate and safe for teen workers ages 13-17? End with either "✅ APPROVED FOR BADGE" or "⚠️ MANUAL REVIEW NEEDED".`;
-  try {
-    const result = await callClaudeAI(prompt);
-    const approved = result.includes('APPROVED FOR BADGE');
-    document.getElementById('emp-bgc-alert').style.display = 'none';
-    document.getElementById('emp-bgc-result').style.display = 'block';
-    document.getElementById('emp-bgc-result').innerHTML = `
-      <div style="background:${approved?'var(--green-pale)':'var(--amber-pale)'};border:2px solid ${approved?'var(--green-light)':'#f0b66a'};border-radius:12px;padding:1.1rem 1.2rem">
-        <div style="font-family:'Fraunces',serif;font-size:1rem;font-weight:700;color:${approved?'var(--green)':'var(--amber)'};margin-bottom:.6rem">${approved ? '🛡 AI Check Complete — Badge Approved!' : '⚠️ Manual Review Requested'}</div>
-        <p style="font-size:.85rem;line-height:1.6;color:var(--text)">${result}</p>
-        ${approved ? `<div style="margin-top:.8rem;text-align:center"><div style="display:inline-flex;align-items:center;gap:8px;background:var(--purple-pale);border:2px solid #c4b5fd;border-radius:10px;padding:.6rem 1.2rem"><span style="font-size:1.4rem">🛡</span><span style="font-weight:700;color:var(--purple)">AI Verified Employer · TeenWork Certified ✓</span></div></div>` : ''}
-      </div>`;
-    if (approved) document.getElementById('emp-bgc-form').style.display = 'none';
-    showToast(approved ? '🛡 Verified employer badge added!' : '⚠️ Manual review requested', approved ? 'success' : 'info');
-  } catch(e) {
-    showAlert('emp-bgc-alert','AI check failed — please try again.','error');
-  }
-}
-
-async function previewEmployerBGC() {
-  openAI('What does TeenWork\'s AI employer background check actually review? List 5 specific things it checks for in 2-3 sentences each. Focus on safety for teen workers ages 13-17.');
-}
+async function runEmployerBGC() { showToast('Background checks are not available. Nothing was charged.', 'info'); }
+async function previewEmployerBGC() { twOpenSafetyDetails(); }
 
 // ── Gamification init ────────────────────────────────
 function initGamePanel() {
@@ -5767,7 +5699,7 @@ const TOUR_STEPS = {
     },
     {
       title: '🔍 TrustVerify employers',
-      body: "Employers can complete a background check through TrustVerify. Always look for the green verified badge before approving a job. Unverified employers are flagged.",
+      body: "TeenWork does not run criminal background checks. Review the employer and job together before approving. Identity and background checks are not available.",
       target: 'button[onclick*="ptab-verify"], button[onclick*="ttab-trust"]', pos: 'bottom',
       tip: '💡 You can request verification from any employer directly.',
     },
@@ -5808,10 +5740,10 @@ const TOUR_STEPS = {
       tip: '💡 Filter by badge level, rating, or distance to find your best match.',
     },
     {
-      title: '🛡️ Get TrustVerified',
-      body: "A TrustVerify badge tells parents you've completed a background check. It unlocks more applicants and significantly increases parent approvals for your jobs.",
+      title: '🛡️ Review screening limits',
+      body: "A profile information tells parents you've completed a background check. It unlocks more applicants and significantly increases parent approvals for your jobs.",
       target: 'button[onclick*="etab-trust"], button[onclick*="etab-verify"]', pos: 'bottom',
-      tip: '⭐ Verified employers get 3× more applicants on average.',
+      tip: 'Keep job details clear and accurate.',
     },
     {
       title: '📊 Track your pipeline',
@@ -5838,6 +5770,7 @@ let _tourOverlay = null;
 let _tourSpotRect = null;
 
 function tourStart(force) {
+  if (!force && matchMedia('(max-width:768px)').matches) return;
   const role = currentUser?.type || 'teen';
   const key = 'tw_tour_done_' + role;
   if (!force && localStorage.getItem(key)) return;

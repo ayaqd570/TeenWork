@@ -339,7 +339,7 @@
     // runParentSafetyCheck — parent AI safety overview
     window.runParentSafetyCheck = window.runParentSafetyCheck || async function() {
       const out = document.getElementById('p-ai-chat') || document.getElementById('parent-safety-output');
-      if (!out) { alert('AI Safety Check: all settings look good!'); return; }
+      if (!out) { alert('AI job guidance: all settings look good!'); return; }
       out.innerHTML = '<span class="loading-dots">Running safety check…</span>';
       try {
         const reply = await callAI(

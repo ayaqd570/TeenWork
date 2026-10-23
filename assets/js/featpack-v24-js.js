@@ -4,7 +4,7 @@
   const TAB_GROUPS = {
     parent: [
       {id:'home',    label:'🏠 Home',     tabs:[['ptab-overview','Overview'],['ptab-approvals','Approvals'],['ptab-ratings','Ratings']]},
-      {id:'safety',  label:'🛡 Safety',   tabs:[['ptab-controls','Controls'],['ptab-notifications','Notifications'],['ptab-trusted','Trusted Employers']]},
+      {id:'safety',  label:'🛡 Safety',   tabs:[['ptab-controls','Controls'],['ptab-notifications','Notifications'],['ptab-trusted','Employers saved by you']]},
       {id:'updates', label:'📬 Updates',  tabs:[['ptab-weekly','Weekly Digest'],['ptab-savings','Savings Goals']]},
       {id:'family',  label:'👨‍👩‍👧 Family', tabs:[['ptab-teens','My Teens']]},
     ],

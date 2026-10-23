@@ -721,6 +721,8 @@ window.v14SubmitFeedback = function() {
    Shows published reviews with Google schema
 ══════════════════════ */
 function _injectLandingReviews() {
+  return; // Public reviews use only the consented Supabase feed, not device-local samples.
+
   if (document.getElementById('v14-reviews-section')) return;
   const landing = document.querySelector('#page-landing .landing-shell');
   if (!landing) return;
@@ -734,7 +736,7 @@ function _injectLandingReviews() {
     return [
       { name:'Maya, 15 · TX', role:'teen', rating:5, body:'I made $320 in my first month cleaning cars — the AI cover letter got me 3 interviews in a week.', date:'2025-05-10' },
       { name:'James, 14 · CA', role:'teen', rating:5, body:'The safety filter caught a sketchy job post before I even applied. My mom felt way better.', date:'2025-06-01' },
-      { name:'Riverbed Landscaping', role:'employer', rating:5, body:'Verified teens who actually show up. Game changer.', date:'2025-06-15' },
+      { name:'Riverbed Landscaping', role:'employer', rating:5, body:'TeenWork member feedback. Game changer.', date:'2025-06-15' },
       { name:'Dana · Parent, VT', role:'parent', rating:5, body:'The weekly digest email is gold. I know what my kid is up to without hovering.', date:'2025-07-01' },
     ];
   }
@@ -752,7 +754,7 @@ function _injectLandingReviews() {
           <div style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)">
             <span style="color:var(--amber)">${'★'.repeat(Math.round(Number(avg)))}</span>
             <strong style="color:var(--text)">${avg}</strong> · ${reviews.length} review${reviews.length!==1?'s':''}
-            <span style="font-size:.72rem;color:var(--muted)">(verified users)</span>
+            <span style="font-size:.72rem;color:var(--muted)">(member feedback)</span>
           </div>
         </div>
         <button onclick="document.getElementById('v14-feedback-modal').classList.add('open')" style="background:var(--green);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:700;font-size:.84rem;cursor:pointer;font-family:'DM Sans',sans-serif">✍️ Leave a Review</button>
@@ -812,7 +814,7 @@ const V14_TOUR = {
     { icon:'🏢', title:'Employer Dashboard Tour', body:'Welcome! Here\'s a quick 4-step overview of your hiring tools.' },
     { target:'#etab-post, .post-form', icon:'📋', title:'Post a Job', body:'Fill in the details — our AI checks every post for child labor law compliance before it goes live.' },
     { target:'#emp-kanban-board, #etab-applicants', icon:'📊', title:'Applicant Pipeline', body:'Drag applicants through stages: Applied → Reviewed → Met Them → Hired. Bulk-message everyone at once.' },
-    { icon:'✅', title:'Ready to Hire!', body:'All teens are age-verified and parent-approved. Focus on finding the right fit. Good luck! 💚' },
+    { icon:'✅', title:'Ready to Hire!', body:'A teen’s age is self-reported. Review the application and discuss the work with the teen and their parent. Good luck! 💚' },
   ],
 };
 
@@ -921,7 +923,7 @@ window.launchDashboard = function() {
   const role = window.currentUser?.type;
   if (!role || role === 'admin') return;
   const k = 'tw_tour_v14_' + (window.currentUser?.email||'g');
-  if (!localStorage.getItem(k)) {
+  if (!matchMedia('(max-width:768px)').matches && !localStorage.getItem(k)) {
     setTimeout(() => window._startAdvancedTour(role), 900);
   }
 };

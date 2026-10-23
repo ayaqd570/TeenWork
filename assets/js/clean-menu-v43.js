@@ -61,7 +61,7 @@
         { title: 'Safety', items: [
           ['ptab-controls', '🛡️', 'Controls', 'safety'],
           ['ptab-notifications', '🔔', 'Alerts'],
-          ['ptab-trusted', '🤝', 'Trusted Employers']] },
+          ['ptab-trusted', '🤝', 'Employers saved by you']] },
         { title: 'Family', items: [
           ['ptab-teens', '👨‍👩‍👧', 'My Teens'],
           ['ptab-ratings', '⭐', 'Ratings'],

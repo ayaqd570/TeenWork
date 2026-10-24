@@ -38,12 +38,15 @@
 }
 #global-toast{width:min(520px,calc(100vw - 2rem));line-height:1.4}
 
-/* Frame the supplied tree mark as a distinct logo without changing its size. */
-img[src="logo.png"] {
-  box-sizing: border-box;
-  padding: 4px;
-  border: 1.5px solid var(--green, #2d6a4f);
-  border-radius: 10px;
-  background: #fffdf7;
-  box-shadow: 0 2px 6px rgba(24, 54, 38, .14);
+/* Keep account actions at the right edge and clearly frame the tree logo. */
+#page-landing > nav > div {max-width:none !important;justify-content:space-between !important;gap:8px}
+#page-landing > nav > div > div:last-child {margin-left:auto;flex-wrap:nowrap !important;gap:8px !important}
+#page-landing img[src$="logo.png"] {
+  box-sizing:border-box !important;
+  padding:5px !important;
+  border:3px solid #24553f !important;
+  border-radius:12px !important;
+  background:#fffdf7 !important;
+  box-shadow:0 2px 8px rgba(24,54,38,.25) !important;
 }
+@media(max-width:360px){#page-landing>nav>div>div:last-child{gap:5px !important}}

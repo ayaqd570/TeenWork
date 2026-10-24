@@ -18,9 +18,11 @@
  .rt-toast{top:calc(12px + env(safe-area-inset-top,0px));right:12px;max-width:calc(100vw - 24px)}
  #page-landing .landing-shell{gap:.65rem}
  #page-landing #tw-hero-outer{margin-bottom:0 !important}
- #page-landing #tw-hero-outer>div{min-height:0 !important;max-height:115px !important;border-radius:14px}
- #page-landing #tw-hero-img{height:115px !important;object-fit:cover !important;object-position:50% 30%}
- #page-landing #tw-hero-outer>div>div{display:none !important}
+ #page-landing #tw-hero-outer>div{min-height:0 !important;max-height:none !important;border-radius:14px}
+ #page-landing #tw-hero-img{height:auto !important;max-height:none !important;object-fit:contain !important;object-position:center}
+ #page-landing #tw-hero-outer>div>div{display:flex !important;padding:.65rem .8rem !important;gap:10px !important;box-sizing:border-box}
+ #page-landing #tw-hero-outer img[src$="logo.png"]{width:48px !important;height:48px !important}
+ #page-landing #tw-hero-outer>div>div>span{font-size:1.5rem !important}
  #page-landing #tw48-hero{min-height:0 !important;padding:.8rem 1rem 1.3rem !important;gap:.5rem}
  #page-landing #tw-slogan-wrap,#page-landing #tw51-pause{display:none !important}
  #page-landing #tw48-h1{font-size:clamp(1.6rem,6.7vw,2.1rem) !important;margin:0 auto .75rem !important}

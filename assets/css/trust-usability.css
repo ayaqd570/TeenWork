@@ -37,3 +37,13 @@
  #tw34-card{top:auto !important;bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;max-height:calc(100svh - 170px) !important}
 }
 #global-toast{width:min(520px,calc(100vw - 2rem));line-height:1.4}
+
+/* Frame the supplied tree mark as a distinct logo without changing its size. */
+img[src="logo.png"] {
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1.5px solid var(--green, #2d6a4f);
+  border-radius: 10px;
+  background: #fffdf7;
+  box-shadow: 0 2px 6px rgba(24, 54, 38, .14);
+}

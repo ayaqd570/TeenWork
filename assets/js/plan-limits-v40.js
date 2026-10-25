@@ -144,7 +144,7 @@
   function planOf(u) {
     u = u || user();
     if (!u) return 'free';
-    if (u.isDemo || isAdminUser(u)) return 'pro';
+    if (u.isDemo || u.twDemo || isAdminUser(u)) return 'pro';
     if (!settings().enabled) return 'pro';
     return storedPlanOf(u);
   }

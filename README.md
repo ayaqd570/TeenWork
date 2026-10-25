@@ -5,7 +5,7 @@ It is published on Netlify at https://ayaqdteenwork.netlify.app and every push t
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v48).
+- `index.html` – app markup (currently TeenWork v49).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `netlify.toml` – tells Netlify there is no build step and to publish this folder as is.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase, not Netlify.
@@ -36,7 +36,9 @@ The page now loads its scripts from `assets/js/` and styles from `assets/css/`.
 Each block stays in its original position and order, including the existing feature
 patches. Edit these source files directly; replacing only `index.html` with an old
 single-file export will discard the refactor. Deploy the page and assets together.
-There is still no build step. Serve the repository root with a static web server
+v49 adds three blocks: `demo-guard-v49` (in `<head>`, before the Supabase library), `demo-sandbox-v49`
+(empty practice demos, right before `homepage-trust-v48`) and `url-views-v50` (`?view=` page addresses,
+right before `real-stats-v42`). There is still no build step. Serve the repository root with a static web server
 for local development (for example `python -m http.server 8000`).
 
 Before publishing this frontend update:

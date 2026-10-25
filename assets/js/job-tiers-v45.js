@@ -275,7 +275,8 @@
         if (meta && !tag) { tag = document.createElement('span'); meta.insertBefore(tag, meta.firstChild); }
         if (tag) {
           tag.className = 'tag twjt-tag ' + (res.tier === 3 ? 't3' : 't2');
-          tag.textContent = res.tier === 3 ? '📋 Tier 3 · Work permit' : '👪 Tier 2 · Parent OK';
+          const tierText = res.tier === 3 ? '📋 Tier 3 · Work permit' : '👪 Tier 2 · Parent OK';
+          if (tag.textContent !== tierText) tag.textContent = tierText;   // v49: an unconditional write re-ran this watcher ~30 times a second
           tag.title = res.tier === 3 ? (job.permit && !(res.rule && res.rule.needed) ? 'The employer asks for a work permit.' : (res.rule && res.rule.note) || '') : 'Needs a parent\'s OK.';
         }
         if (isFarmJob(job) && meta && !card.querySelector('.twjt-farm')) { const f = document.createElement('span'); f.className = 'tag twjt-farm'; f.textContent = '🚜 Farm'; meta.appendChild(f); }

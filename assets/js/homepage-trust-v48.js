@@ -24,6 +24,8 @@
      (it read currentUser.parentEmail, which real accounts never had).
    • Demo logins: a "sample data" banner on every dashboard, a Sample tag
      on each job card and "N sample jobs" instead of "N Open".
+     (v49: the demos are empty practice accounts now, see demo-sandbox-v49,
+     so this only applies to an old-style isDemo account.)
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -252,7 +254,7 @@
     const w = function (type) {
       const r = orig.apply(this, arguments);
       [80, 450, 1200].forEach(ms => later(syncDemo, ms));
-      later(() => { if (typeof window.showToast === 'function') window.showToast('This demo uses sample data: every job, person and message is made up.', 'info'); }, 1600);
+      later(() => { if (typeof window.showToast === 'function') window.showToast('This demo starts empty, like a new account. Nothing you do in it is saved.', 'info'); }, 1600);
       return r;
     };
     w.__tw48 = true;

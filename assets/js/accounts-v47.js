@@ -369,7 +369,7 @@
     return new Promise(resolve => {
       const m = sheet('tw47-adm', '<button type="button" class="tw47-x" aria-label="Close" data-a="no">✕</button><h3>' + esc(o.title) + '</h3>' + (o.html || '') +
         '<label class="tw47-lbl">Admin password<input type="password" id="tw47-adm-pw" autocomplete="current-password"></label>' +
-        (o.confirm ? '<label class="tw47-lbl">Type <b>' + esc(o.confirm) + '</b> to confirm<input type="text" id="tw47-adm-word" autocomplete="off" spellcheck="false"></label>' : '') +
+        (o.confirm ? '<label class="tw47-lbl">Type <b>' + esc(o.confirm) + '</b> to confirm<input type="text" id="tw47-adm-word" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"></label>' : '') +
         '<div class="tw47-msg" id="tw47-adm-msg" role="status" aria-live="polite"></div>' +
         '<div class="tw47-row"><button type="button" class="tw47-btn" data-a="no">Cancel</button><button type="button" class="tw47-btn danger" data-a="go">' + esc(o.go || 'Confirm') + '</button></div>');
       const done = v => { m.remove(); resolve(v); };
@@ -395,6 +395,7 @@
     askAdmin({ title: 'Set ' + (key || 'this account') + ' to the Free plan?', html: '<p>They lose Pro right away and get the free limits.</p>', go: 'Set to Free' })
       .then(pw => { if (pw) _oSetPlan.apply(self, args); });
   };
+  const VALID_KEY = /^[^\s@#,()"*]+@[^\s@#,()"*]+\.[^\s@#,()"*]+(#\d{1,3})?$/;   // same as validKey in the delete-account function
   function cardName(card) { const n = card.querySelector('.adm39-acct-head [style*="font-weight:700"]'); return n ? n.textContent.replace(/account #\d+/, '').trim() : ''; }
   function decorateAccounts() {
     const list = $('adm39-acct-list'); if (!list) return;
@@ -432,8 +433,17 @@
     const pw = await askAdmin({ title: 'Delete ' + (name || email) + '?', confirm: email, go: 'Delete account',
       html: '<p><code>' + esc(key) + '</code> disappears from TeenWork for everyone right away: profile, jobs, applications, chats and contacts. People connected to it are told.</p><p>They get an email and can sign in for ' + KEEP_DAYS + ' days only to download their records (like money earned); then everything is deleted.</p>' });
     if (!pw) return;
+    // An account whose key isn't an email address (made offline, before the cloud) was only ever saved on
+    // this device: TeenWork's server can't take it, so it is deleted here.
+    const deviceOnly = () => {
+      wipeDevice(key); audit('Deleted account from this device (Danger zone)', key);
+      toast('🗑 Deleted from this device. It was never saved to TeenWork\'s cloud.', 'success');
+      try { const r = $('adm39-acct-refresh'); if (r) r.click(); } catch (e) {}
+    };
+    if (!VALID_KEY.test(key)) return deviceOnly();
     toast('Deleting…', 'info');
     const res = await callFn({ action: 'close', key, adminPassword: pw });
+    if (!res.ok && res.code === 'bad_key') return deviceOnly();
     if (!res.ok) { toast('⚠️ ' + (res.code === 'admin_password' ? 'TeenWork\'s server didn\'t take that admin password. A password changed only on this device (Admin → Security) isn\'t known to the server.' : res.error || 'Couldn\'t delete the account.'), 'error'); return; }
     const until = res.purge_after || new Date(Date.now() + KEEP_DAYS * 864e5).toISOString();
     remember({ key, type: res.type || '', closed_by: 'admin', closed_at: new Date().toISOString(), purge_after: until, purged_at: null });

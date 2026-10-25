@@ -26,7 +26,9 @@
    detail=rules.notes+' '+(rules.permitNote||'')+' These are the rules currently supported by TeenWork, not a determination that a particular job is legal. Job duties, school schedule and exceptions can change the requirements.';
   }
   const html='<strong>'+escape(summary)+'</strong><details class="tw-law-details"><summary>Full work guidance and limits</summary><p>'+escape(detail)+'</p></details>';
-  if(banner.innerHTML!==html)banner.innerHTML=html;banner.classList.add('show');
+  // Compare with what was last written: the browser writes ' where this HTML has &#39;, so innerHTML never matches.
+  if(banner._twHtml!==html || !banner.querySelector('.tw-law-details')){banner.innerHTML=html;banner._twHtml=html;}
+  if(!banner.classList.contains('show'))banner.classList.add('show');
  };
  window.twOpenPendingApprovals = function(){
   document.querySelectorAll('.type-cb').forEach(x=>{x.checked=false;});
@@ -114,7 +116,7 @@
   addNote(document.querySelector('#dispute-modal .ai-tools-modal-body'));
   const browse=$('browse-jobs-list');if(browse)addNote(browse);
   const banner=$('teen-state-rules-banner');if(banner)window.twRenderLaborSummary(banner,user()?.state);
-  const toast=$('global-toast');if(toast && toast.style.opacity==='0')toast.style.pointerEvents='none';
+  const toast=$('global-toast');if(toast && toast.style.opacity==='0' && toast.style.pointerEvents!=='none')toast.style.pointerEvents='none';
  }
  function boot(){
   // The original disclosure lived inside the inactive landing page; dashboards need it too.

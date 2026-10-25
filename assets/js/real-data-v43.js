@@ -973,7 +973,7 @@
     const p = real ? empProfile(u) : {};
     realText($('emp-profile-name-display'), real, p.name || u.name || 'Your business');
     realText($('emp-profile-loc-display'), real, [placeOf(p) ? '📍 ' + placeOf(p) : '', p.type || ''].filter(Boolean).join(' · ') || '📍 Add your town and type of work in Edit Profile');
-    const verified = [...document.querySelectorAll('#etab-profile .badge.badge-green')].find(b => /Employer profile (not screened)/.test(b.textContent));
+    const verified = [...document.querySelectorAll('#etab-profile .badge.badge-green')].find(b => /Employer profile \(not screened\)/.test(b.textContent));
     realHide(verified, real);
     realText($('emp-profile-rating-badge'), real, 'No reviews yet');
     realText($('emp-profile-about-display'), real, p.about || 'Tell teens and parents about your business: what you do, the kind of work, and what makes it a good first job. Tap ✏️ Edit Profile.');

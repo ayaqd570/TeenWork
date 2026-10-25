@@ -101,8 +101,8 @@
       "logo": {
         "@type": "ImageObject",
         "url": "https://teenwork.ayaqd.com/logo.png",
-        "width": 1254,
-        "height": 1254
+        "width": 512,
+        "height": 512
       },
       "description": "TeenWork is a job app for teens ages 13-17, started in Vermont. Teens find local jobs like lawn care, pet sitting and snow shoveling; a linked parent approves every application, and chats with employers stay in the app and are checked for safety.",
       "foundingDate": "2026",
@@ -271,6 +271,7 @@
 
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"></noscript>
+<script id="demo-guard-v49" src="assets/js/demo-guard-v49.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" async></script>
 <!-- manifest removed: data: URIs are blocked in file: origins -->
@@ -360,7 +361,7 @@
               <button onclick="_directDemo('parent')" style="background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">👪 Parent Demo</button>
               <button onclick="_directDemo('employer')" style="background:var(--amber);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">🏢 Employer Demo</button>
             </div>
-            <p class="tw48-demo-note">The demo is filled with <strong>sample</strong> jobs, people and messages. None of them are real.</p>
+            <p class="tw48-demo-note">Each demo is an empty practice account, just like a new one. Nothing you do there is saved or sent.</p>
           </div>
           <script src="assets/js/app-03.js"></script>
         </div>
@@ -752,7 +753,7 @@
     <div class="dash-header">
       <div>
         <h1>Parent Dashboard</h1>
-        <p>Monitoring <strong id="parent-teen-name">Alex Johnson</strong> · Age 16 · Vermont</p>
+        <p>Monitoring <strong id="parent-teen-name">your teen</strong></p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn-primary" style="font-size:.88rem;padding:10px 20px" onclick="runParentSafetyCheck()">🛡️ AI job guidance</button>
@@ -780,7 +781,7 @@
         <div class="stat-card"><div class="stat-label">Active Applications</div><div class="stat-value">3</div><div class="stat-sub" id="parent-active-sub">Loading applications</div></div>
         <div class="stat-card amber"><div class="stat-label">Awaiting Approval</div><button type="button" class="stat-value tw-approval-link" id="parent-awaiting-count" onclick="twOpenPendingApprovals()" aria-label="Open applications awaiting approval">0</button><div class="stat-sub">Applications needing your decision</div></div>
         <div class="stat-card blue"><div class="stat-label">Jobs Completed</div><div class="stat-value">4</div><div class="stat-sub">This season</div></div>
-        <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-value">4.5⭐</div><div class="stat-sub">From 4 employers</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-value">—</div><div class="stat-sub">No ratings yet</div></div>
       </div>
       <div class="section-grid">
         <div class="panel">
@@ -788,7 +789,7 @@
           <div class="panel-body">
             <div class="teen-profile-card">
               <div class="teen-avatar">🧑</div>
-              <div class="teen-name" id="p-teen-name">Alex Johnson</div>
+              <div class="teen-name" id="p-teen-name">No teen linked yet</div>
               <div class="teen-info">Age 16 · Vermont · Burlington</div>
               <div class="teen-info">Skills: lawn care, pet sitting, snow shoveling</div>
               <div class="teen-rating">⭐⭐⭐⭐½ &nbsp;4.5 avg from 4 ratings</div>
@@ -815,7 +816,7 @@
     <!-- APPROVALS -->
     <div id="ptab-approvals" class="tab-panel">
       <div class="panel" style="margin-bottom:1.5rem">
-        <div class="panel-head"><h2>Applications Needing Approval</h2><span class="badge badge-amber" id="approval-count-badge">2 Pending</span></div>
+        <div class="panel-head"><h2>Applications Needing Approval</h2><span class="badge badge-amber" id="approval-count-badge">0 Pending</span></div>
         <div class="filters-bar" style="flex-direction:column;align-items:flex-start;gap:10px">
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;width:100%">
             <span class="filter-label">Job Types:</span>
@@ -1299,7 +1300,7 @@
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>Available Jobs</h2><span class="badge badge-green">12 Open</span></div>
+        <div class="panel-head"><h2>Available Jobs</h2><span class="badge badge-green">0 Open</span></div>
         <div class="filters-bar">
           <span class="filter-label">Filter:</span>
           <select id="teen-job-filter" onchange="renderBrowseJobs()">
@@ -1419,8 +1420,8 @@
       <div class="section-grid">
         <div>
           <div class="resume-card">
-            <h3 id="profile-name-display">Alex Johnson</h3>
-            <p id="profile-info-display">Age 16 · Burlington, Vermont</p>
+            <h3 id="profile-name-display">Your name</h3>
+            <p id="profile-info-display"></p>
             <p style="margin-top:8px">Skills:</p>
             <div style="margin-top:6px" id="profile-skills-display">
               <span class="skill-pill">🌿 Lawn Care</span>
@@ -2416,7 +2417,7 @@
         <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">I'll write a short, professional cover letter for this job in your voice.</p>
         <div style="margin-bottom:8px"><label class="resume-form-label">Job Title</label><input class="resume-form-input" id="cl-jobtitle" placeholder="Lawn Mowing"></div>
         <div style="margin-bottom:8px"><label class="resume-form-label">Employer / Family</label><input class="resume-form-input" id="cl-employer" placeholder="The Smith Family"></div>
-        <div style="margin-bottom:8px"><label class="resume-form-label">Your Name</label><input class="resume-form-input" id="cl-name" placeholder="Alex Johnson"></div>
+        <div style="margin-bottom:8px"><label class="resume-form-label">Your Name</label><input class="resume-form-input" id="cl-name" placeholder="Your full name"></div>
         <div style="margin-bottom:8px"><label class="resume-form-label">Your Age & City</label><input class="resume-form-input" id="cl-age-city" placeholder="16, Burlington VT"></div>
         <div style="margin-bottom:8px">
           <label class="resume-form-label">Relevant skills or experience (1-2 sentences)</label>
@@ -2841,8 +2842,8 @@
       <div style="background:linear-gradient(135deg,var(--purple-pale) 0%,#f5f3ff 100%);border:1.5px solid #c4b5fd;border-radius:16px;padding:1.1rem 1.4rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:14px">
         <div style="font-size:2.4rem;line-height:1;flex-shrink:0">👤</div>
         <div style="flex:1;min-width:0">
-          <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--purple)">Alex Johnson · Age 16</div>
-          <div style="font-size:.8rem;color:var(--muted);margin-top:2px">TeenWork verified worker · Vermont</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--purple)">Your worker</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-top:2px">TeenWork worker · Vermont</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
             <span class="badge badge-green">✓ Profile details (self-reported)</span>
             <span class="badge badge-purple">📜 Letters Available</span>
@@ -3047,11 +3048,11 @@
       <div style="background:linear-gradient(135deg,var(--green-pale) 0%,#f0fdf4 100%);border:1.5px solid var(--green-light);border-radius:16px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
         <div style="width:64px;height:64px;border-radius:14px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0" id="emp-profile-avatar-display">🏢</div>
         <div style="flex:1;min-width:0">
-          <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--green)" id="emp-profile-name-display">Green Yard Co.</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--green)" id="emp-profile-name-display">Your business</div>
           <div style="font-size:.82rem;color:var(--muted);margin-top:2px" id="emp-profile-loc-display">📍 Beverly, MA · Yard Work & Pet Care</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
             <span class="badge badge-green">Employer profile (not screened)</span>
-            <span class="badge badge-amber" id="emp-profile-rating-badge">⭐ 4.8 from teens</span>
+            <span class="badge badge-amber" id="emp-profile-rating-badge">No reviews yet</span>
           </div>
         </div>
         <button class="btn-sm btn-primary" onclick="empProfileToggleEdit()" style="align-self:flex-start;font-size:.82rem">✏️ Edit Profile</button>
@@ -3063,7 +3064,7 @@
           <div class="panel-head"><h2>✏️ Edit Your Profile</h2></div>
           <div class="panel-body">
             <div class="form-row">
-              <div class="form-group"><label>Business Name</label><input type="text" id="emp-edit-name" placeholder="e.g. Green Yard Co." value="Green Yard Co."></div>
+              <div class="form-group"><label>Business Name</label><input type="text" id="emp-edit-name" placeholder="e.g. Maple Street Yard Care" value=""></div>
               <div class="form-group"><label>Business Type</label>
                 <select id="emp-edit-type"><option>Yard Work</option><option>Pet Care</option><option>Cleaning</option><option>Babysitting</option><option>Moving Help</option><option>Multiple Services</option></select>
               </div>
@@ -3095,7 +3096,7 @@
       <div class="panel">
         <div class="panel-head" style="background:var(--amber-pale)">
           <h2 style="color:var(--amber)">⭐ Reviews from Teens</h2>
-          <span class="badge badge-amber" id="emp-profile-review-count">3 reviews</span>
+          <span class="badge badge-amber" id="emp-profile-review-count">0 reviews</span>
         </div>
         <div class="panel-body" id="emp-profile-reviews-list">
           <!-- Rendered by JS -->
@@ -3524,7 +3525,6 @@
         <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Then $19 per extra post</div>
         <div class="pricing-li">✓ 2 free job posts</div>
         <div class="pricing-li">✓ View up to 3 applicants per job</div>
-        <div class="pricing-li">✓ Verified employer badge</div>
         <div class="pricing-li">✓ Applicant pipeline board</div>
         <button class="btn-secondary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Post a job free</button>
       </div>
@@ -3822,7 +3822,9 @@
 <script id="permit-ask-v47" src="assets/js/permit-ask-v47.js"></script>
 <script id="accounts-v47" src="assets/js/accounts-v47.js"></script>
 <script id="permit-signup-v48" src="assets/js/permit-signup-v48.js"></script>
+<script id="demo-sandbox-v49" src="assets/js/demo-sandbox-v49.js"></script>
 <script id="homepage-trust-v48" src="assets/js/homepage-trust-v48.js"></script>
+<script id="url-views-v50" src="assets/js/url-views-v50.js"></script>
 <script id="real-stats-v42" src="assets/js/real-stats-v42.js"></script>
 
 <script id="featpack-v39-cloud-js" src="assets/js/featpack-v39-cloud-js.js"></script>

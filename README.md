@@ -5,7 +5,7 @@ It is published on Netlify at https://ayaqdteenwork.netlify.app and every push t
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v48).
+- `index.html` – app markup (currently TeenWork v50: ChatGPT's split layout and fixes, plus v49's empty demos and page addresses).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `netlify.toml` – tells Netlify there is no build step and to publish this folder as is.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase, not Netlify.
@@ -71,3 +71,12 @@ node --test supabase/functions/groq-chat/core.test.mjs
 ```
 
 The deployed moderation guard is preserved in `supabase/functions/_shared/message-guard.ts`. The AI function continues using `openai/gpt-oss-20b`, low reasoning effort, and at least 600 completion tokens, matching the live configuration.
+
+## Demo AI and the AI function's addresses
+
+`groq-chat` accepts requests from `https://teenwork.ayaqd.com` and `https://ayaqdteenwork.netlify.app` (and Netlify
+deploy previews). `ALLOWED_ORIGIN` (comma-separated) can add more addresses; it never removes these two.
+Demos are empty practice accounts with no sign-in. They send `x-teenwork-demo: 1`, use the Free key, and are counted per
+visitor (a salted hash of the address) and for all demos together by `supabase/migrations/20261025_demo_ai_quota.sql`
+(6 a minute and 25 a day per visitor, 1,500 a day for all demos). The demo itself shows 5 tries a day in the browser.
+Apply the migration before deploying the function: `node --test supabase/functions/groq-chat/core.test.mjs`.

@@ -790,7 +790,7 @@ function launchAdminPanel() {
       <!-- ── REVIEWS ─── -->
       <div class="adm-tab-panel" id="adm-panel-reviews">
         <div class="adm-section-title">⭐ User Reviews &amp; Feedback</div>
-        <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Published reviews appear on the landing page and in Google search results via structured data.</p>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">These are kept on this device. The homepage only shows reviews that members choose to share when they rate the app.</p>
         <div id="adm-reviews-list">Loading…</div>
         <div class="adm-card" style="margin-top:14px">
           <div style="font-weight:700;margin-bottom:10px;font-size:.9rem">➕ Add a review</div>
@@ -1273,7 +1273,9 @@ function _getReviews() {
   const defaults = []; // No seeded member reviews.
   try {
     const stored = localStorage.getItem(REVIEWS_KEY);
-    return stored ? JSON.parse(stored) : defaults;
+    // v49: old copies of the four made-up sample reviews are dropped
+    const SAMPLE = /^(I made \$320 in my first month|The safety filter caught a sketchy job|Verified employer badge plus parent approval|The weekly digest email is gold)/;
+    return stored ? JSON.parse(stored).filter(r => !(r && SAMPLE.test(String(r.body || '')))) : defaults;
   } catch(e) { return defaults; }
 }
 function _saveReviews(reviews) {
@@ -1283,6 +1285,7 @@ function _saveReviews(reviews) {
 }
 
 function _injectReviewSchema(reviews) {
+  document.getElementById('tw-review-schema')?.remove();
   return; // Device-local reviews cannot establish authorized public review data.
   const published = reviews.filter(r => r.published);
   const avg = published.length

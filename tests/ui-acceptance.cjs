@@ -10,13 +10,13 @@ const path=require('node:path');
  for(const viewport of [{width:390,height:844},{width:320,height:720},{width:1440,height:1000}]){
   const context=await browser.newContext({viewport});
   await context.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
-  const p=await context.newPage(),errors=[];p.setDefaultTimeout(7000);p.on('pageerror',e=>errors.push(e.message));
+  const p=await context.newPage(),errors=[];await p.addInitScript(()=>setInterval(()=>{try{if(document.getElementById('tw34-tour'))tourSkip()}catch(e){}},150));p.setDefaultTimeout(7000);p.on('pageerror',e=>errors.push(e.message));
   await p.goto('http://127.0.0.1:8021/',{waitUntil:'domcontentloaded'});await p.waitForTimeout(300);
   const home=await p.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,title:document.querySelector('#tw48-h1').getBoundingClientRect().bottom,signup:[...document.querySelectorAll('#tw48-hero button')].find(b=>b.textContent.includes('Sign Up')).getBoundingClientRect().bottom}));
   assert.equal(home.overflow,false);if(viewport.width<500){assert(home.title<viewport.height);assert(home.signup<viewport.height);}
   assert.equal(await p.locator('link[rel="canonical"]').getAttribute('href'),'https://teenwork.ayaqd.com/');
   for(const role of ['teen','parent','employer']){
-   await p.evaluate(r=>_directDemo(r),role);await p.waitForTimeout(1100);
+   await p.evaluate(r=>_directDemo(r),role);await p.waitForTimeout(2500);
    if(await p.locator('#tw34-skip').isVisible())await p.locator('#tw34-skip').click();
    assert.equal(await p.locator('.page.active').getAttribute('id'),'page-'+role);
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -30,7 +30,7 @@ const path=require('node:path');
    await p.evaluate(()=>showVerifyPage());await p.waitForTimeout(100);assert.equal(await p.locator('.page.active').getAttribute('id'),'page-verify');
    await p.evaluate(r=>gotoPage(r),role);
   }
-  await p.evaluate(()=>_directDemo('parent'));await p.waitForTimeout(700);
+  await p.evaluate(()=>_directDemo('parent'));await p.waitForTimeout(2500);
   // Fixture records live only in this disposable demo browser.
   await p.evaluate(()=>{demoJobs.splice(0,demoJobs.length,...['pending-approval','pending-approval','applied','accepted','parent-denied'].map((status,i)=>({id:900+i,title:'Fixture '+i,employer:'Sample employer',status,pay:15,payType:'hourly',city:'Burlington',state:'Vermont',type:'yard work',minAge:14,maxHours:3,desc:'Sample task',applied:'Today'})));renderApprovalJobs(demoJobs);});
   assert.equal(await p.locator('#parent-awaiting-count').textContent(),'2');

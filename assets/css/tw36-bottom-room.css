@@ -1,0 +1,5 @@
+
+/* Leave room under the last card so the floating Help / Rate buttons and the bottom menu never sit on top of a button */
+.dashboard{padding-bottom:170px !important}
+@media (min-width:821px){.dashboard{padding-bottom:110px !important}}
+#tw35-modal .sheet,#parent-lock-overlay > div{scroll-padding-bottom:90px}

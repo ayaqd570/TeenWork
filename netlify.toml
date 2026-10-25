@@ -1,3 +1,10 @@
+# Prepared locally only. Applies when this branch is explicitly deployed.
+[[redirects]]
+  from = "https://ayaqdteenwork.netlify.app/*"
+  to = "https://teenwork.ayaqd.com/:splat"
+  status = 301
+  force = true
+
 [[redirects]]
   from = "/*"
   status = 200

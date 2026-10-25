@@ -1,0 +1,60 @@
+/* Preserve the existing mobile hero; only fix desktop cropping. */
+@media(min-width:901px){
+ #tw-hero-outer > div{min-height:0 !important;max-height:none !important}
+ #tw-hero-img{height:auto !important;max-height:none !important;object-fit:contain !important;object-position:center !important}
+}
+.tw49-review{padding:.8rem 0;border-bottom:1px solid var(--border)}
+.tw49-review:last-child{border-bottom:0}
+.tw49-review blockquote{margin:.45rem 0;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.tw49-review time{font-size:.75rem;color:var(--muted)}
+#tw49-review-error{color:var(--red);font-size:.85rem;margin:.75rem 0}
+.tw49-consent{display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;line-height:1.5;margin:1rem 0}
+.tw49-consent input{margin-top:.3rem;flex-shrink:0}
+/* The existing introduction occupies the opening screen, then the page continues. */
+#page-landing .landing{padding-top:0}
+#page-landing #tw48-hero{min-height:calc(100svh - 60px);box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1rem;padding:clamp(1.5rem,5vh,4rem) 0;width:100%}
+#page-landing #tw48-hero .landing-inner{max-width:100% !important;width:100%;box-sizing:border-box;padding:clamp(1.5rem,4vw,3.5rem) clamp(1rem,5vw,4rem) !important}
+#page-landing #tw48-h1{max-width:960px;font-size:clamp(2rem,4.8vw,4rem) !important;line-height:1.12}
+#page-landing #tw48-hero .landing-lead{max-width:720px !important;font-size:clamp(1rem,1.8vw,1.2rem) !important;line-height:1.7 !important}
+#page-landing #tw48-demo{max-width:620px !important}
+#page-landing #tw48-hero button{min-height:44px}
+.tw50-scroll{margin:0;text-align:center}
+#tw50-details{display:grid;gap:1.2rem}
+#tw48-how{scroll-margin-top:80px}
+.tw50-faq{border-top:1px solid var(--border);padding:1rem 0}
+.tw50-faq summary{cursor:pointer;font-weight:700;color:var(--green);line-height:1.5}
+.tw50-faq p{line-height:1.7;color:var(--muted);margin:.75rem 0 0;max-width:80ch}
+/* Full-width opening, without the old centered card. Other sections keep their width. */
+#page-landing .landing{padding-left:0;padding-right:0}
+#page-landing .landing-shell{max-width:none}
+#page-landing .landing-shell > :not(#tw48-hero){width:calc(100% - 2rem) !important;max-width:1180px;box-sizing:border-box;margin-left:auto !important;margin-right:auto !important}
+#page-landing #tw48-hero{padding:clamp(1.5rem,4vh,3rem) clamp(1rem,4vw,5rem);background:linear-gradient(135deg,rgba(216,243,220,.65),rgba(255,253,247,.9) 55%,rgba(255,237,213,.65))}
+#page-landing #tw48-hero .landing-inner{background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;padding:0 !important;margin:0 !important}
+#page-landing #tw48-h1{max-width:1320px;font-size:clamp(2.2rem,4.4vw,4.8rem) !important;margin:.8rem auto 1.4rem}
+#page-landing #tw48-hero .landing-lead{max-width:1000px !important;font-size:clamp(1.1rem,1.65vw,1.45rem) !important}
+#page-landing #tw48-demo{max-width:900px !important;padding:1.2rem 1.5rem !important}
+#page-landing #tw48-hero button:not(#tw51-pause):not(.tw50-scroll){font-size:clamp(1rem,1.3vw,1.2rem) !important;padding:14px 28px !important}
+#page-landing #tw48-demo > div:first-child{font-size:.9rem !important}
+#page-landing .tw48-demo-note{font-size:.9rem}
+#tw-slogan-wrap{display:grid;width:100%;max-width:1400px;margin:0 auto;min-height:2.6em;align-items:center;font-size:clamp(2.4rem,5.6vw,5.5rem);line-height:1.12}
+.tw-slogan{grid-area:1/1;font-family:'Fraunces',Georgia,serif;font-size:inherit;font-weight:900;color:var(--green);text-align:center;opacity:0;visibility:hidden;transform:translateY(.2em);transition:opacity .5s,transform .5s,visibility .5s;overflow-wrap:break-word}
+.tw-slogan.active{opacity:1;visibility:visible;transform:translateY(0)}
+.tw-slogan em{font-style:normal;color:var(--amber)}
+#tw51-pause{background:transparent;border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--muted);font:inherit;font-size:.75rem;cursor:pointer;margin:.25rem 0 .6rem}
+@media(prefers-reduced-motion:reduce){.tw-slogan{transition:none;transform:none}}
+@media(max-width:480px){
+ #page-landing #tw48-hero{padding:1rem 0}
+ #page-landing #tw48-h1{font-size:clamp(1.7rem,7vw,2.1rem) !important}
+ #page-landing #tw48-demo{padding:.8rem !important}
+ #page-landing #tw48-demo button{padding:10px 12px !important}
+ #page-landing #tw48-hero{padding:1.5rem 1rem}
+ #page-landing #tw48-h1{font-size:clamp(1.9rem,7.6vw,2.4rem) !important}
+ #tw-slogan-wrap{font-size:clamp(2rem,9vw,2.8rem);min-height:3.5em}
+ #page-landing #tw48-hero button:not(#tw51-pause):not(.tw50-scroll){padding:12px 18px !important}
+}
+
+/* Keep account actions at the upper left and the photo before the introduction. */
+#page-landing > nav > div{justify-content:flex-start !important}
+#page-landing > nav > div > div:first-child:empty{display:none}
+#page-landing > nav > div > div:last-child{flex-wrap:wrap}
+#page-landing > nav > div > div:last-child > button:first-child{order:3}

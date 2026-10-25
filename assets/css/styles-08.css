@@ -1,0 +1,48 @@
+
+/* ── v16: Tour fix ── */
+#v14-tour-overlay { pointer-events: none !important; }
+#v14-tour-overlay.on { pointer-events: none !important; }
+#v14-tour-card    { pointer-events: all !important; }
+#v14-tour-scrim   { pointer-events: none !important; }
+
+/* ── v16: Draggable FABs ── */
+.v16-fab {
+  position:fixed;
+  z-index:990;
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+  border-radius:50px;
+  padding:9px 15px;
+  font-size:.78rem;
+  font-weight:700;
+  display:flex;align-items:center;gap:6px;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+  font-family:'DM Sans',sans-serif;
+  transition:box-shadow .15s, background .15s;
+  border:1.5px solid var(--border);
+  background:var(--card,#fff);
+  color:var(--green);
+  white-space:nowrap;
+}
+.v16-fab:active { cursor:grabbing; box-shadow:0 8px 24px rgba(0,0,0,.22); }
+.v16-fab.dragging { box-shadow:0 12px 32px rgba(0,0,0,.28); opacity:.93; }
+#v16-rate-fab   { left:16px; bottom:90px; background:linear-gradient(135deg,var(--green),#52b788); color:#fff; border-color:var(--amber); border-width:2.5px; font-weight:800; box-shadow:0 5px 20px rgba(45,106,79,0.45); }
+#v16-support-fab{ left:16px; bottom:145px; background:#fff; color:var(--green); border-color:var(--green); }
+#v16-rate-fab:hover   { background:linear-gradient(135deg,#52b788,var(--green)); color:#fff; border-color:var(--amber); box-shadow:0 8px 28px rgba(45,106,79,0.55); transform:scale(1.04); }
+#v16-support-fab:hover{ background:var(--green-pale); color:var(--green); border-color:var(--green); }
+
+/* ── v16: Feedback modal ── */
+#v16-feedback-modal{display:none;position:fixed;inset:0;z-index:20001;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem}
+#v16-feedback-modal.open{display:flex}
+#v16-feedback-card{background:var(--card,#fff);border-radius:20px;padding:1.6rem;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);font-family:'DM Sans',sans-serif}
+.v16-star-row{display:flex;gap:6px;margin:8px 0 14px}
+.v16-star{font-size:2rem;cursor:pointer;color:#ccc;transition:color .12s;line-height:1;user-select:none}
+.v16-star.lit{color:var(--amber,#e76f00)}
+.v16-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.v16-cat-btn{border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg);font-size:.8rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--text)}
+.v16-cat-btn.active{border-color:var(--green);background:var(--green-pale,#d1fae5);color:var(--green)}
+
+/* ── v16: Lesson grid always shows ── */
+#ai-lessons-grid .lesson-card,
+#lessons-grid .lesson-card { display:flex !important; flex-direction:column; }

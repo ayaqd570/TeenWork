@@ -1,0 +1,6 @@
+
+/* Override old more-drawer-btn border so no white ring appears */
+.more-drawer-btn { border: none !important; background: var(--green-pale,#d1fae5) !important; color: var(--green,#2d6a4f) !important; }
+.more-drawer-btn:active { background: var(--green-light,#b7e4c7) !important; }
+/* Hide old mobile-more-drawer if it somehow appears */
+#mobile-more-drawer { display: none !important; }

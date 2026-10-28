@@ -439,7 +439,7 @@
   window.closeReferral = ()=>document.getElementById('referralModal').classList.remove('active');
   window.copyReferralCode = function(){
     const c = getReferralCode();
-    navigator.clipboard?.writeText(`Join me on TeenWork! Use my code ${c} and we both get a free month: https://ayaqdteenwork.netlify.app/?ref=${c}`);
+    navigator.clipboard?.writeText(`Join me on TeenWork! Use my code ${c} and we both get a free month: https://teenwork.ayaqd.com/?ref=${c}`);
     showToast?.('📋 Code + link copied','success');
     save(LS.invites, load(LS.invites, 0) + 1);
     document.getElementById('referral-count').textContent = load(LS.invites, 0);

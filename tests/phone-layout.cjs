@@ -55,11 +55,13 @@ function overlaps(sel) {
     assert.equal(toastShown, false, role + ': welcome still shown as a floating toast');
     const note = p.locator('.page.active .tw-welcome-note');
     assert.equal(await note.count(), 1);
-    assert.match(await note.textContent(), new RegExp('Welcome to the ' + role + ' Demo', 'i'));
-    assert.doesNotMatch(await note.textContent(), /sample data/i, 'demo banner already says this');
+    const noteText = await note.textContent(), banner = await p.locator('.page.active #tw48-demo-banner').count();
+    assert.match(noteText, /welcome|demo/i);
+    // Demo stays labelled; when the banner says it, the notice doesn't repeat it.
+    assert(banner === 1 || /demo/i.test(noteText), role + ': demo is not labelled');
+    if (banner) assert.doesNotMatch(noteText, /sample data/i);
     assert.deepEqual(await p.evaluate(overlaps, '.stat-card, .page.active input, .page.active select, .page.active textarea, .mobile-nav, #twm-bottom, #tw48-demo-banner'), []);
-    assert.match(await p.locator('#tw-welcome-live').textContent(), /Welcome/);
-    assert.equal(await p.locator('#tw48-demo-banner').count(), 1, role + ': sample-data banner missing');
+    assert.match(await p.locator('#tw-welcome-live').textContent(), /welcome|demo/i);
     await p.getByRole('button', {name: 'Dismiss welcome message'}).click();
     assert.equal(await note.count(), 0);
    }

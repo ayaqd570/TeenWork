@@ -2,7 +2,7 @@ const MODELS = new Set(['openai/gpt-oss-20b']);
 
 export function makeHandler(env, fetchImpl = fetch, checkMessage = async () => ({ allowed: true })) {
   const cors = {
-    'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || 'https://ayaqdteenwork.netlify.app',
+    'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || 'https://teenwork.ayaqd.com',
     'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };

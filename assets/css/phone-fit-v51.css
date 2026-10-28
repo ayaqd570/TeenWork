@@ -1,0 +1,47 @@
+/* v51 phone fit: role dashboards fit a phone screen, and welcome messages sit in the page instead of over it.
+   Loaded after trust-usability.css. Desktop layout is unchanged apart from the welcome notice. */
+
+/* Welcome notice (built by phone-fit-v51.js). It is part of the page flow, so it never covers
+   metrics, form fields or the bottom nav, and it stays until dismissed or the user changes tab. */
+.tw-welcome-note{display:flex;align-items:center;gap:.5rem;min-width:0;margin:0 0 .9rem;padding:.3rem .3rem .3rem .85rem;background:var(--green-pale,#e8f5ee);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:12px;color:var(--text);font-size:.9rem;font-weight:600;line-height:1.4}
+.tw-welcome-note p{flex:1;min-width:0;margin:0;overflow-wrap:break-word}
+.tw-welcome-note button{flex:none;min-width:44px;min-height:44px;border:0;border-radius:10px;background:transparent;color:inherit;font-size:1.4rem;line-height:1;cursor:pointer}
+
+/* Job form travel choices: the checkbox picked up the full-width field rule and squeezed each choice
+   into a tall box of capitalised lines. */
+#emp-transport-options label{text-transform:none;letter-spacing:0}
+#emp-transport-options input[type=checkbox]{width:auto;flex:none;margin:0}
+
+@media (max-width:768px){
+  /* iPhone Safari zooms the whole page when a field smaller than 16px is tapped, and stays zoomed after,
+     which pushes cards, fields and the Back/Continue buttons past the right edge. 16px stops the zoom. */
+  .dashboard input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+  .dashboard select,.dashboard textarea{font-size:16px}
+
+  /* Let every column shrink to the screen instead of growing to its widest word or control. */
+  .dashboard{max-width:100%;min-width:0}
+  .dashboard .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard .stat-card,.dashboard .panel,.dashboard .tab-panel,.dashboard .section-grid>*{min-width:0;max-width:100%}
+  .dashboard .stat-label,.dashboard .stat-sub{overflow-wrap:break-word;hyphens:auto}
+  .dashboard .stat-value{overflow-wrap:anywhere}
+  .dash-header>div{min-width:0;max-width:100%;flex-wrap:wrap}
+  .dash-header button{max-width:100%;white-space:normal}
+  .ai-input-row{min-width:0}.ai-input-row input{min-width:0;width:auto}.ai-input-row button{flex:none}
+  .filters-bar>*,.filters-bar input,.filters-bar select{min-width:0;max-width:100%}
+
+  /* Employer job form: one column, full-width fields, card kept inside the screen. */
+  .post-form{max-width:100%;min-width:0;padding:1.1rem}
+  .post-form .form-row{grid-template-columns:minmax(0,1fr)}
+  .post-form fieldset{min-width:0;max-width:100%}
+  .post-form input:not([type=checkbox]):not([type=radio]),.post-form select,.post-form textarea{width:100%;max-width:100%;min-width:0}
+  #emp-transport-options label{max-width:100%;min-height:44px}
+  /* Back and Continue share one row evenly; the draft buttons get a full row each. */
+  .tw-post-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+  .tw-post-controls>button{width:100%;min-width:0;min-height:44px;margin:0;white-space:normal}
+  .tw-post-controls>button:nth-child(n+3),
+  .tw-post-controls:has(>button:nth-child(2)[hidden])>button:first-child{grid-column:1/-1}
+  .tw-post-step .btn-primary,.tw-post-step .btn-ai{min-height:44px;max-width:100%;white-space:normal}
+  /* Review step: label above value, so long labels don't squeeze the answers. */
+  #tw-post-preview dl{grid-template-columns:minmax(0,1fr);gap:.1rem}
+  #tw-post-preview dd{margin-bottom:.55rem}
+}

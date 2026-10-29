@@ -1,14 +1,13 @@
 # TeenWork
 
 The TeenWork app uses `index.html` plus the scripts and styles in `assets/`.
-It is published on Netlify at https://ayaqdteenwork.netlify.app and every push to `main` goes live automatically.
+The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serves this repo's `main` branch. Netlify is no longer used.
 
 ## What's here
 
 - `index.html` – app markup (currently TeenWork v50: ChatGPT's split layout and fixes, plus v49's empty demos and page addresses).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
-- `netlify.toml` – tells Netlify there is no build step and to publish this folder as is.
-- `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase, not Netlify.
+- `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase.
 - `supabase/functions/delete-account/` – the Supabase Edge Function behind "Delete my account" and the admin Danger zone (deploy with Verify JWT off). It uses only the keys Supabase provides itself.
 - `supabase/migrations/20261018_closed_accounts.sql` – the `closed_accounts` table the app reads to hide deleted accounts.
 - `supabase/migrations/20261018_tw_public_counts.sql` – `tw_public_counts()`, the counts-only function the homepage calls for its live numbers (no names or emails).
@@ -22,12 +21,12 @@ The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`
 
 ## Deploying
 
-Netlify deploys every push to `main`. The repo is public because Netlify's free plan only deploys commits from one contributor on private repos.
+https://teenwork.ayaqd.com shows the `main` branch. There is no build step.
 To ship a new app version, update the relevant markup, scripts and styles, commit and push.
 
 ## Search engines
 
-Netlify serves a real file before it applies the `/*` → `/index.html` rule in `netlify.toml`, so `robots.txt`, `sitemap.xml` and the images above are served as themselves.
+The web server must serve `robots.txt`, `sitemap.xml` and the images above as files. The app needs no other routes: every screen is `index.html`.
 If the site moves to another address, update the address in `robots.txt`, `sitemap.xml` and the canonical, Open Graph and structured data tags in the `<head>` of `index.html`.
 
 ## Source layout and secure AI deployment
@@ -61,8 +60,8 @@ and account slots belonging to one Supabase user. These are abuse limits during
 early access, in addition to existing frontend plan limits. Attempts sent to Groq
 count even if the provider fails. Quota failures block calls rather than bypassing
 limits. Rows are removed automatically when the Supabase user is deleted.
-`ALLOWED_ORIGIN` defaults to `https://ayaqdteenwork.netlify.app`; set it explicitly
-for a different hosting origin. CORS is not the authentication mechanism.
+The addresses `groq-chat` accepts are listed under "Demo AI and the AI function's addresses" below.
+CORS is not the authentication mechanism.
 
 Run backend checks with:
 
@@ -74,8 +73,9 @@ The deployed moderation guard is preserved in `supabase/functions/_shared/messag
 
 ## Demo AI and the AI function's addresses
 
-`groq-chat` accepts requests from `https://teenwork.ayaqd.com` and `https://ayaqdteenwork.netlify.app` (and Netlify
-deploy previews). `ALLOWED_ORIGIN` (comma-separated) can add more addresses; it never removes these two.
+`groq-chat` accepts requests from `https://teenwork.ayaqd.com`, the app's only address. The code still also lists the old
+Netlify addresses, matching the live function (version 9); drop them the next time the function is deployed.
+`ALLOWED_ORIGIN` (comma-separated) can add more addresses; it never removes the built-in ones.
 Demos are empty practice accounts with no sign-in. They send `x-teenwork-demo: 1`, use the Free key, and are counted per
 visitor (a salted hash of the address) and for all demos together by `supabase/migrations/20261025_demo_ai_quota.sql`
 (6 a minute and 25 a day per visitor, 1,500 a day for all demos). The demo itself shows 5 tries a day in the browser.

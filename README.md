@@ -5,7 +5,7 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v48).
+- `index.html` – app markup (currently TeenWork v50: ChatGPT's split layout and fixes, plus v49's empty demos and page addresses).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase.
 - `supabase/functions/delete-account/` – the Supabase Edge Function behind "Delete my account" and the admin Danger zone (deploy with Verify JWT off). It uses only the keys Supabase provides itself.
@@ -60,7 +60,7 @@ and account slots belonging to one Supabase user. These are abuse limits during
 early access, in addition to existing frontend plan limits. Attempts sent to Groq
 count even if the provider fails. Quota failures block calls rather than bypassing
 limits. Rows are removed automatically when the Supabase user is deleted.
-`ALLOWED_ORIGIN` defaults to `https://teenwork.ayaqd.com`, the only address the app uses.
+The addresses `groq-chat` accepts are listed under "Demo AI and the AI function's addresses" below.
 CORS is not the authentication mechanism.
 
 Run backend checks with:
@@ -70,3 +70,13 @@ node --test supabase/functions/groq-chat/core.test.mjs
 ```
 
 The deployed moderation guard is preserved in `supabase/functions/_shared/message-guard.ts`. The AI function continues using `openai/gpt-oss-20b`, low reasoning effort, and at least 600 completion tokens, matching the live configuration.
+
+## Demo AI and the AI function's addresses
+
+`groq-chat` accepts requests from `https://teenwork.ayaqd.com`, the app's only address. The code still also lists the old
+Netlify addresses, matching the live function (version 9); drop them the next time the function is deployed.
+`ALLOWED_ORIGIN` (comma-separated) can add more addresses; it never removes the built-in ones.
+Demos are empty practice accounts with no sign-in. They send `x-teenwork-demo: 1`, use the Free key, and are counted per
+visitor (a salted hash of the address) and for all demos together by `supabase/migrations/20261025_demo_ai_quota.sql`
+(6 a minute and 25 a day per visitor, 1,500 a day for all demos). The demo itself shows 5 tries a day in the browser.
+Apply the migration before deploying the function: `node --test supabase/functions/groq-chat/core.test.mjs`.

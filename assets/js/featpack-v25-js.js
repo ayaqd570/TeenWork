@@ -80,20 +80,26 @@
     };
     let res;
     if (TW_GROQ.mode === 'proxy') {
-      // The backend verifies this session and selects the plan from admin-owned metadata.
-      const client = await _twCloudClient();
-      const sessionResult = client ? await client.auth.getSession() : null;
-      const session = sessionResult?.data?.session;
-      if (!session?.access_token || window.currentUser?.isDemo || !window.currentUser ||
-          String(session.user?.email || '').toLowerCase() !== String(window.currentUser.email || '').toLowerCase()) {
-        throw new Error('Please sign in to your account to use AI features.');
-      }
       const sbKey = (typeof SUPABASE_KEY !== 'undefined') ? SUPABASE_KEY : '';
-      res = await fetch(TW_GROQ.proxyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': sbKey, 'Authorization': 'Bearer ' + session.access_token },
-        body: JSON.stringify(payload),
-      });
+      // Demos (empty practice accounts, demo-sandbox-v49) have no sign-in: groq-chat gives them a small
+      // daily allowance per visitor. demo-sandbox-v49 also limits them to 5 tries a day in the browser.
+      const u = window.currentUser;
+      const demo = !!(u && (u.isDemo || u.twDemo || (typeof window._twIsDemoSandboxUser === 'function' && window._twIsDemoSandboxUser(u))));
+      let bearer = sbKey;
+      if (!demo) {
+        // The backend verifies this session and selects the plan from admin-owned metadata.
+        const client = await _twCloudClient();
+        const sessionResult = client ? await client.auth.getSession() : null;
+        const session = sessionResult?.data?.session;
+        if (!session?.access_token || !u ||
+            String(session.user?.email || '').toLowerCase() !== String(u.email || '').toLowerCase()) {
+          throw new Error('Please sign in to your account to use AI features.');
+        }
+        bearer = session.access_token;
+      }
+      const headers = { 'Content-Type': 'application/json', 'apikey': sbKey, 'Authorization': 'Bearer ' + bearer };
+      if (demo) headers['x-teenwork-demo'] = '1';
+      res = await fetch(TW_GROQ.proxyUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
     } else {
       if (!planCfg.key || planCfg.key.startsWith('__')) throw new Error('AI is not set up yet (no Groq key for the ' + plan + ' plan).');
       res = await fetch(TW_GROQ.endpoint, {

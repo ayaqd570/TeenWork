@@ -87,7 +87,8 @@
    setInterval(()=>{if(paused || document.hidden || !$('page-landing')?.classList.contains('active'))return;const items=$('tw-slogan-wrap').children;items[current].classList.remove('active');items[current].setAttribute('aria-hidden','true');current=(current+1)%items.length;items[current].classList.add('active');items[current].setAttribute('aria-hidden','false');},3200);
   }
   // Keep the existing introduction and controls; give them the first screen.
-  if(image?.parentElement===hero.parentElement)hero.before(image);
+  // Big green headline first, then the photo, then the introduction.
+  if(image?.parentElement===hero.parentElement){hero.before(image);const sw=$('tw-slogan-wrap'),pz=$('tw51-pause');if(sw&&pz){image.before(sw);sw.after(pz);}}
   hero.insertAdjacentHTML('beforeend','<button class="tw48-link tw50-scroll" type="button" id="tw50-discover">See how TeenWork works ↓</button>');
   $('tw50-discover').addEventListener('click',()=>$('tw48-how')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
   const details=document.createElement('div');details.id='tw50-details';
@@ -118,7 +119,7 @@
    </section>
    <section class="landing-section" aria-labelledby="tw50-faq">
     <div class="landing-section-head"><div><h2 id="tw50-faq">Questions before you join</h2><p>What to expect from TeenWork.</p></div></div>
-    <details class="tw50-faq"><summary>Can I explore without creating an account?</summary><p>Yes. Choose Teen Demo, Parent Demo or Employer Demo above. Demo jobs, profiles and messages are sample data so you can explore each dashboard.</p></details>
+    <details class="tw50-faq"><summary>Can I explore without creating an account?</summary><p>Yes. Choose Teen Demo, Parent Demo or Employer Demo above. Each demo is an empty practice account, like a brand-new one, so you can try every screen. Nothing you do in a demo is saved or sent, and the demo AI can be tried 5 times a day.</p></details>
     <details class="tw50-faq"><summary>How does a parent get involved?</summary><p>The parent creates a separate account and links to the teen using the teen's code. A parent must agree before the teen applies, and each application waits for parent approval before the employer receives it.</p></details>
     <details class="tw50-faq"><summary>Are jobs guaranteed in my town?</summary><p>No. TeenWork started in Vermont, and listings appear when local employers post them. Creating an account does not guarantee a nearby job or that an employer will hire you.</p></details>
     <details class="tw50-faq"><summary>Can an employer post a small neighborhood job?</summary><p>Employers can describe local work, the location, pay and requirements. Be specific about the tasks and schedule. Employers are responsible for checking that the work and hours are appropriate for the teen's age and follow applicable rules.</p></details>

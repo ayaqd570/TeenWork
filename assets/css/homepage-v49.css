@@ -58,3 +58,11 @@
 #page-landing > nav > div > div:first-child:empty{display:none}
 #page-landing > nav > div > div:last-child{flex-wrap:wrap}
 #page-landing > nav > div > div:last-child > button:first-child{order:3}
+
+/* Big green headline sits above the photo; the photo is capped so both fit the first screen. */
+#page-landing #tw-slogan-wrap{width:calc(100% - 2rem);margin:1rem auto .2rem;min-height:1.4em}
+@media(max-width:900px){#page-landing #tw-slogan-wrap{min-height:2.4em}}
+#page-landing #tw51-pause{display:block;width:fit-content;margin:0 auto .8rem}
+@media(min-width:769px){#page-landing #tw-hero-img{max-height:50vh !important;object-fit:cover !important}}
+@media(max-width:480px){#page-landing #tw-slogan-wrap{font-size:clamp(1.9rem,8.4vw,2.4rem);min-height:2.5em;margin-top:.6rem}}
+@media(max-width:480px){#page-landing #tw-hero-img{max-height:26vh !important;object-fit:cover !important}#page-landing #tw51-pause{margin-bottom:.4rem}}

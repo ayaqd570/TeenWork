@@ -24,7 +24,6 @@
  #page-landing #tw-hero-outer img[src$="logo.png"]{width:48px !important;height:48px !important}
  #page-landing #tw-hero-outer>div>div>span{font-size:1.5rem !important}
  #page-landing #tw48-hero{min-height:0 !important;padding:.8rem 1rem 1.3rem !important;gap:.5rem}
- #page-landing #tw-slogan-wrap,#page-landing #tw51-pause{display:none !important}
  #page-landing #tw48-h1{font-size:clamp(1.6rem,6.7vw,2.1rem) !important;margin:0 auto .75rem !important}
  #page-landing #tw48-hero .landing-lead{font-size:1rem !important;line-height:1.5 !important;margin-bottom:1rem !important}
  #page-landing #tw48-hero button{min-height:44px}
@@ -52,3 +51,6 @@
   box-shadow:0 2px 8px rgba(24,54,38,.25) !important;
 }
 @media(max-width:360px){#page-landing>nav>div>div:last-child{gap:5px !important}}
+/* First screen on phones: big green headline, then a shorter photo, then the Sign Up button. */
+@media(max-width:480px){#page-landing #tw-hero-outer #tw-hero-img{max-height:24vh !important;object-fit:cover !important}#page-landing #tw-slogan-wrap{min-height:0;margin-bottom:0}}
+@media(min-width:769px){#page-landing #tw-hero-outer #tw-hero-img{max-height:50vh !important;object-fit:cover !important}}

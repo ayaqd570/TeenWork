@@ -252,7 +252,7 @@
     const w = function (type) {
       const r = orig.apply(this, arguments);
       [80, 450, 1200].forEach(ms => later(syncDemo, ms));
-      later(() => { if (typeof window.showToast === 'function') window.showToast('This demo uses sample data: every job, person and message is made up.', 'info'); }, 1600);
+      later(() => { if (typeof window.showToast === 'function') window.showToast('This demo starts empty, like a new account. Nothing you do in it is saved.', 'info'); }, 1600);
       return r;
     };
     w.__tw48 = true;

@@ -293,10 +293,10 @@
     const parentEmail = window.currentUser?.parentEmail || '';
     const msgBody   = `🚨 SAFETY ALERT from TeenWork\n\n${teenName} pressed the SOS button.\n\nNote: ${note || '(no note provided)'}\n\nPlease check in with them immediately.\n\nTime: ${new Date().toLocaleString()}\n\n— TeenWork Safety System`;
 
-    let emailSent = false;
+    let emailSent = false, parentSend = null;
     if (typeof emailjs !== 'undefined' && parentEmail) {
       try {
-        emailjs.send('teenwork_service', 'safety_alert', {
+        parentSend = emailjs.send('teenwork_service', 'safety_alert', {
           to_email:   parentEmail,
           to_name:    'Parent/Guardian',
           from_name:  'TeenWork Safety',
@@ -335,7 +335,11 @@
     } catch(e) {}
 
     closeFeelsWrong();
-    showToast?.('Alert saved on this device; delivery is not confirmed. If an email draft opened, send it. Contact a trusted adult directly if you need help.','warn');
+    // homepage-trust-v48 rewrites the no-parent toast ("Link a parent…"); it looks for "🚨 Alert sent".
+    if (!parentSend) { showToast?.('🚨 Alert sent to the TeenWork team. If you are in danger, call 911.','warn'); return; }
+    Promise.resolve(parentSend).then(
+      () => showToast?.('🚨 Alert sent to your parent and the TeenWork team. If you are in danger, call 911.','warn'),
+      () => showToast?.('🚨 Alert sent to the TeenWork team, but the email to your parent did not go through. If an email draft opened, send it, and tell a trusted adult now. If you are in danger, call 911.','warn'));
   };
 
   /* ─── SAFE WORD ─── */

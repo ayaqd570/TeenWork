@@ -5701,7 +5701,7 @@ const TOUR_STEPS = {
       title: '🔍 TrustVerify employers',
       body: "TeenWork does not run criminal background checks. Review the employer and job together before approving. Identity and background checks are not available.",
       target: 'button[onclick*="ptab-verify"], button[onclick*="ttab-trust"]', pos: 'bottom',
-      tip: '💡 You can request verification from any employer directly.',
+      tip: '💡 Ask the employer your questions in the app chat before you approve.',
     },
     {
       title: '🚨 SOS & Safe Word',
@@ -5741,7 +5741,7 @@ const TOUR_STEPS = {
     },
     {
       title: '🛡️ Review screening limits',
-      body: "A profile information tells parents you've completed a background check. It unlocks more applicants and significantly increases parent approvals for your jobs.",
+      body: "TeenWork doesn't check employers' identity or background. Clear, honest job details help parents decide.",
       target: 'button[onclick*="etab-trust"], button[onclick*="etab-verify"]', pos: 'bottom',
       tip: 'Keep job details clear and accurate.',
     },

@@ -5,7 +5,9 @@
 //       The person deletes their own account (their password was checked by the app just before,
 //       by signing in again). Everything goes now: their user_data rows, messages, links in other
 //       people's rows, and their sign-in (or just this account, when the email has other accounts).
-//   { action: "close", key, adminPassword }    the TeenWork admin closes an account.
+//   { action: "close", key }                   Authorization: Bearer <the admin's Supabase access token>
+//       the TeenWork admin closes an account. Since v51 the admin is a real Supabase sign-in whose
+//       app_metadata.tw_role is "admin" (only the service role can set it); there is no admin password.
 //       What other people can see goes now (profile, job posts, applications, chats, links, codes).
 //       The person's own records (hours, money, lessons…) stay KEEP_DAYS days so they can sign in
 //       and download them; then "purge" deletes the rest.
@@ -16,7 +18,7 @@
 // purge_after, purged_at). The app reads that table to hide closed accounts everywhere and to tell
 // people an account they worked with was closed. Only this function can write it.
 
-export type Env = { url: string; serviceKey: string; anonKey: string; adminSalt: string; adminHash: string; origin: string; adminEmail?: string };
+export type Env = { url: string; serviceKey: string; anonKey: string; origin: string; adminEmail?: string };
 type Row = { email: string; key: string; value: string };
 type Json = Record<string, unknown>;
 
@@ -36,10 +38,7 @@ const emailOfKey = (k: string) => k.split("#")[0];
 const slotOfKey = (k: string) => (k.includes("#") ? parseInt(k.split("#")[1], 10) || 1 : 1);
 const parse = (v: unknown) => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch { return null; } };
 
-async function sha256hex(s: string) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, "0")).join("");
-}
+export const ADMIN_ROLE = "admin";
 
 export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
   const cors = {
@@ -69,7 +68,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
       const r = await fetchImpl(`${env.url}/auth/v1/user`, { headers: { apikey: env.anonKey || env.serviceKey, Authorization: `Bearer ${token}` } });
       if (!r.ok) return null;
       const u = await r.json();
-      return u?.id ? { id: String(u.id), email: low(u.email), user_metadata: (u.user_metadata ?? {}) as Json } : null;
+      return u?.id ? { id: String(u.id), email: low(u.email), user_metadata: (u.user_metadata ?? {}) as Json, isAdmin: (u.app_metadata as Json | undefined)?.tw_role === ADMIN_ROLE } : null;
     } catch { return null; }
   }
   async function findAuthUser(email: string) {
@@ -197,8 +196,10 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
       }
 
       if (action === "close") {
-        const pw = String(body.adminPassword ?? "");
-        if (!pw || !env.adminSalt || !env.adminHash || (await sha256hex(env.adminSalt + ":" + pw)) !== env.adminHash) return fail(403, "admin_password", "That isn't the admin password.");
+        const token = String(req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+        const admin = token ? await userFromToken(token) : null;
+        if (!admin) return fail(401, "sign_in", "Please sign in again as the admin, then try once more.");
+        if (!admin.isAdmin) return fail(403, "admin_only", "Only the TeenWork admin can close other people's accounts.");
         const type = (await typeOf(key)) || low(body.type);
         const purgeAfter = new Date(now.getTime() + KEEP_DAYS * 86_400_000).toISOString();
         await unlinkFromOthers(key, type);

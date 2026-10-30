@@ -1,0 +1,20 @@
+/* v51 home screen (Build Brief step 2). The picture-first layout is unchanged; see assets/js/home-v51.js. */
+.tw51-trust{margin:-.3rem auto 1.1rem;font-size:clamp(.92rem,1.2vw,1.05rem);font-weight:600;color:var(--green);line-height:1.5}
+#page-landing #tw48-pro{position:relative;padding-right:3.4rem}
+.tw51-pro-x{position:absolute;top:.35rem;right:.35rem;min-width:44px;min-height:44px;border:0;border-radius:10px;background:transparent;color:#7a4700;font:inherit;font-size:1.6rem;line-height:1;cursor:pointer}
+.tw51-pro-x:hover{background:rgba(122,71,0,.08)}
+#tw48-proof.tw51-no-stats > .landing-section-head,#tw48-proof.tw51-no-stats > .tw48-proof-grid{display:none}
+#tw48-proof.tw51-no-stats .tw48-founder{margin-top:0}
+/* H13: the old seeded testimonial blocks never show; real reviews live in #tw48-reviews. */
+#featpack-testimonials,#tw-community-section{display:none !important}
+#tw-for-employers{scroll-margin-top:80px}
+#tw-for-employers:focus{outline:none}
+#tw-for-employers.tw51-flash{outline:3px solid var(--amber);outline-offset:4px}
+/* Narrow phones: the three top-bar buttons stay on one line each. */
+#page-landing > nav > div > div:last-child > button{white-space:nowrap}
+@media(max-width:400px){
+#page-landing > nav{padding:0 .75rem !important}
+#page-landing > nav > div > div:last-child{gap:6px !important}
+#page-landing > nav > div > div:last-child > button{min-height:44px;padding:8px 12px !important;font-size:.85rem !important}
+#page-landing #tw51-nav-employers{padding:8px 4px !important;font-size:.82rem !important}}
+@media(max-width:340px){#page-landing > nav > div > div:last-child > button{padding:8px 8px !important;font-size:.8rem !important}#page-landing #tw51-nav-employers{padding:8px 2px !important}}

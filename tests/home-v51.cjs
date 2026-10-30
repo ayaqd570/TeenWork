@@ -40,13 +40,17 @@ async function home(browser, viewport) {
  // The picture: a small file, on top, whole (a square box, so nothing is cropped), with the title under it.
  const hero = await p.evaluate(() => {
   const img = document.getElementById('tw-hero-img'), b = img.getBoundingClientRect(), h1 = document.getElementById('tw48-h1').getBoundingClientRect();
-  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgBottom: b.bottom, h1Top: h1.top, alt: img.alt};
+  const su = [...document.querySelectorAll('#tw48-hero button')].find(x => /Sign Up/.test(x.textContent)).getBoundingClientRect();
+  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgBottom: b.bottom, imgWidth: b.width, h1Top: h1.top, signupBottom: su.bottom, alt: img.alt};
  });
  assert.match(hero.src, /\/assets\/img\/hero-\d+\.(avif|webp)$/);
  assert(hero.loaded, w + ': hero picture did not load');
  assert(Math.abs(hero.ratio - hero.natural) < 0.02, w + ': hero picture is cropped (' + hero.ratio + ')');
  assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
  assert.equal(hero.alt, 'TeenWork — safe teen jobs');
+ // Computers (Aya, Oct 30): the whole picture is smaller, so the title and Sign Up fit the first screen. Phones keep it full width.
+ if (w >= 900) assert(hero.signupBottom <= viewport.height, w + ': Sign Up is below the first screen');
+ else assert(hero.imgWidth >= w - 40, w + ': picture is not full width on a phone');
 
  // H6: "For employers" in the top bar goes to the employer card. Schools is in the footer.
  assert.equal(await p.locator('#page-landing > nav').getByRole('button', {name: 'Schools'}).count(), 0);

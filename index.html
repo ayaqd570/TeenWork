@@ -316,8 +316,10 @@
 <meta name="theme-color" content="#2d6a4f">
 <script src="assets/js/app-01.js"></script>
 <link rel="stylesheet" href="assets/css/styles-01.css">
-<!-- v51 (H3): the picture is in its final place from the first paint; homepage-v49.css, which loads last, says the same -->
-<style id="tw51-first-paint">#page-landing .landing{padding-top:0}</style>
+<!-- v51 (H3): the picture is in its final place and size from the first paint (homepage-v49.css, which loads last, removes the same padding).
+     On computers the whole picture is about half the screen tall, so the title and Sign Up fit the first screen (Aya, Oct 30). Phones and tablets are unchanged. -->
+<style id="tw51-first-paint">#page-landing .landing{padding-top:0}
+@media(min-width:900px){#page-landing .landing-shell > #tw-hero-outer#tw-hero-outer{width:min(100% - 2rem, max(50vh, 320px)) !important;margin:14px auto 0 !important}}</style>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES

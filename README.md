@@ -28,6 +28,7 @@ To ship a new app version, update the relevant markup, scripts and styles, commi
 
 The web server must serve `robots.txt`, `sitemap.xml` and the images above as files. The app needs no other routes: every screen is `index.html`.
 If the site moves to another address, update the address in `robots.txt`, `sitemap.xml` and the canonical, Open Graph and structured data tags in the `<head>` of `index.html`.
+The search text leads with "teen job app", "teen job finder app" and "TeenWork"; Vermont is only a second mention. The FAQ in the structured data must match the "Questions before you join" FAQ in `assets/js/homepage-v49.js`. Run `node tests/search-text.cjs` after changing either.
 
 ## Source layout and secure AI deployment
 

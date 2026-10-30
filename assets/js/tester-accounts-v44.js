@@ -3,9 +3,10 @@
    v44 · TESTER ACCOUNTS  (2026-10-16, Aya's request)
    "allow unlimited accounts with ayaquarrierdraper@gmail.com email and
     they dont require parent linking so i can test app"
-   Tester emails = ayaquarrierdraper@gmail.com and every Gmail spelling
-   that lands in the same inbox: ayaquarrierdraper+anything@gmail.com,
-   dots anywhere before the @, and @googlemail.com.
+   Tester emails = ayaquarrierdraper@gmail.com and ayaqdteenwork@gmail.com
+   (added 2026-10-30, Aya: "let ayaqdteenwork@gmail.com have unlimited
+   acounts"), each with every Gmail spelling that lands in the same inbox:
+   name+anything@gmail.com, dots anywhere before the @, and @googlemail.com.
    • Same email: no limit on how many accounts it can own, and no admin
      Email Rule is needed. Extra accounts share that email's password, and
      sign-in shows the "Which account?" list (which now scrolls).
@@ -27,7 +28,7 @@
   if (window.__twTester44) return;
   window.__twTester44 = true;
 
-  const TESTER_INBOXES = ['ayaquarrierdraper@gmail.com'];
+  const TESTER_INBOXES = ['ayaquarrierdraper@gmail.com', 'ayaqdteenwork@gmail.com'];
   const ROLES = ['teen', 'parent', 'employer'];
   const me = () => window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
 

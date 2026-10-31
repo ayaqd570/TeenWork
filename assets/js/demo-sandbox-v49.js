@@ -241,6 +241,7 @@
     try { sessionStorage.removeItem('tw_demo_open'); } catch (e) {}
     document.body.classList.remove('tw49-demo');
     document.querySelectorAll('#tw49-demo-banner').forEach(b => b.remove());
+    document.querySelectorAll('.tw-welcome-note').forEach(n => n.remove());   // v51 (A1): demo notes don't follow you out
     closeLimit();
     if (!getClient()) { try { if (typeof window._twEnsureSupabase === 'function') window._twEnsureSupabase(); } catch (e) {} }
   }

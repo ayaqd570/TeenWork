@@ -163,7 +163,8 @@
     ['apps', 'msgs', 'posts', 'ai'].forEach(function (k) { u[k] = Number(u[k]) || 0; });
     return u;
   }
-  function limitFor(kind) { return isPro() ? 0 : (settings().free[KINDS[kind].setting] || 0); }
+  // v51: applying is free and unlimited on every plan (Aya, 2026-10-30: "Keep applying unlimited and free").
+  function limitFor(kind) { return (kind === 'apps' || isPro()) ? 0 : (settings().free[KINDS[kind].setting] || 0); }
   function bump(kind) {
     if (!limitFor(kind)) return;        // nothing to count when there is no cap
     var u = usage(); u[kind] = (u[kind] || 0) + 1;
@@ -475,7 +476,6 @@
 
   /* ── admin: 💎 Plans tab ───────────────────────────────────────── */
   var FIELDS = [
-    ['applicationsPerMonth', 'Job applications per month (teens)'],
     ['aiPerDay', 'AI requests per day'],
     ['messagesPerMonth', 'Messages per month (0 = unlimited)'],
     ['employerPostsPerMonth', 'Job posts per month (employers)'],

@@ -69,10 +69,10 @@ function _injectProInfo() {
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:.76rem;color:#1a5c3a;line-height:1.5">' +
     '<div>\u2705 Unlimited AI requests</div><div>\u2705 AI Resume Builder</div>' +
     '<div>\u2705 AI Job Coach (always on)</div><div>\u2705 Pitch AI for applications</div>' +
-    '<div>\u2705 Priority job matching</div><div>\u2705 Unlimited applications</div>' +
+    '<div>\u2705 Priority job matching</div><div>\u2705 Wage Coach</div>' +
     '<div>\u2705 AI safety screening</div><div>\u2705 Early feature access</div>' +
     '</div>' +
-    '<div style="margin-top:7px;font-size:.71rem;color:#52b788;font-weight:700">\uD83D\uDCA1 Free plan: 5 applications \u0026 10 AI requests/day</div>';
+    '<div style="margin-top:7px;font-size:.71rem;color:#52b788;font-weight:700">\uD83D\uDCA1 Free plan: unlimited applications \u0026 10 AI requests/day</div>';
   proPrice.parentNode.insertBefore(box, proPrice.nextSibling);
 }
 setTimeout(_injectProInfo, 700);

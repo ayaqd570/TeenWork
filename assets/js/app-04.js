@@ -46,14 +46,16 @@ const EMAILJS_SERVICE  = 'TeenWork';
 const EMAILJS_TEMPLATE = 'template_t4l4tz9';
 const EMAILJS_PUBKEY   = '4ac7YlFuqZILXmSnV';
 const ADMIN_EMAIL      = 'ayaquarrierdraper@gmail.com';
-// ── Admin sign-in (v39) ─────────────────────────────────────────────
-//  The admin signs in on the normal Sign In page with ADMIN_EMAIL (or the
-//  short alias "admin") plus the admin password. The password itself is
-//  NOT in this file — only a salted SHA-256 hash of it, so nobody can read
-//  it out of the source. Change it from Admin → 🔐 Security & Log.
+// ── Admin sign-in (v51, Build Brief T2) ─────────────────────────────
+//  The admin is a real Supabase sign-in: ADMIN_EMAIL's own Supabase account
+//  (its normal password) with app_metadata.tw_role = 'admin'. Only Supabase's
+//  service role can set app_metadata, so nobody can make themselves admin
+//  from the app, and no admin password or hash is in this file. The database
+//  (RLS) and the delete-account function check the same role on the signed-in
+//  token. Setup: supabase/migrations/20261030_admin_role.sql.
+//  Sign in on the normal Sign In page with ADMIN_EMAIL (or "admin").
 const ADMIN_LOGIN_ALIASES = ['admin', 'admin@teenwork.com', 'admin@teenwork.app'];
-const ADMIN_PW_SALT = 'e4c7593a75c04481cef2fe97';
-const ADMIN_PW_HASH = '32c6b8e9685084ab94db751d9e5f34fff8947b93a9c6de7e93606642103c537c';
+const TW_ADMIN_ROLE = 'admin';
 
 // Init EmailJS
 (function() {
@@ -897,14 +899,68 @@ function _twIsAdminEmail(email) {
   const em = String(email || '').trim().toLowerCase();
   return em === String(ADMIN_EMAIL).toLowerCase() || ADMIN_LOGIN_ALIASES.includes(em);
 }
-// A password changed from Admin → Security is kept (hashed) on this device and wins over the built-in one
-function _twAdminPwRecord() {
-  try { const o = JSON.parse(localStorage.getItem('tw_admin_pw') || 'null'); if (o && o.salt && o.hash) return { ...o, custom: true }; } catch(e) {}
-  return { salt: ADMIN_PW_SALT, hash: ADMIN_PW_HASH, custom: false };
+// v51: a Supabase user is the admin only when Supabase says so (app_metadata is set by the service role only)
+function _twIsAdminAuthUser(user) { return !!(user && user.app_metadata && user.app_metadata.tw_role === TW_ADMIN_ROLE); }
+// Signs this browser in to Supabase as ADMIN_EMAIL. Resolves to the Supabase user if the password is right
+// and the account has the admin role, otherwise null (wrong password, offline, or not set up yet).
+async function _twAdminAuth(password) {
+  const client = await _twCloudClient(3000);
+  if (!client || !password) return null;
+  const r = await _twSafeCall(() => client.auth.signInWithPassword({ email: String(ADMIN_EMAIL).toLowerCase(), password }));
+  const user = r && r.data && r.data.user;
+  return _twIsAdminAuthUser(user) ? user : null;
 }
-async function _twCheckAdminPassword(pw) {
-  const rec = _twAdminPwRecord();
-  return (await _twHashPw(pw, rec.salt)) === rec.hash;
+// Used before admin Danger zone actions: the admin types their password again.
+async function _twCheckAdminPassword(pw) { return !!(await _twAdminAuth(pw)); }
+// The signed-in admin's access token (for the delete-account function), null when this browser isn't signed in
+// as the admin, or undefined when TeenWork can't be reached to tell.
+async function _twAdminToken(waitMs) {
+  const client = await _twCloudClient(waitMs == null ? 3000 : waitMs);
+  if (!client) return undefined;
+  const r = await _twSafeCall(() => client.auth.getSession());
+  if (r && r.error && _twCloudErr.offline(r.error)) return undefined;
+  const sess = r && r.data && r.data.session;
+  return sess && _twIsAdminAuthUser(sess.user) ? sess.access_token : null;
+}
+// Quick, offline check of the Supabase sign-in saved in this browser (used when a refresh reopens the admin panel).
+// It only decides what to show; the database and the delete-account function check the real token.
+function _twStoredAdminSession() {
+  try {
+    const ref = new URL(SUPABASE_URL).hostname.split('.')[0];
+    const saved = JSON.parse(localStorage.getItem('sb-' + ref + '-auth-token') || 'null');
+    return !!(saved && saved.refresh_token && _twIsAdminAuthUser(saved.user));
+  } catch(e) { return false; }
+}
+// v39–v50 kept a changed admin password (hashed) on the device; it is not used any more.
+try { localStorage.removeItem('tw_admin_pw'); } catch(e) {}
+// The admin's email also owns ordinary (tester) accounts with the same password: ask which to open.
+// Resolves 'admin', 'accounts' or null (closed).
+function _twAskAdminOrAccounts() {
+  return new Promise(resolve => {
+    document.getElementById('tw-admin-choice')?.remove();
+    const wrap = document.createElement('div');
+    wrap.id = 'tw-admin-choice';
+    wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true'); wrap.setAttribute('aria-labelledby', 'tw-admin-choice-h');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:1.2rem;';
+    const btn = 'display:block;width:100%;min-height:48px;text-align:left;border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;';
+    wrap.innerHTML = `<div style="background:var(--card,#fff);border-radius:20px;max-width:420px;width:100%;padding:1.6rem 1.4rem;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif;">
+        <h2 id="tw-admin-choice-h" style="font-family:'Fraunces',serif;color:var(--green);margin:0 0 .3rem;font-size:1.3rem">Open which?</h2>
+        <p style="color:var(--muted);font-size:.86rem;margin:0 0 1rem">This email is the TeenWork admin and also has its own accounts.</p>
+        <div style="display:grid;gap:8px">
+          <button type="button" data-pick="admin" style="${btn}background:var(--green);color:#fff;border:0">Admin panel</button>
+          <button type="button" data-pick="accounts" style="${btn}background:var(--bg,#f7f7f5);color:var(--text,#1a1a1a);border:1.5px solid var(--border)">My TeenWork accounts</button>
+        </div>
+        <button type="button" data-pick="" style="margin-top:1rem;width:100%;min-height:44px;background:none;border:1.5px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-family:inherit;cursor:pointer">Cancel</button>
+      </div>`;
+    wrap.addEventListener('click', e => {
+      const b = e.target.closest('[data-pick]');
+      if (!b && e.target !== wrap) return;
+      wrap.remove();
+      resolve(b ? (b.getAttribute('data-pick') || null) : null);
+    });
+    document.body.appendChild(wrap);
+    try { wrap.querySelector('[data-pick="admin"]').focus(); } catch(e) {}
+  });
 }
 
 function _twLogSignin(entry) {
@@ -922,14 +978,21 @@ function _twAdminAudit(action, detail) {
   } catch(e) {}
 }
 
-// Admin sign-in. Returns true only when the email is the admin's AND the password matches the stored hash.
-// A wrong password simply falls through to the normal account check, so the sign-in form never
-// reveals that an admin login exists (and the admin can also own ordinary test accounts).
+// Admin sign-in. Returns true only when Supabase accepts the password for ADMIN_EMAIL and that account has the
+// admin role. Anything else falls through to the normal account check, so the sign-in form never reveals that
+// an admin login exists. Each layer of the doLogin() chain calls this, so a "no" is remembered for a moment.
+let _twAdminNo = null;
 async function _twAdminLogin(email, password) {
   if (!_twIsAdminEmail(email) || !password) return false;
-  if (!(await _twCheckAdminPassword(password))) {
-    _twLogSignin({ email: String(email).trim().toLowerCase(), type: 'admin', ok: false, event: 'admin-wrong-password' });
-    return false;
+  const em = String(email).trim().toLowerCase(), tryKey = em + '\n' + password;
+  if (_twAdminNo && _twAdminNo.key === tryKey && Date.now() - _twAdminNo.at < 3000) return false;
+  const no = () => { _twAdminNo = { key: tryKey, at: Date.now() }; setTimeout(() => { if (_twAdminNo && Date.now() - _twAdminNo.at >= 3000) _twAdminNo = null; }, 3100); return false; };
+  const user = await _twAdminAuth(password);
+  if (!user) return no();
+  if (em === String(ADMIN_EMAIL).toLowerCase() && _twAccountsFromCloudUser(user).length) {
+    const pick = await _twAskAdminOrAccounts();
+    if (pick === 'accounts') return no();
+    if (pick !== 'admin') return true;   // closed: stay on the Sign In page
   }
   const u = { name: 'Admin', email: String(ADMIN_EMAIL).toLowerCase(), type: 'admin', emailVerified: true, isAdmin: true };
   currentUser = u; window.currentUser = u;
@@ -1192,7 +1255,7 @@ async function _twPullCloudData(acct) {
 
 Object.assign(window, { _twCloudClient, _twCloudSignUp, _twCloudBackfill, _twAccountsFromCloudUser, _twCacheCloudAccounts, _twPullCloudData });
 
-Object.assign(window, { TW_ACCOUNT_TYPES, _twAdminRules, _twSaveAdminRules, _twEmailMatchesRule, _twEmailAllowsMultiple, _twEmailBlocked, _twAccountsForEmail, _twIsAdminEmail, _twAdminPwRecord, _twCheckAdminPassword, _twLogSignin, _twAdminAudit, _twAdminLogin, _twLoginLocalAccount, _twShowAccountChooser, _twRegisterAccountInCloud, _twLocalAccounts, _twSaveLocalAccounts, _twHashPw });
+Object.assign(window, { TW_ACCOUNT_TYPES, _twAdminRules, _twSaveAdminRules, _twEmailMatchesRule, _twEmailAllowsMultiple, _twEmailBlocked, _twAccountsForEmail, _twIsAdminEmail, _twIsAdminAuthUser, _twAdminAuth, _twAdminToken, _twStoredAdminSession, _twCheckAdminPassword, _twLogSignin, _twAdminAudit, _twAdminLogin, _twLoginLocalAccount, _twShowAccountChooser, _twRegisterAccountInCloud, _twLocalAccounts, _twSaveLocalAccounts, _twHashPw });
 
 async function doSignup() {
   hideAlert('su-alert');

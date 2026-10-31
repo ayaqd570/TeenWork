@@ -44,6 +44,7 @@
   var PHOTON = 'https://photon.komoot.io/api/', NOMINATIM = 'https://nominatim.openstreetmap.org/search';
   var US_BBOX = '-180,15,-60,72';
   var US_CENTER = [39.5, -98.35];
+  var SLOW_MS = 8000;   // v51 (A2/T7): after this long, say so and offer Try again instead of waiting quietly
 
   /* ── landmark kinds ───────────────────────────────────────────────
      tier a = loaded at zoom 13+ and used for "nearest landmarks";
@@ -210,7 +211,7 @@
   function fetchOverpass(q) {
     var i = 0;
     function attempt() {
-      return timeoutFetch(OVERPASS[i], { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body: 'data=' + encodeURIComponent(q) }, 30000)
+      return timeoutFetch(OVERPASS[i], { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body: 'data=' + encodeURIComponent(q) }, 20000)
         .catch(function (e) { note('landmarks: ' + OVERPASS[i] + ' failed', e); i++; if (i < OVERPASS.length) return attempt(); throw e; });
     }
     return attempt();
@@ -366,6 +367,7 @@
       '.twlm-map{height:clamp(320px,58vh,520px);width:100%;font-family:inherit}',
       '.twlm-box .twlm-status{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);color:var(--text);border-radius:999px;padding:5px 12px;font-size:.78rem;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.15);white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}',
       '.twlm-box .twlm-status:empty{display:none}',
+      '.twlm-box .twlm-status:has(button){white-space:normal;text-align:center;border-radius:14px;line-height:1.45}',
       '.twlm-status button{font:inherit;border:none;background:none;color:var(--green);font-weight:800;cursor:pointer;padding:0 0 0 6px}',
       'html.dark .twlm .leaflet-tile-pane,html.dark #twlm-sheet .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.55)}',
       '.twlm .leaflet-container,#twlm-sheet .leaflet-container{font-family:"DM Sans",system-ui,sans-serif}',
@@ -443,7 +445,7 @@
         drawLandmarks(v);
       } else if (btn && btn.dataset.a === 'locate') locate(v);
       else if (btn && btn.dataset.a === 'home') { v.centered = ''; centerView(v, true); }
-      else if (btn && btn.dataset.a === 'retry') { failedUntil = 0; if (v.mapFailed) { delete views[v.cid]; renderJobMap(v.cid); } else loadForView(v); }
+      else if (btn && btn.dataset.a === 'retry') { failedUntil = 0; if (v.mapFailed || !v.map) { delete views[v.cid]; renderJobMap(v.cid); } else loadForView(v); }
       else if (go && v.map) { v.map.setView([+go.dataset.lat, +go.dataset.lon], Math.max(v.map.getZoom(), 16)); }
     });
     return v;
@@ -463,9 +465,16 @@
 
   function refreshView(v) {
     messages(v);
+    if (!v.map) {
+      status(v, 'Loading the map…');
+      clearTimeout(v.mapSlowT);
+      v.mapSlowT = setTimeout(function () { if (!v.map && !v.mapFailed) status(v, 'The map is taking longer than usual to load.<button type="button" data-a="retry">Try again</button>'); }, SLOW_MS);
+    }
     loadLeaflet().then(function (L) {
+      clearTimeout(v.mapSlowT);
       if (!document.body.contains(v.root)) return;
       if (!v.map) {
+        status(v, '');
         var el = v.root.querySelector('.twlm-map');
         v.map = L.map(el, { zoomControl: true, attributionControl: true, worldCopyJump: true }).setView(US_CENTER, 4);
         L.tileLayer(TILES, { maxZoom: 19, attribution: TILE_CREDIT }).addTo(v.map);
@@ -480,6 +489,8 @@
       drawJobs(v);
       centerView(v, false);
     }, function (e) {
+      clearTimeout(v.mapSlowT);
+      status(v, '');
       note('map library failed', e);
       var box = v.root.querySelector('.twlm-box');
       box.querySelector('.twlm-map').style.height = 'auto';
@@ -534,16 +545,21 @@
 
   function loadForView(v) {
     if (!v.map) return;
+    clearTimeout(v.slowT);
     var z = v.map.getZoom(), b = v.map.getBounds().pad(0.15), box = { s: b.getSouth(), n: b.getNorth(), w: b.getWest(), e: b.getEast() };
     var c = v.map.getCenter(), center = [c.lat, c.lng];
     if (z < TIER_ZOOM.a) { drawLandmarks(v); status(v, '🔍 Zoom in to see landmarks'); return; }
     var tiers = ['a'].concat(z >= TIER_ZOOM.b ? ['b'] : []);
     var need = tiers.some(function (t) { var ks = cellsIn(box); return !ks || ks.some(function (k) { return !have(t, k); }); });
-    if (need) status(v, 'Loading landmarks…');
-    drawLandmarks(v);
     var seq = (v.seq = (v.seq || 0) + 1);
+    if (need) {
+      status(v, 'Loading landmarks…');
+      v.slowT = setTimeout(function () { if (seq === v.seq) status(v, 'Couldn\'t load landmarks yet. The map and jobs still work.<button type="button" data-a="retry">Try again</button>'); }, SLOW_MS);
+    }
+    drawLandmarks(v);
     Promise.all(tiers.map(function (t) { return ensureCells(t, cellsIn(box), center); })).then(function (rs) {
       if (seq !== v.seq) return;
+      clearTimeout(v.slowT);
       drawLandmarks(v);
       if (rs.indexOf('failed') >= 0) status(v, 'Landmarks couldn\'t load right now.<button type="button" data-a="retry">Try again</button>');
       else status(v, '');

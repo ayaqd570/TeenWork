@@ -10,7 +10,8 @@
   function isWelcome(msg, type) {
     if (type === 'error') return false;
     const t = String(msg || '');
-    return /\bwelcome\b/i.test(t) || (Date.now() < demoUntil && /\b(demo|sample)\b/i.test(t));
+    const demoOn = !window._twDemoSandbox || window._twDemoSandbox.active;   // v51 (A1): never once the demo has ended
+    return /\bwelcome\b/i.test(t) || (Date.now() < demoUntil && demoOn && /\b(demo|sample)\b/i.test(t));
   }
   function activeDash() {
     const page = document.querySelector('.page.active');

@@ -48,9 +48,8 @@ async function home(browser, viewport) {
  assert(Math.abs(hero.ratio - hero.natural) < 0.02, w + ': hero picture is cropped (' + hero.ratio + ')');
  assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
  assert.equal(hero.alt, 'TeenWork — safe teen jobs');
- // Computers (Aya, Oct 30): the whole picture is smaller, so the title and Sign Up fit the first screen. Phones keep it full width.
- if (w >= 900) assert(hero.signupBottom <= viewport.height, w + ': Sign Up is below the first screen');
- else assert(hero.imgWidth >= w - 40, w + ': picture is not full width on a phone');
+ // A big square across the page on every screen, never a small one in the middle (Aya, Oct 31).
+ assert(hero.imgWidth >= Math.min(w, 1212) - 40, w + ': picture is not across the page (' + hero.imgWidth + 'px)');
 
  // H6: "For employers" in the top bar goes to the employer card. Schools is in the footer.
  assert.equal(await p.locator('#page-landing > nav').getByRole('button', {name: 'Schools'}).count(), 0);

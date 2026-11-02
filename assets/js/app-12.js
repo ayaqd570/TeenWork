@@ -426,7 +426,7 @@ window.openSupportModal = function(context, detail) {
       </div>
       <div class="tw-sup-faq-item">
         <button class="tw-sup-faq-q" onclick="var a=this.nextElementSibling;a.classList.toggle('open');this.querySelector('.tw-arr').textContent=a.classList.contains('open')?'▲':'▼'">What does Pro include? <span class="tw-arr">▼</span></button>
-        <div class="tw-sup-faq-a">Pro includes unlimited AI requests, AI Resume Builder, AI Job Coach, Pitch AI, priority job matching, unlimited applications, AI safety screening, and early feature access. It's <strong>free during launch</strong>.</div>
+        <div class="tw-sup-faq-a">Pro includes unlimited AI requests, AI Resume Builder, AI Job Coach, Pitch AI, priority job matching, AI safety screening, and early feature access. It's <strong>free during launch</strong>.</div>
       </div>
       <div class="tw-sup-faq-item">
         <button class="tw-sup-faq-q" onclick="var a=this.nextElementSibling;a.classList.toggle('open');this.querySelector('.tw-arr').textContent=a.classList.contains('open')?'▲':'▼'">I'm a parent — how do I verify my teen? <span class="tw-arr">▼</span></button>

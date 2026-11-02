@@ -5,12 +5,14 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v50: ChatGPT's split layout and fixes, plus v49's empty demos and page addresses).
+- `index.html` – app markup (currently TeenWork v51: the Build Brief's home screen and quick fixes, and the admin's Supabase sign-in).
+- `assets/img/hero-*.avif`, `hero-*.webp` – the home page picture in three sizes (it used to be inside `index.html`).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase.
 - `supabase/functions/delete-account/` – the Supabase Edge Function behind "Delete my account" and the admin Danger zone (deploy with Verify JWT off). It uses only the keys Supabase provides itself.
 - `supabase/migrations/20261018_closed_accounts.sql` – the `closed_accounts` table the app reads to hide deleted accounts.
 - `supabase/migrations/20261018_tw_public_counts.sql` – `tw_public_counts()`, the counts-only function the homepage calls for its live numbers (no names or emails).
+- `supabase/migrations/20261030_admin_role.sql` – makes Aya's own Supabase account the admin and lets only the admin change plan settings or send as "TeenWork Admin".
 - `robots.txt`, `sitemap.xml` – tell search engines they may read the site and where its one page is.
 - `favicon.ico`, `icon-192.png`, `apple-touch-icon.png`, `logo.png`, `og-image.png` – site icon, logo and the picture shown when a link is shared.
 
@@ -23,6 +25,23 @@ The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`
 
 https://teenwork.ayaqd.com shows the `main` branch. There is no build step.
 To ship a new app version, update the relevant markup, scripts and styles, commit and push.
+
+## The admin sign-in (v51)
+
+There is no admin password in the app. The admin is `ADMIN_EMAIL`'s own Supabase account, marked with
+`app_metadata.tw_role = "admin"`, which only Supabase's service role can set. Sign in on the normal Sign In page with that
+email (or `admin`) and the account's normal password; if the email also has its own TeenWork accounts, pick "Admin panel".
+To change the password, use "Forgot password?". The database and the `delete-account` function check the same role.
+
+Ship v51 in this order, because the v50 admin panel does not sign in to Supabase:
+
+1. Merge the frontend.
+2. Apply `supabase/migrations/20261030_admin_role.sql`.
+3. Deploy `supabase/functions/delete-account/` (Verify JWT off). The `ADMIN_PW_SALT` / `ADMIN_PW_HASH` secrets, if set, are no longer used.
+4. Sign in again as the admin, so the new sign-in carries the role.
+
+Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs` and
+`node --experimental-strip-types tests/delete-account-auth.mjs`.
 
 ## Search engines
 

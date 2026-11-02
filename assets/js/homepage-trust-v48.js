@@ -154,7 +154,7 @@
       const r = await c.rpc('tw_public_counts');
       if (r && !r.error && r.data && typeof r.data === 'object') { counts = r.data; countsAt = Date.now(); }
     } catch (e) { /* offline: the card keeps saying TeenWork is new */ }
-    finally { loading = false; renderCounts(); }
+    finally { loading = false; renderCounts(); window.dispatchEvent(new CustomEvent('tw-public-counts', { detail: counts })); }   // v51: home-v51 hides empty stats
   }
   const n = v => Math.max(0, parseInt(v, 10) || 0);
   function renderCounts() {
@@ -252,7 +252,10 @@
     const w = function (type) {
       const r = orig.apply(this, arguments);
       [80, 450, 1200].forEach(ms => later(syncDemo, ms));
-      later(() => { if (typeof window.showToast === 'function') window.showToast('This demo starts empty, like a new account. Nothing you do in it is saved.', 'info'); }, 1600);
+      later(() => {
+        if (window._twDemoSandbox && !window._twDemoSandbox.active) return;   // v51 (A1): they left the demo or signed in for real
+        if (typeof window.showToast === 'function') window.showToast('This demo starts empty, like a new account. Nothing you do in it is saved.', 'info');
+      }, 1600);
       return r;
     };
     w.__tw48 = true;

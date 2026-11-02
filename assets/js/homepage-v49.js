@@ -76,16 +76,7 @@
  function expandHomepage(){
   const hero=$('tw48-hero'), image=$('tw-hero-outer');
   if(!hero || $('tw50-details'))return;
-  const headline=$('tw48-h1');
-  if(headline && !$('tw-slogan-wrap')){
-   const slogans=['From teen jobs <em>to adult jobs.</em>','Learn <em>how to work well.</em>','Work <em>your first job.</em>','Join the job world <em>early.</em>','Connect with neighbors <em>through work.</em>','Expand your <em>knowledge of jobs.</em>'];
-   headline.insertAdjacentHTML('beforebegin','<div id="tw-slogan-wrap">'+slogans.map((s,i)=>'<div class="tw-slogan'+(i?'':' active')+'" aria-hidden="'+!!i+'">'+s+'</div>').join('')+'</div><button type="button" id="tw51-pause" aria-pressed="false">Pause headlines</button>');
-   let current=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
-   const pause=$('tw51-pause');
-   const sync=()=>{pause.textContent=paused?'Play headlines':'Pause headlines';pause.setAttribute('aria-pressed',String(paused));};sync();
-   pause.addEventListener('click',()=>{paused=!paused;sync();});
-   setInterval(()=>{if(paused || document.hidden || !$('page-landing')?.classList.contains('active'))return;const items=$('tw-slogan-wrap').children;items[current].classList.remove('active');items[current].setAttribute('aria-hidden','true');current=(current+1)%items.length;items[current].classList.add('active');items[current].setAttribute('aria-hidden','false');},3200);
-  }
+  // v51 (brief H2): no rotating headlines or Pause button; the title under the picture says what TeenWork is.
   // Keep the existing introduction and controls; give them the first screen.
   if(image?.parentElement===hero.parentElement)hero.before(image);
   hero.insertAdjacentHTML('beforeend','<button class="tw48-link tw50-scroll" type="button" id="tw50-discover">See how TeenWork works ↓</button>');
@@ -95,17 +86,17 @@
    <section class="landing-section" aria-labelledby="tw50-tools">
     <div class="landing-section-head"><div><h2 id="tw50-tools">More than finding a first job</h2><p>A place to prepare, apply and keep track as you build experience.</p></div></div>
     <div class="tw48-proof-grid">
-     <article class="tw48-card"><h3>📍 Look for local work</h3><p>Browse employer posts and read the work, pay, location and age requirements before applying. Talk through the details with a parent first.</p><p>Jobs depend on what real employers post. There may not be a listing near you yet.</p></article>
-     <article class="tw48-card"><h3>📚 Learn before you start</h3><p>Take short lessons to prepare for work. Practice explaining your skills, asking questions and understanding what an employer expects.</p><p>The AI coach can help with application ideas. Live AI requires an online, signed-in account and has usage limits.</p></article>
-     <article class="tw48-card"><h3>⏱️ Keep your work record</h3><p>Log hours and earnings as you complete jobs. Keep track of your progress and the experience you can describe on your next application.</p><p>Payment is arranged with the employer and your parent. TeenWork does not process wages or take a cut of your earnings.</p></article>
+     <article class="tw48-card"><h3>Look for local work</h3><p>Browse employer posts and read the work, pay, location and age requirements before applying. Talk through the details with a parent first.</p><p>Jobs depend on what real employers post. There may not be a listing near you yet.</p></article>
+     <article class="tw48-card"><h3>Learn before you start</h3><p>Take short lessons to prepare for work. Practice explaining your skills, asking questions and understanding what an employer expects.</p><p>The AI coach can help with application ideas. Live AI requires an online, signed-in account and has usage limits.</p></article>
+     <article class="tw48-card"><h3>Keep your work record</h3><p>Log hours and earnings as you complete jobs. Keep track of your progress and the experience you can describe on your next application.</p><p>Payment is arranged with the employer and your parent. TeenWork does not process wages or take a cut of your earnings.</p></article>
     </div>
    </section>
    <section class="landing-section" aria-labelledby="tw50-ideas">
     <div class="landing-section-head"><div><h2 id="tw50-ideas">What could a neighborhood job look like?</h2><p>Ideas to discuss with a parent—not current job listings. Tasks should fit your age, experience and local rules.</p></div></div>
     <div class="tw48-proof-grid">
-     <article class="tw48-card"><h3>🍂 Yard and garden help</h3><p>Raking leaves, pulling weeds or watering plants. Agree on the area, tools, pay and expected time before starting.</p></article>
-     <article class="tw48-card"><h3>🐾 Pet care</h3><p>Feeding pets or walking a familiar dog. Meet the animal with a parent and ask about its behavior, routine and emergency contact.</p></article>
-     <article class="tw48-card"><h3>❄️ Seasonal help</h3><p>Hand-shoveling a walkway or helping with simple seasonal cleanup. A parent should check the weather, equipment and workload with you.</p></article>
+     <article class="tw48-card"><h3>Yard and garden help</h3><p>Raking leaves, pulling weeds or watering plants. Agree on the area, tools, pay and expected time before starting.</p></article>
+     <article class="tw48-card"><h3>Pet care</h3><p>Feeding pets or walking a familiar dog. Meet the animal with a parent and ask about its behavior, routine and emergency contact.</p></article>
+     <article class="tw48-card"><h3>Seasonal help</h3><p>Hand-shoveling a walkway or helping with simple seasonal cleanup. A parent should check the weather, equipment and workload with you.</p></article>
     </div>
    </section>
    <section class="landing-section" aria-labelledby="tw50-checklist">

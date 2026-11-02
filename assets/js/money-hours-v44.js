@@ -306,12 +306,14 @@
     const w = week(), T = window.twWorkRules ? window.twWorkRules.weekTarget() : { hours: w.limit, kind: 'goal', name: 'weekly goal' };
     const lim = T ? T.hours : 0, pct = v => (lim ? Math.max(0, Math.min(100, v / lim * 100)) : 0);
     const cls = lim && w.total > lim ? 'over' : lim && w.total >= lim * 0.8 ? 'warn' : '';
-    const left = r1(lim - w.total), what = T ? (T.kind === 'goal' ? 'weekly goal' : T.name) : '';
-    const tail = T && T.kind === 'goal' ? ' <span class="mh-goal-note">It\'s a personal target, not a law.</span>' : '';
+    // T.of names the number in words: "your 10 h weekly goal", "the 18 h legal limit for a school week", "the 10 h weekly limit Sam set"
+    const left = r1(lim - w.total), of = T ? (T.of || 'your ' + fmtH(lim) + ' ' + (T.kind === 'goal' ? 'weekly goal' : T.name)) : '';
+    const tail = !T ? '' : T.kind === 'goal' ? ' <span class="mh-goal-note">It\'s a personal target, not a law.</span>'
+      : T.kind === 'parent' ? ' <span class="mh-goal-note">It\'s a family rule, not a law.</span>' : '';
     const state = !T ? 'No weekly goal set. You can add one under "Work rules for your age" below.'
-      : w.total > lim ? `<b class="over">${fmtH(w.total - lim)} over your ${fmtH(lim)} ${esc(what)}.</b>${tail}`
-      : w.total >= lim * 0.8 ? `<b class="warn">${fmtH(left)} left before your ${fmtH(lim)} ${esc(what)}.</b>${tail}`
-      : `${fmtH(left)} left of your ${fmtH(lim)} ${esc(what)}.${tail}`;
+      : w.total > lim ? `<b class="over">${fmtH(w.total - lim)} over ${esc(of)}.</b>${tail}`
+      : w.total >= lim * 0.8 ? `<b class="warn">${fmtH(left)} left before ${esc(of)}.</b>${tail}`
+      : `${fmtH(left)} left of ${esc(of)}.${tail}`;
     return `<div class="mh-now-box" data-mh-now>
       <div class="mh-now-top"><div><div class="mh-k">This week · ${esc(fmtRange(w.start))}</div><div class="mh-big">${esc(fmtH(w.worked))} <small>worked</small></div></div><div class="mh-pay">${money(w.earned)} earned</div></div>
       <div class="mh-bar ${cls}"><i class="w" style="width:${pct(w.worked)}%"></i><i class="s" style="width:${Math.max(0, pct(w.total) - pct(w.worked))}%"></i></div>

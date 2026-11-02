@@ -123,11 +123,74 @@ async function setTeen(p, age, state) {
       assert.deepEqual(await p.evaluate(() => { const t = twWorkRules.weekTarget(); return [t.hours, t.kind]; }), [18, 'legal']);
       assert.match(await p.evaluate(() => twWorkRules.weekStatusHTML(19)), /over 18 h: the legal limit for a week when school is in session/);
 
-      /* A state TeenWork hasn't re-checked says so */
+      /* Every state has its own rules now (US DOL state table, July 15, 2025), the stricter of federal and state counts */
+      const all = await p.evaluate(() => {
+        const R = twWorkRules, bad = [];
+        Object.keys(STATE_DATA).forEach(s => {
+          if (!R.STATES[s]) bad.push(s + ': no rules');
+          if (!STATE_DATA[s].__tw52 || STATE_DATA[s].schoolWeekMax !== R.STATES[s].under16.schoolWeek) bad.push(s + ': STATE_DATA not in step');
+          [13, 14, 15, 16, 17].forEach(a => { const r = R.forTeen(a, s); if (!r.verified || !r.summary || /not re-checked/.test(r.summary)) bad.push(s + ' ' + a); });
+        });
+        return { bad, n: Object.keys(R.STATES).length };
+      });
+      assert.deepEqual(all.bad, [], 'states without rules: ' + all.bad.join(', '));
+      assert.equal(all.n, 51, 'all 50 states and DC');
       await setTeen(p, 16, 'Ohio');
       const oh = await text(p, '#teen-state-rules-banner');
-      assert.match(oh, /no federal hour limits at 16\. Ohio's own limits may be stricter/);
-      assert.match(oh, /Ohio rules not re-checked yet/);
+      assert.match(oh, /Age 16 · Ohio: no hour limits for most jobs at 16, but Ohio limits late-night work/);
+      assert.match(oh, /no work after 11 p\.m\. before a school day/);
+      assert.match(oh, /US DOL state child labor table \(July 15, 2025\)/);
+      assert.doesNotMatch(oh, /not re-checked/);
+      // Washington 15: the state's 16 h school week is stricter than the federal 18 h, so 16 h counts everywhere
+      await setTeen(p, 15, 'WA');
+      assert.match(await text(p, '#teen-state-rules-banner'), /Age 15 · Washington: outside school hours, up to 3 h on a school day and 16 h in a school week/);
+      assert.match(await text(p, '#tw52-wl-rules'), /Legal weekly limit\s*16 h in a week when school is in session, 40 h when school is out/);
+      assert.deepEqual(await p.evaluate(() => { const t = twWorkRules.weekTarget(); return [t.hours, t.kind]; }), [16, 'legal']);
+      assert.match(await p.evaluate(() => twWorkRules.weekTarget().why), /Washington law limits 14- and 15-year-olds to 16 h/);
+      // Pennsylvania 16: state limits for 16–17 (28 h school week) become the legal weekly limit
+      await setTeen(p, 16, 'Pennsylvania');
+      assert.match(await text(p, '#teen-state-rules-banner'), /up to 8 h on a school day and 28 h in a school week/);
+      assert.deepEqual(await p.evaluate(() => { const t = twWorkRules.weekTarget(); return [t.hours, t.kind]; }), [25, 'goal']);
+      await p.locator('#tw52-goal').selectOption('30');
+      assert.deepEqual(await p.evaluate(() => { const t = twWorkRules.weekTarget(); return [t.hours, t.kind]; }), [28, 'legal']);
+      // California 16: California's own Labor Commissioner figures (the DOL table's "3-18" for 16–17 doesn't match them)
+      assert.deepEqual(await p.evaluate(() => { const r = twWorkRules.forTeen(16, 'CA'); return [r.day.school, r.day.out, r.week.school, r.sources.some(x => /California DLSE/.test(x.label))]; }), [4, 8, 48, true]);
+      // Arkansas: the 16-year-old rules don't apply at 17
+      assert.match(await p.evaluate(() => twWorkRules.forTeen(16, 'AR').summary), /10 hours in a row/);
+      assert.match(await p.evaluate(() => twWorkRules.forTeen(17, 'AR').summary), /no hour limits for most jobs at 17 under federal or Arkansas law/);
+
+      /* A linked parent's weekly limit reaches the teen; nobody else's does */
+      await setTeen(p, 16, 'Vermont');
+      await p.locator('#tw52-goal').selectOption('15');
+      const lim = await p.evaluate(async () => {
+        const u = currentUser, key = u.dataKey || u.email, db = (typeof _twCloudClient === 'function' && await _twCloudClient(3000)) || sbClient;
+        const row = (pe, hours, name) => ({ email: pe, key: 'hour_limit:' + key, value: JSON.stringify({ v: 1, status: 'set', hours, teenKey: key, parentKey: pe, parentEmail: pe, parentName: name, at: new Date().toISOString() }) });
+        await db.from('user_data').upsert([row('jordan.sample@example.com', 10, 'Jordan Sample'), row('stranger@example.com', 2, 'Not A Parent')], { onConflict: 'email,key' });
+        const links = JSON.parse(localStorage.getItem('tw_parent_links') || '{}');
+        links[String(u.email).toLowerCase()] = { status: 'approved', parents: ['jordan.sample@example.com'], parentName: 'Jordan Sample' };
+        localStorage.setItem('tw_parent_links', JSON.stringify(links));
+        await window._twParentHours.checkTeen();
+        const t = twWorkRules.weekTarget();
+        return { p: window.twParentHourLimit(), t: [t.hours, t.kind, t.label] };
+      });
+      assert.equal(lim.p && lim.p.hours, 10, 'linked parent limit not read (the stranger\'s 2 h must be ignored)');
+      assert.deepEqual(lim.t, [10, 'parent', 'Weekly limit set by Jordan (not a law)']);
+      await p.evaluate(() => { twWorkRules.renderWorkLogRules(); twMoneyRedraw(); });
+      assert.match(await text(p, '#tw52-wl-rules'), /Parent's limit\s*10 h a week, set by Jordan\. A family rule, not a law\. Only Jordan can change it/);
+      assert.match(await text(p, '#tw52-wl-rules'), /Jordan's 10 h limit is lower, so it's the one that counts/);
+      assert.match(await text(p, '[data-mh-now]'), /10 h left of the 10 h weekly limit Jordan set\. It's a family rule, not a law\./);
+      await p.evaluate(() => _showHourLimitModal('Sample job', 10, 10, twWorkRules.weekTarget()));
+      const pm = await text(p, '#hour-limit-modal');
+      assert.match(pm, /Your parent's weekly limit reached/); assert.match(pm, /Jordan set a 10-hour weekly limit for you/);
+      await p.evaluate(() => document.getElementById('hour-limit-modal').remove());
+      // the parent turns it off: the teen's goal counts again
+      await p.evaluate(async () => {
+        const u = currentUser, key = u.dataKey || u.email, db = (typeof _twCloudClient === 'function' && await _twCloudClient(3000)) || sbClient;
+        await db.from('user_data').upsert({ email: 'jordan.sample@example.com', key: 'hour_limit:' + key, value: JSON.stringify({ v: 1, status: 'off', hours: null, teenKey: key, parentEmail: 'jordan.sample@example.com', at: new Date().toISOString() }) }, { onConflict: 'email,key' });
+        await window._twParentHours.checkTeen();
+      });
+      assert.equal(await p.evaluate(() => window.twParentHourLimit()), null);
+      assert.deepEqual(await p.evaluate(() => { const t = twWorkRules.weekTarget(); return [t.hours, t.kind]; }), [15, 'goal']);
 
       /* Hour-goal notice no longer claims a parent was told */
       await p.evaluate(() => _showHourLimitModal('Sample job', 10, 10, { kind: 'goal', hours: 10 }));
@@ -198,6 +261,21 @@ async function setTeen(p, age, state) {
       assert.equal(await p.locator('#tw34-tour').count(), 0);
       assert.equal(await p.locator('.tw52-tour-ask').count(), 0, 'skip was not remembered');
       assert(await noOverflow(p), tag + ' parent overflows');
+
+      /* Parent: the Weekly Hour Limit is saved for each linked teen */
+      await p.waitForFunction(() => { const s = document.getElementById('ctrl-max-hours'); return s && s.__tw52; });
+      assert.equal(await p.locator('#ctrl-max-hours').inputValue(), '999', 'a parent who never chose a limit should see "No limit"');
+      assert.match(await p.locator('#ctrl-max-hours option[value="999"]').textContent(), /No limit \(state law only\)/);
+      const saved = await p.evaluate(async () => {
+        window._twRealData.linkedTeens = () => [{ key: 'sam.sample@example.com', email: 'sam.sample@example.com', name: 'Sam Sample' }];
+        await window._twParentHours.choose('8');
+        const db = (typeof _twCloudClient === 'function' && await _twCloudClient(3000)) || sbClient, me = currentUser.dataKey || currentUser.email;
+        const r = await db.from('user_data').select('email,key,value').eq('email', me).eq('key', 'hour_limit:sam.sample@example.com');
+        return r.data && r.data[0] ? JSON.parse(r.data[0].value) : null;
+      });
+      assert(saved && saved.status === 'set' && saved.hours === 8 && saved.teenKey === 'sam.sample@example.com', 'parent limit not saved for the teen');
+      assert.equal(await p.locator('#ctrl-max-hours').inputValue(), '8');
+      assert.match(await text(p, '#page-parent'), /Applies to your linked teens\. They see it in Work Log and can't change it/);
       assert.match(await text(p, '#tw49-demo-banner'), /See a sample scenario/);
       await p.evaluate(() => sessionStorage.removeItem('tw52_tour_answer'));
       await p.waitForTimeout(900);
@@ -236,7 +314,7 @@ async function setTeen(p, age, state) {
       await p.evaluate(() => gotoPage('landing')); await p.waitForTimeout(900);
       assert.equal(await p.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => k !== 'tw_landmarks_v1' && k !== 'tw_geo_cache_v1').sort())), storeBefore, 'practice account left storage behind');
       assert.deepEqual(errors, []);
-      console.log('PASS ' + tag + ': work rules (16/15 VT, Ohio), goal vs law, verify grid, landmark ok/slow/fail/retry + review, one notice, tour choice, sample scenario + reset, storage restored');
+      console.log('PASS ' + tag + ': work rules (all 51, VT/OH/WA/PA/CA/AR), goal vs law vs parent limit, parent limit saved, verify grid, landmark ok/slow/fail/retry + review, one notice, tour choice, sample scenario + reset, storage restored');
       await context.close();
     }
   } finally { await browser.close(); server.kill(); }

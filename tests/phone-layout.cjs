@@ -53,15 +53,19 @@ function overlaps(sel) {
     // Welcome shows in the page, not as a floating toast over metrics, fields or the bottom nav.
     const toastShown = await p.evaluate(() => { const t = document.getElementById('global-toast'); return !!t && t.style.opacity !== '0'; });
     assert.equal(toastShown, false, role + ': welcome still shown as a floating toast');
+    // One practice notice (Aya 2026-11-02): the orange banner says it is an empty practice account,
+    // and no second in-page note repeats "This demo starts empty".
+    assert.equal(await p.locator('.page.active #tw49-demo-banner').count(), 1, role + ': practice notice missing');
+    assert.equal(await p.locator('.page.active .tw-welcome-note').count(), 0, role + ': practice notice repeated');
+    // Welcome messages still show in the page, not as a floating toast.
+    await p.evaluate(() => showToast('Welcome back, Demo!', 'info')); await p.waitForTimeout(400);
     const note = p.locator('.page.active .tw-welcome-note');
     assert.equal(await note.count(), 1);
-    const noteText = await note.textContent(), banner = await p.locator('.page.active #tw48-demo-banner').count();
-    assert.match(noteText, /welcome|demo/i);
-    // Demo stays labelled; when the banner says it, the notice doesn't repeat it.
-    assert(banner === 1 || /demo/i.test(noteText), role + ': demo is not labelled');
-    if (banner) assert.doesNotMatch(noteText, /sample data/i);
-    assert.deepEqual(await p.evaluate(overlaps, '.stat-card, .page.active input, .page.active select, .page.active textarea, .mobile-nav, #twm-bottom, #tw48-demo-banner'), []);
-    assert.match(await p.locator('#tw-welcome-live').textContent(), /welcome|demo/i);
+    const noteText = await note.textContent();
+    assert.match(noteText, /welcome/i);
+    assert.doesNotMatch(noteText, /sample data/i);
+    assert.deepEqual(await p.evaluate(overlaps, '.stat-card, .page.active input, .page.active select, .page.active textarea, .mobile-nav, #twm-bottom, #tw48-demo-banner, #tw49-demo-banner'), []);
+    assert.match(await p.locator('#tw-welcome-live').textContent(), /welcome/i);
     await p.getByRole('button', {name: 'Dismiss welcome message'}).click();
     assert.equal(await note.count(), 0);
    }

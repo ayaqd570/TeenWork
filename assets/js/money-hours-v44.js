@@ -302,12 +302,16 @@
     }).join('');
   }
   function nowBox() {
-    const w = week(), lim = w.limit, pct = v => Math.max(0, Math.min(100, v / lim * 100));
-    const cls = w.total > lim ? 'over' : w.total >= lim * 0.8 ? 'warn' : '';
-    const left = r1(lim - w.total);
-    const state = w.total > lim ? `<b class="over">${fmtH(w.total - lim)} over your ${fmtH(lim)} weekly limit.</b>`
-      : w.total >= lim * 0.8 ? `<b class="warn">${fmtH(left)} left before your ${fmtH(lim)} weekly limit.</b>`
-      : `${fmtH(left)} left of your ${fmtH(lim)} weekly limit.`;
+    // v52: the bar measures the teen's own weekly goal (not a law) or, when it is lower, a legal school-week limit (work-rules-v52)
+    const w = week(), T = window.twWorkRules ? window.twWorkRules.weekTarget() : { hours: w.limit, kind: 'goal', name: 'weekly goal' };
+    const lim = T ? T.hours : 0, pct = v => (lim ? Math.max(0, Math.min(100, v / lim * 100)) : 0);
+    const cls = lim && w.total > lim ? 'over' : lim && w.total >= lim * 0.8 ? 'warn' : '';
+    const left = r1(lim - w.total), what = T ? (T.kind === 'goal' ? 'weekly goal' : T.name) : '';
+    const tail = T && T.kind === 'goal' ? ' <span class="mh-goal-note">It\'s a personal target, not a law.</span>' : '';
+    const state = !T ? 'No weekly goal set. You can add one under "Work rules for your age" below.'
+      : w.total > lim ? `<b class="over">${fmtH(w.total - lim)} over your ${fmtH(lim)} ${esc(what)}.</b>${tail}`
+      : w.total >= lim * 0.8 ? `<b class="warn">${fmtH(left)} left before your ${fmtH(lim)} ${esc(what)}.</b>${tail}`
+      : `${fmtH(left)} left of your ${fmtH(lim)} ${esc(what)}.${tail}`;
     return `<div class="mh-now-box" data-mh-now>
       <div class="mh-now-top"><div><div class="mh-k">This week · ${esc(fmtRange(w.start))}</div><div class="mh-big">${esc(fmtH(w.worked))} <small>worked</small></div></div><div class="mh-pay">${money(w.earned)} earned</div></div>
       <div class="mh-bar ${cls}"><i class="w" style="width:${pct(w.worked)}%"></i><i class="s" style="width:${Math.max(0, pct(w.total) - pct(w.worked))}%"></i></div>
@@ -334,7 +338,8 @@
        <div class="mh-h">Weekly totals</div>
        <table class="mh-weeks">${rows.map(x => `<tr class="${x.ws === w.start ? 'mh-cur' : ''}"><td>${x.ws === w.start ? 'This week · ' : ''}${esc(fmtRange(x.ws))}</td><td class="n">${esc(fmtH(x.w.worked))}</td><td class="n">${money(x.w.earned)}</td><td class="n" style="color:var(--muted);font-weight:600">${x.w.sessions} ${x.w.sessions === 1 ? 'shift' : 'shifts'}</td></tr>`).join('')}</table>`;
     const law = $('wl-law-status');
-    if (law) law.innerHTML = w.worked > 18 ? `<span style="color:var(--red)">⚠️ You've worked ${esc(fmtH(w.worked))} this week, over the 18 h school-year limit!</span>`
+    if (law && window.twWorkRules) { law.innerHTML = window.twWorkRules.weekStatusHTML(w.worked); window.twWorkRules.renderWorkLogRules(); }
+    else if (law) law.innerHTML = w.worked > 18 ? `<span style="color:var(--red)">⚠️ You've worked ${esc(fmtH(w.worked))} this week, over the 18 h school-year limit!</span>`
       : w.worked > 14 ? `<span style="color:var(--amber)">You've worked ${esc(fmtH(w.worked))} this week, close to the 18 h limit.</span>`
       : `<span style="color:var(--green)">You're at ${esc(fmtH(w.worked))} this week, within limits ✓</span>`;
   }

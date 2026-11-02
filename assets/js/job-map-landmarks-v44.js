@@ -216,7 +216,8 @@
     return attempt();
   }
   // Make sure these squares are loaded. Resolves to 'ok', 'failed' or 'too-far'.
-  function ensureCells(tier, keys, center) {
+  // now = true (v52, the picker's Try again): don't queue behind a request that may be stuck.
+  function ensureCells(tier, keys, center, now) {
     if (!keys) return Promise.resolve('too-far');
     var missing = keys.filter(function (k) { return !have(tier, k); });
     if (!missing.length) return Promise.resolve('ok');
@@ -243,6 +244,7 @@
         return 'ok';
       }, function (e) { failedUntil = Date.now() + 45000; note('landmarks could not load', e); return 'failed'; });
     };
+    if (now) return Promise.resolve().then(run);
     var p = chain.then(run, run);       // one request at a time (Overpass allows only a couple per person)
     chain = p.catch(function () {});
     return p;
@@ -405,7 +407,13 @@
       '#twlm-sheet .acts button{flex:1 1 160px;font-family:inherit;font-weight:700;font-size:.92rem;border-radius:10px;padding:11px 14px;min-height:44px;cursor:pointer;border:1.5px solid var(--green,#2d6a4f);background:transparent;color:var(--green,#2d6a4f)}',
       '#twlm-sheet .acts button.pri{background:var(--green,#2d6a4f);color:#fff}',
       '.twlm-pick select{width:100%}',
-      '.twlm-pick .twlm-hint{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.4;text-transform:none;letter-spacing:0;font-weight:400}'
+      '.twlm-pick .twlm-hint{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.4;text-transform:none;letter-spacing:0;font-weight:400}',
+      '.twlm-pick-status{font-size:.8rem;color:var(--text);margin-top:6px;line-height:1.45;overflow-wrap:anywhere}',
+      '.twlm-pick-status[data-state=slow],.twlm-pick-status[data-state=failed]{background:var(--amber-pale,#fff7e6);border:1px solid #f0b66a;border-radius:8px;padding:6px 9px}',
+      '.twlm-pick-status button{font:inherit;font-weight:800;color:var(--green);background:none;border:none;padding:4px 2px;min-height:32px;cursor:pointer;text-decoration:underline}',
+      '.twlm-spin{display:inline-block;width:.85em;height:.85em;margin-right:6px;vertical-align:-1px;border:2px solid var(--border,#ddd);border-top-color:var(--green);border-radius:50%;animation:twlmspin .8s linear infinite}',
+      '@keyframes twlmspin{to{transform:rotate(360deg)}}',
+      '@media (prefers-reduced-motion:reduce){.twlm-spin{animation:none}}'
     ].join('\n');
     document.head.appendChild(st);
   }
@@ -773,48 +781,80 @@
   new MutationObserver(function () { if (decoT) return; decoT = setTimeout(function () { decoT = null; decorateCards(); }, 60); })
     .observe(document.documentElement, { childList: true, subtree: true });
 
-  /* ═══ 3. EMPLOYERS: "NEAREST LANDMARK" ON POST JOB ════════════════ */
-  var pick = { town: '', items: [], loading: null };
+  /* ═══ 3. EMPLOYERS: "NEAREST LANDMARK" ON POST JOB ════════════════
+     v52 (Aya's 2026-11-02 test: "Finding landmarks in Burlington, Vermont…" still showed after
+     10 s, and the review step showed that text as the landmark): the list always offers
+     "No landmark", the lookup's state shows in a line under it (finding → found / none /
+     couldn't load), after PICK_WAIT_MS it says so and offers Try again, and it never holds up
+     the next step or the review. Landmarks that arrive late still fill the list.          */
+  var PICK_WAIT_MS = 8000;
+  var NONE_LABEL = 'No landmark (teens see the town only)';
+  var pick = { town: '', items: [], loading: null, state: 'idle', seq: 0, slowT: null };
   function ensurePicker() {
     var city = $('emp-city'); if (!city || $('emp-landmark')) return;
     var row = city.closest('.form-row'); if (!row) return;
     injectCss();
     var g = document.createElement('div'); g.className = 'form-group twlm-pick';
     g.innerHTML = '<label for="emp-landmark">📍 Nearest landmark <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(optional)</span></label>' +
-      '<select id="emp-landmark"><option value="">Pick the city and state first</option></select>' +
-      '<div class="twlm-hint">Teens see “near this landmark” on the job instead of your address, so they know roughly where it is.</div>';
+      '<select id="emp-landmark" aria-describedby="emp-landmark-status emp-landmark-hint"><option value="">' + NONE_LABEL + '</option></select>' +
+      '<div class="twlm-pick-status" id="emp-landmark-status" role="status" aria-live="polite" data-state="idle">Add the city and state to see landmarks near the job.</div>' +
+      '<div class="twlm-hint" id="emp-landmark-hint">Teens see “near this landmark” on the job instead of your address, so they know roughly where it is. Your address is never shown.</div>';
     row.insertAdjacentElement('afterend', g);
     var sel = $('emp-landmark');
     var later = null, kick = function () { clearTimeout(later); later = setTimeout(loadPicker, 700); };
     city.addEventListener('change', kick); city.addEventListener('blur', kick);
     var st = $('emp-state'); if (st) st.addEventListener('change', kick);
-    sel.addEventListener('focus', loadPicker); sel.addEventListener('mousedown', loadPicker);
+    sel.addEventListener('focus', function () { loadPicker(); }); sel.addEventListener('mousedown', function () { loadPicker(); });
+    $('emp-landmark-status').addEventListener('click', function (e) {
+      var b = e.target && e.target.closest && e.target.closest('button[data-a="retry"]');
+      if (b) { failedUntil = 0; loadPicker(true); }
+    });
   }
   function pickerTown() { var c = ($('emp-city') || {}).value || '', s = ($('emp-state') || {}).value || ''; c = c.trim(); return c ? c + (s ? ', ' + stateName(s) : '') : ''; }
-  function loadPicker() {
+  function pickStatus(kind, html) {
+    var el = $('emp-landmark-status'); pick.state = kind;
+    if (!el) return;
+    el.dataset.state = kind;
+    if (el.innerHTML !== html) el.innerHTML = html;
+  }
+  var RETRY = ' <button type="button" data-a="retry">Try again</button>';
+  function loadPicker(force) {
     var sel = $('emp-landmark'); if (!sel) return;
     var town = pickerTown();
-    if (!town) { pick.town = ''; sel.innerHTML = '<option value="">Pick the city and state first</option>'; return; }
-    if (pick.town === town && (pick.loading || pick.items.length)) return pick.loading;
+    if (!town) { pick.seq++; clearTimeout(pick.slowT); pick.town = ''; pick.items = []; pick.loading = null; sel.innerHTML = '<option value="">' + NONE_LABEL + '</option>'; pickStatus('idle', 'Add the city and state to see landmarks near the job.'); return; }
+    if (force !== true && pick.town === town && (pick.loading || pick.items.length || pick.state === 'none')) return pick.loading;
+    var seq = ++pick.seq, keep = pick.town === town ? sel.value : '';
     pick.town = town; pick.items = [];
-    sel.innerHTML = '<option value="">Finding landmarks in ' + esc(town) + '…</option>';
-    pick.loading = geocode(town).then(function (pt) {
-      if (pick.town !== town) return;
-      if (!pt) { sel.innerHTML = '<option value="">Couldn\'t find ' + esc(town) + ' on the map</option>'; return; }
-      return ensureCells('a', cellsIn(boxAround(pt, 2.2)), pt).then(function (res) {
-        if (pick.town !== town) return;
+    sel.innerHTML = '<option value="">' + NONE_LABEL + '</option>';
+    pickStatus('loading', '<span class="twlm-spin" aria-hidden="true"></span>Finding landmarks near ' + esc(town) + '… You can keep going while this loads.');
+    clearTimeout(pick.slowT);
+    pick.slowT = setTimeout(function () {
+      if (seq === pick.seq && pick.state === 'loading') pickStatus('slow', 'Landmarks are taking too long. You can continue without one: teens will see the town, never your address.' + RETRY);
+    }, PICK_WAIT_MS);
+    function done(kind, html) { if (seq !== pick.seq) return; clearTimeout(pick.slowT); pickStatus(kind, html); }
+    var p = geocode(town).then(function (pt) {
+      if (seq !== pick.seq) return;
+      if (!pt) { done('failed', 'Couldn’t find ' + esc(town) + ' on the map. You can continue without a landmark.' + RETRY); return; }
+      return ensureCells('a', cellsIn(boxAround(pt, 2.2)), pt, force === true).then(function (res) {
+        if (seq !== pick.seq) return;
         var all = landmarksIn('a', boxAround(pt, 2.2)).map(function (it) { return { it: it, d: miles(pt, [it[4], it[5]]) }; }).sort(function (a, b) { return a.d - b.d; });
-        var keep = sel.value, groups = '';
+        var groups = '', count = 0;
         KINDS.forEach(function (K) {
           var mine = all.filter(function (x) { return x.it[2] === K.k; }).slice(0, 15).sort(function (a, b) { return a.it[1].localeCompare(b.it[1]); });
           if (!mine.length) return;
+          count += mine.length;
           groups += '<optgroup label="' + esc(K.e + ' ' + K.label) + '">' + mine.map(function (x) { return '<option value="' + esc(x.it[0]) + '">' + esc(x.it[3] + ' ' + x.it[1]) + '</option>'; }).join('') + '</optgroup>';
         });
         pick.items = all.map(function (x) { return x.it; });
-        sel.innerHTML = '<option value="">' + (groups ? 'No landmark (show the middle of town)' : res === 'failed' ? 'Landmarks couldn\'t load right now' : 'No landmarks found in ' + esc(town)) + '</option>' + groups;
-        if (keep && sel.querySelector('option[value="' + keep.replace(/"/g, '') + '"]')) sel.value = keep;
+        var now = sel.value || keep;
+        sel.innerHTML = '<option value="">' + NONE_LABEL + '</option>' + groups;
+        if (now && sel.querySelector('option[value="' + now.replace(/"/g, '') + '"]')) sel.value = now;
+        if (groups) done('ok', count + ' landmark' + (count === 1 ? '' : 's') + ' near ' + esc(town) + '. Picking one is optional.');
+        else if (res === 'failed') done('failed', 'Landmarks couldn’t load right now. You can continue without one: teens will see the town, never your address.' + RETRY);
+        else done('none', 'No landmarks found near ' + esc(town) + '. Teens will see the town only.');
       });
-    }).then(function () { pick.loading = null; }, function () { pick.loading = null; });
+    }).then(null, function (e) { note('landmark picker failed', e); done('failed', 'Landmarks couldn’t load right now. You can continue without one.' + RETRY); });
+    pick.loading = p.then(function () { if (seq === pick.seq) pick.loading = null; });
     return pick.loading;
   }
   function pickedLandmark() {
@@ -849,5 +889,6 @@
   // for tests and other blocks
   api.kinds = KINDS; api.geocode = geocode; api.ensureAround = ensureAround; api.nearest = nearest; api.jobPoint = jobPoint;
   api.homeInfo = homeInfo; api.classify = classify; api.query = query; api.views = views; api.loadPicker = loadPicker; api.pickedLandmark = pickedLandmark;
+  api.pickState = function () { return { town: pick.town, state: pick.state, items: pick.items.length }; }; api.PICK_WAIT_MS = PICK_WAIT_MS;
   api.cellsIn = cellsIn; api.ensureCells = ensureCells;
 })();

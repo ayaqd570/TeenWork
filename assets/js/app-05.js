@@ -53,6 +53,16 @@ function calcCalendarStats() {
   return { totalHours, totalEarnings, weeklyHours: thisWeek.hours, weeklyEarnings: thisWeek.earnings, weekMap };
 }
 
+/* v52: the weekly number every hour check uses: the teen's own goal (not a law) or, when lower,
+   a legal school-week limit. Both come from work-rules-v52 (window.twWorkRules). */
+function _twWeekCap() {
+  try { if (window.twWorkRules) return window.twWorkRules.weekTarget(); } catch (e) {}
+  const n = Number(parentalControls['max-weekly-hours']) || 20;
+  return n < 999 ? { hours: n, kind: 'goal', name: 'weekly goal', short: 'weekly goal' } : null;
+}
+function _twEsc5(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function _twCapWords(cap) { return cap ? (cap.short || (cap.kind === 'goal' ? 'weekly goal' : 'school-week limit')) : 'weekly goal'; }
+
 /* ── Render the stats banner inside the calendar tab ────────────── */
 function renderCalEarningsBar() {
   let bar = document.getElementById('cal-earnings-bar');
@@ -67,15 +77,15 @@ function renderCalEarningsBar() {
   }
 
   const s = calcCalendarStats();
-  const maxWeekly = parentalControls['max-weekly-hours'] || 20;
-  const pct = Math.min(100, (s.weeklyHours / maxWeekly) * 100);
+  const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0, capWords = _twCapWords(cap);
+  const pct = maxWeekly ? Math.min(100, (s.weeklyHours / maxWeekly) * 100) : 0;
   const barColor = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--amber)' : 'var(--green)';
 
   bar.innerHTML = `
     <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;text-align:center">
       <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px">This Week</div>
       <div style="font-size:1.3rem;font-weight:900;color:var(--green)">${s.weeklyHours.toFixed(1)}<span style="font-size:.7rem;font-weight:600"> hrs</span></div>
-      <div style="font-size:.7rem;color:var(--muted)">of ${maxWeekly} max</div>
+      <div style="font-size:.7rem;color:var(--muted)">${maxWeekly ? 'of ' + maxWeekly + ' h ' + capWords : 'no weekly goal'}</div>
     </div>
     <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;text-align:center">
       <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px">This Week Pay</div>
@@ -102,16 +112,17 @@ function renderCalEarningsBar() {
     hoursBar.style.marginBottom = '10px';
     bar.parentElement.insertBefore(hoursBar, bar.nextSibling);
   }
+  if (!maxWeekly) { hoursBar.innerHTML = `<div style="font-size:.75rem;color:var(--muted)">⏱ ${s.weeklyHours.toFixed(1)} h scheduled this week. No weekly goal set (add one in Work Log).</div>`; return; }
   hoursBar.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <span style="font-size:.75rem;font-weight:700;color:var(--text)">⏱ Weekly Hour Limit</span>
-      <span style="font-size:.75rem;font-weight:700;color:${barColor}">${s.weeklyHours.toFixed(1)} / ${maxWeekly} hrs ${pct>=100?'⚠️ LIMIT REACHED':''}</span>
+      <span style="font-size:.75rem;font-weight:700;color:var(--text)">⏱ ${_twEsc5(cap.label || (cap.kind === 'goal' ? 'Weekly goal (not a law)' : 'Legal school-week limit'))}</span>
+      <span style="font-size:.75rem;font-weight:700;color:${barColor}">${s.weeklyHours.toFixed(1)} / ${maxWeekly} h ${pct>=100?'⚠️ REACHED':''}</span>
     </div>
     <div style="background:#e9e9e9;border-radius:20px;height:9px;overflow:hidden">
       <div style="height:100%;border-radius:20px;background:${barColor};width:${pct}%;transition:width .4s"></div>
     </div>
-    ${pct>=80&&pct<100 ? `<div style="font-size:.72rem;color:var(--amber);font-weight:600;margin-top:3px">⚠️ Almost at your weekly limit — ${(maxWeekly - s.weeklyHours).toFixed(1)} hours remaining</div>` : ''}
-    ${pct>=100 ? `<div style="font-size:.72rem;color:var(--red);font-weight:600;margin-top:3px">🛑 Weekly hour limit reached. You cannot apply to more jobs this week.</div>` : ''}
+    ${pct>=80&&pct<100 ? `<div style="font-size:.72rem;color:var(--amber);font-weight:600;margin-top:3px">⚠️ Almost at your ${_twEsc5(capWords)}: ${(maxWeekly - s.weeklyHours).toFixed(1)} hours left</div>` : ''}
+    ${pct>=100 ? `<div style="font-size:.72rem;color:var(--red);font-weight:600;margin-top:3px">🛑 ${_twEsc5(cap.reached || 'Weekly limit reached')}. TeenWork holds new applications this week${cap.kind === 'goal' ? '; you can change your goal in Work Log' : ''}.</div>` : ''}
   `;
 }
 
@@ -131,21 +142,21 @@ window.calRender = function() {
 
 const _origTeenApply = typeof teenApply === 'function' ? teenApply : null;
 window.teenApply = function(jobId, title) {
-  const maxWeekly = parentalControls['max-weekly-hours'] || 20;
+  const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0;
   const { weeklyHours } = calcCalendarStats();
 
-  if (weeklyHours >= maxWeekly) {
+  if (maxWeekly && weeklyHours >= maxWeekly) {
     // Show hour-limit modal instead of applying
-    _showHourLimitModal(title, weeklyHours, maxWeekly);
-    // Notify parent
-    _notifyParentHourLimit(title, weeklyHours, maxWeekly);
+    _showHourLimitModal(title, weeklyHours, maxWeekly, cap);
+    // v52: no parent notice is sent from here (the old one only wrote to this device)
     return; // ← application is NOT submitted
   }
 
   if (_origTeenApply) _origTeenApply(jobId, title);
 };
 
-function _showHourLimitModal(jobTitle, currentHours, maxHours) {
+function _showHourLimitModal(jobTitle, currentHours, maxHours, cap) {
+  const isGoal = !cap || cap.kind === 'goal';
   const existing = document.getElementById('hour-limit-modal');
   if (existing) existing.remove();
 
@@ -155,14 +166,14 @@ function _showHourLimitModal(jobTitle, currentHours, maxHours) {
   modal.innerHTML = `
     <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.22);text-align:center;font-family:'DM Sans',sans-serif">
       <div style="font-size:3rem;margin-bottom:.5rem">🛑</div>
-      <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;color:var(--red);margin-bottom:.5rem">Weekly Hour Limit Reached</h3>
+      <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;color:var(--red);margin-bottom:.5rem">${_twEsc5((cap && cap.reached) || 'Weekly goal reached')}</h3>
       <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:1rem">
-        You've scheduled <strong>${currentHours.toFixed(1)} hours</strong> this week — your limit is <strong>${maxHours} hours</strong>.
-        You can't apply to "<strong>${jobTitle}</strong>" right now.
+        You've scheduled <strong>${currentHours.toFixed(1)} hours</strong> this week. Your ${_twEsc5((cap && cap.name) || 'weekly goal')} is <strong>${maxHours} hours</strong>.
+        TeenWork is holding your application to "<strong>${String(jobTitle || '').replace(/[<>&"]/g, '')}</strong>" for now.
       </p>
       <div style="background:var(--red-pale);border:1.5px solid #f5b7b1;border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--red);text-align:left">
-        <strong>⚠️ Your parent has been notified.</strong><br>
-        If you think your schedule should be updated, talk to your parent to adjust the weekly hour limit.
+        ${_twEsc5((cap && cap.why) || (isGoal ? 'This is your own weekly goal, not a law. If your family agrees, you can change it in Work Log under "Work rules for your age".'
+                 : 'Federal law limits 14- and 15-year-olds to 18 hours in a week when school is in session (40 when school is out).'))}
       </div>
       <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
         💬 You can still <strong>message the employer</strong> to ask about scheduling for a future week.
@@ -205,10 +216,10 @@ const _origSendMsgForLimit = typeof sendMsg === 'function' ? sendMsg : null;
 window.sendMsg = (function() {
   const prev = window.sendMsg;
   return async function(contactId) {
-    const maxWeekly = parentalControls['max-weekly-hours'] || 20;
+    const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0;
     const { weeklyHours } = calcCalendarStats();
 
-    if (weeklyHours >= maxWeekly) {
+    if (maxWeekly && weeklyHours >= maxWeekly) {
       const inputEl = document.getElementById('msg-input-' + contactId);
       const msgText = inputEl ? inputEl.value.trim() : '';
 
@@ -218,8 +229,7 @@ window.sendMsg = (function() {
           inputEl.value = '';
           inputEl.style.height = 'auto';
         }
-        _showHourLimitMsgBlock(contactId);
-        _notifyParentHourLimitMsg(contactId, msgText, weeklyHours, maxWeekly);
+        _showHourLimitMsgBlock(contactId, cap);
         return; // ← message NOT sent
       }
     }
@@ -228,7 +238,8 @@ window.sendMsg = (function() {
   };
 })();
 
-function _showHourLimitMsgBlock(contactId) {
+function _showHourLimitMsgBlock(contactId, cap) {
+  const isGoal = !cap || cap.kind === 'goal';
   const chatBody = document.getElementById('msg-chat-body-' + contactId);
   if (!chatBody) return;
 
@@ -238,8 +249,8 @@ function _showHourLimitMsgBlock(contactId) {
   notice.innerHTML = `
     <span class="msg-blocked-icon">🛑</span>
     <div>
-      <span class="msg-blocked-label" style="color:var(--red)">Message Not Sent — Weekly Hour Limit Reached</span>
-      <span class="msg-blocked-detail">You've reached your ${parentalControls['max-weekly-hours'] || 20}-hour weekly limit. Messages asking for new shifts or more hours won't go through until next week or your parent adjusts your limit. Your parent has been notified.</span>
+      <span class="msg-blocked-label" style="color:var(--red)">Message not sent: ${_twEsc5(String((cap && cap.reached) || 'Weekly goal reached').toLowerCase())}</span>
+      <span class="msg-blocked-detail">You've reached ${_twEsc5((cap && cap.of) || ('your ' + (cap ? cap.hours + '-hour ' : '') + 'weekly goal'))}${isGoal ? ' (a personal target, not a law)' : cap && cap.kind === 'parent' ? ' (a family rule, not a law)' : ''}. Messages asking for new shifts or more hours are held until next week${isGoal ? ' or until you change your goal in Work Log' : ''}.</span>
     </div>`;
   chatBody.appendChild(notice);
   chatBody.scrollTop = chatBody.scrollHeight;
@@ -5410,7 +5421,8 @@ window.obAskQuestion   = obAskQuestion;
 
     // Labor law reminder
     var lawEl=document.getElementById('wl-law-status');
-    if(lawEl){
+    if(lawEl&&window.twWorkRules){lawEl.innerHTML=window.twWorkRules.weekStatusHTML(weekHrs);}
+    else if(lawEl){
       if(weekHrs>18)lawEl.innerHTML='<span style="color:var(--red)">⚠️ You\'ve worked '+weekHrs.toFixed(1)+'h this week — over the 18h school-year limit!</span>';
       else if(weekHrs>14)lawEl.innerHTML='<span style="color:var(--amber)">You\'ve worked '+weekHrs.toFixed(1)+'h this week — approaching the 18h limit.</span>';
       else lawEl.innerHTML='<span style="color:var(--green)">You\'re at '+weekHrs.toFixed(1)+'h this week — within limits ✓</span>';

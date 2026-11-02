@@ -1,0 +1,87 @@
+/* practice-v52 + work-rules-v52 (2026-11-02): work-rule details, Work Log goal, sample scenario, practice notice extras */
+
+/* ── work rules (Find Jobs banner + Work Log box) ─────────────────── */
+.tw52-rules{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:.35rem .8rem;margin:.4rem 0 .5rem;font-size:.8rem;line-height:1.45}
+.tw52-rules dt{font-weight:700}
+.tw52-rules dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.tw52-src,.tw52-goal,.tw52-unverified{font-size:.76rem;line-height:1.45;margin:.35rem 0 0;overflow-wrap:anywhere}
+.tw52-src a{color:inherit;text-decoration:underline}
+.tw52-unverified{background:rgba(255,255,255,.55);border-radius:8px;padding:.4rem .55rem}
+.tw52-wl-sum{margin:0 0 .35rem}
+.tw52-wl-row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:.2rem .6rem;align-items:center;margin:.25rem 0}
+.tw52-wl-row .tw52-k{font-weight:700;font-size:inherit;text-transform:none;letter-spacing:0;color:inherit;margin:0}
+.tw52-wl-row select{font:inherit;font-size:.85rem;padding:5px 8px;border:1.5px solid #f0b66a;border-radius:8px;background:var(--card,#fff);color:var(--text,#1f2937);max-width:100%}
+.tw52-wl-row small{opacity:.85}
+#tw52-wl-rules .tw-law-details summary{color:#7a4700}
+.mh-goal-note{font-weight:400;opacity:.8}
+@media (max-width:560px){
+  .tw52-rules{grid-template-columns:minmax(0,1fr)}
+  .tw52-rules dd{margin-bottom:.25rem}
+  .tw52-wl-row{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:768px){.tw52-wl-row select{font-size:16px;min-height:40px}}
+
+/* ── practice notice: scenario + tour choice ──────────────────────── */
+#tw49-demo-banner .tw52-demo-more{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:.25rem 1rem;font-size:.88rem}
+#tw49-demo-banner .tw52-link,.tw52-link{background:none !important;color:var(--green,#2d6a4f) !important;border:none;padding:6px 2px !important;min-height:40px;font:inherit;font-weight:700 !important;text-decoration:underline;cursor:pointer;border-radius:6px}
+#tw49-demo-banner .tw52-link.tw52-muted{color:#5c3b00 !important;font-weight:600 !important}
+.tw52-tour-ask{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.1rem .9rem}
+
+/* ── home page entry ──────────────────────────────────────────────── */
+.tw52-home-sample{display:block;width:100%;margin:.7rem 0 0;background:none;border:1.5px dashed var(--green,#2d6a4f);color:var(--green,#2d6a4f);border-radius:10px;padding:10px 12px;min-height:44px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;line-height:1.35}
+.tw52-home-sample span{font-weight:500;color:var(--muted,#4b5563)}
+.tw52-home-sample:hover{background:var(--green-pale,#d8f3dc)}
+
+/* ── sample scenario dialog ───────────────────────────────────────── */
+html.tw52-sample-open,html.tw52-sample-open body{overflow:hidden}
+#tw52-sample{position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.5);overflow-y:auto;overscroll-behavior:contain;padding:16px;font-family:'DM Sans',system-ui,sans-serif}
+#tw52-sample *{box-sizing:border-box}
+.tw52-sheet{background:var(--card,#fffdf7);color:var(--text,#1f2937);max-width:720px;margin:0 auto;border-radius:18px;padding:1.1rem 1.1rem 1rem;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.tw52-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.tw52-head h2{font-family:Fraunces,Georgia,serif;font-size:1.35rem;color:var(--green,#2d6a4f);margin:0;outline:none}
+.tw52-x{background:none;border:1.5px solid var(--border,#e5e7eb);color:var(--text,#1f2937);width:44px;height:44px;border-radius:12px;font-size:1.4rem;line-height:1;cursor:pointer;flex-shrink:0}
+.tw52-label{background:#fff7e6;border:1.5px solid #f4b740;color:#5c3b00;border-radius:12px;padding:.6rem .8rem;font-size:.88rem;line-height:1.5;margin:.7rem 0}
+.tw52-steps{list-style:none;padding:0;margin:.4rem 0 .8rem;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;counter-reset:none}
+.tw52-step{font-size:.78rem;line-height:1.3;color:var(--muted,#4b5563);background:var(--bg,#f5f1e8);border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:.45rem .5rem;min-width:0;overflow-wrap:anywhere}
+.tw52-step b{display:inline-grid;place-items:center;width:1.4rem;height:1.4rem;border-radius:50%;background:var(--border,#e5e7eb);color:var(--text,#1f2937);font-size:.75rem;margin-right:.2rem}
+.tw52-step.done{border-color:var(--green,#2d6a4f);color:var(--green,#2d6a4f);background:var(--green-pale,#d8f3dc)}
+.tw52-step.done b{background:var(--green,#2d6a4f);color:#fff}
+.tw52-step.now{border-color:#f4b740;color:#7a4700;background:#fff7e6;font-weight:700}
+.tw52-step.no{border-color:#f5b7b1;color:#a12a1f;background:var(--red-pale,#fde8e8)}
+.tw52-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:.8rem}
+.tw52-tab{min-height:44px;border-radius:10px;border:1.5px solid var(--border,#e5e7eb);background:var(--card,#fff);color:var(--text,#1f2937);font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 4px}
+.tw52-tab[aria-selected="true"]{background:var(--green,#2d6a4f);border-color:var(--green,#2d6a4f);color:#fff}
+.tw52-who{font-size:.9rem;color:var(--muted,#4b5563);margin:0 0 .6rem;line-height:1.5}
+.tw52-card{border:1.5px solid var(--border,#e5e7eb);border-radius:14px;padding:.9rem;background:var(--card,#fff)}
+.tw52-card-top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:.4rem .8rem}
+.tw52-card h4{margin:0;font-size:1.02rem;line-height:1.35;min-width:0;overflow-wrap:anywhere}
+.tw52-tag{display:inline-block;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:#fff7e6;color:#7a4700;border:1px solid #f4b740;border-radius:999px;padding:1px 7px;vertical-align:2px}
+.tw52-sub{font-size:.84rem;color:var(--muted,#4b5563);margin:.2rem 0 .4rem}
+.tw52-desc{font-size:.9rem;line-height:1.5;margin:.3rem 0 .5rem}
+.tw52-facts{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:.2rem .8rem;font-size:.85rem;margin:0 0 .6rem}
+.tw52-facts dt{font-weight:700}.tw52-facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.tw52-rulecheck{font-size:.84rem;line-height:1.5;background:#dbeafe;color:#1a5276;border:1.5px solid #93c5fd;border-radius:10px;padding:.5rem .7rem;overflow-wrap:anywhere}
+.tw52-pill{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.tw52-pill-wait{background:#fff7e6;color:#7a4700;border:1px solid #f4b740}
+.tw52-pill-info{background:#dbeafe;color:#1a5276;border:1px solid #93c5fd}
+.tw52-pill-ok{background:var(--green-pale,#d8f3dc);color:var(--green,#2d6a4f);border:1px solid var(--green,#2d6a4f)}
+.tw52-pill-no{background:var(--red-pale,#fde8e8);color:#a12a1f;border:1px solid #f5b7b1}
+.tw52-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:.8rem}
+.tw52-btn{min-height:44px;border-radius:10px;border:none;background:var(--green,#2d6a4f);color:#fff;font:inherit;font-weight:700;font-size:.92rem;padding:10px 16px;cursor:pointer}
+.tw52-btn-soft{background:var(--card,#fff);color:var(--green,#2d6a4f);border:1.5px solid var(--green,#2d6a4f)}
+.tw52-next{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;margin-top:.8rem;font-size:.88rem;line-height:1.5;color:var(--muted,#4b5563)}
+.tw52-next span{flex:1 1 220px;min-width:0}
+.tw52-empty{border:1.5px dashed var(--border,#e5e7eb);border-radius:14px;padding:1rem;text-align:center;font-size:.92rem;line-height:1.5;color:var(--muted,#4b5563)}
+.tw52-posted{font-size:.88rem;margin:0 0 .6rem;line-height:1.5;overflow-wrap:anywhere}
+.tw52-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:1rem;border-top:1px solid var(--border,#e5e7eb);padding-top:.8rem}
+.tw52-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#tw52-sample button:focus-visible{outline:3px solid #f4b740;outline-offset:2px}
+@media (max-width:520px){
+  #tw52-sample{padding:8px}
+  .tw52-sheet{padding:.9rem .8rem;border-radius:14px}
+  .tw52-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tw52-tab{font-size:.84rem}
+}
+html.dark .tw52-label,html.dark .tw52-step.now,html.dark .tw52-pill-wait,html.dark .tw52-tag{background:#3a2a0a;color:#ffd58a;border-color:#8a6420}
+html.dark .tw52-rulecheck,html.dark .tw52-pill-info{background:#13283d;color:#bcdcff;border-color:#2c5b8a}
+html.dark .tw52-unverified{background:rgba(0,0,0,.2)}

@@ -2172,13 +2172,14 @@
         </div>
       </div>
 
-      <!-- Goal: teen labor law hours reminder -->
-      <div style="background:var(--amber-pale);border:1.5px solid #f0b66a;border-radius:12px;padding:.85rem 1rem;margin-bottom:1.2rem;display:flex;gap:12px;align-items:flex-start">
-        <span style="font-size:1.4rem;flex-shrink:0">⚖️</span>
-        <div>
-          <div style="font-weight:700;font-size:.85rem;color:#7a4700;margin-bottom:2px">Teen Labor Law Reminder</div>
-          <div style="font-size:.78rem;color:#7a4700;line-height:1.5">During the school year: max <strong>18 hrs/week</strong> and no work before 7am or after 7pm on school nights. Summer: up to <strong>40 hrs/week</strong> allowed. <span id="wl-law-status" style="font-weight:700"></span></div>
-          <button class="btn-sm" onclick="switchTab&&switchTab('teen','ttab-ai');setTimeout(()=>explainLaborLaw&&explainLaborLaw('max hours per week for teens'),200)" style="margin-top:6px;font-size:.72rem;background:var(--amber);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">Learn more →</button>
+      <!-- Work rules for this teen's age and state (filled by work-rules-v52.js) and the teen's own weekly goal -->
+      <div id="tw52-wl-rules" style="background:var(--amber-pale);border:1.5px solid #f0b66a;border-radius:12px;padding:.85rem 1rem;margin-bottom:1.2rem;display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:1.4rem;flex-shrink:0" aria-hidden="true">⚖️</span>
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:700;font-size:.85rem;color:#7a4700;margin-bottom:2px">Work rules for your age</div>
+          <div id="tw52-wl-rules-text" style="font-size:.78rem;color:#7a4700;line-height:1.5">Your work rules depend on your age and state.</div>
+          <div style="font-size:.78rem;color:#7a4700;line-height:1.5;margin-top:4px"><span id="wl-law-status" style="font-weight:700"></span></div>
+          <button class="btn-sm" onclick="switchTab&&switchTab('teen','ttab-ai');setTimeout(()=>explainLaborLaw&&explainLaborLaw('max hours per week for teens'),200)" style="margin-top:6px;font-size:.72rem;background:var(--amber);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">Ask the AI coach →</button>
         </div>
       </div>
 
@@ -3419,7 +3420,7 @@
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/js/app-05.js"></script>
+<script src="assets/js/app-05.js?v=52"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3850,8 +3851,8 @@
 
 <script id="tab-refresh-v44" src="assets/js/tab-refresh-v44.js"></script>
 
-<script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=51"></script>
-<script id="money-hours-v44" src="assets/js/money-hours-v44.js"></script>
+<script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=52"></script>
+<script id="money-hours-v44" src="assets/js/money-hours-v44.js?v=52"></script>
 
 <script id="ai-shift-finder-v44" src="assets/js/ai-shift-finder-v44.js"></script>
 
@@ -3880,6 +3881,10 @@
 <link rel="stylesheet" href="assets/css/phone-fit-v51.css">
 <script id="phone-fit-v51" src="assets/js/phone-fit-v51.js?v=51"></script>
 <script src="assets/js/trust-usability.js"></script>
+<link rel="stylesheet" href="assets/css/practice-v52.css?v=52">
+<script id="work-rules-v52" src="assets/js/work-rules-v52.js?v=52"></script>
+<script id="parent-hours-v52" src="assets/js/parent-hours-v52.js?v=52"></script>
+<script id="practice-v52" src="assets/js/practice-v52.js?v=52"></script>
 <script id="dob-start-v50" src="assets/js/dob-start-v50.js"></script>
 <link rel="stylesheet" href="assets/css/home-v51.css?v=51">
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>

@@ -24,17 +24,17 @@ The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`
 https://teenwork.ayaqd.com shows the `main` branch. There is no build step.
 To ship a new app version, update the relevant markup, scripts and styles, commit and push.
 
-## Work rules (hours and permits)
-
-Every teen screen that talks about work hours or permits reads `assets/js/work-rules-v52.js` (`window.twWorkRules`): the Find Jobs guidance, Work Log, the calendar bar, the apply and chat hour notices and the Verification page check. Permit data stays in the `PERMITS` table in `assets/js/job-tiers-v45.js`.
-Only the federal rules and Vermont were checked against official text (29 CFR 570.35, US DOL Fact Sheet #43, the US DOL work-permit table, 21 V.S.A. §§ 431, 434, 436, 437 and Vermont DOL guide WH-30) on 2026-11-02. Other states show the federal rules plus their older notes, labelled as not re-checked. Change a number only after checking the source again, and update the date in the file.
-The teen's weekly hours goal (the old `max-weekly-hours` setting, 15 h by default) is a personal target and is always labelled "not a law".
-
 ## Search engines
 
 The web server must serve `robots.txt`, `sitemap.xml` and the images above as files. The app needs no other routes: every screen is `index.html`.
 If the site moves to another address, update the address in `robots.txt`, `sitemap.xml` and the canonical, Open Graph and structured data tags in the `<head>` of `index.html`.
 The search text leads with "teen job app", "teen job finder app" and "TeenWork"; Vermont is only a second mention. The FAQ in the structured data must match the "Questions before you join" FAQ in `assets/js/homepage-v49.js`. Run `node tests/search-text.cjs` after changing either.
+
+## Work rules (hours and permits)
+
+Every teen screen that talks about work hours or permits reads `assets/js/work-rules-v52.js` (`window.twWorkRules`): the Find Jobs guidance, Work Log, the calendar bar, the apply and chat hour notices and the Verification page check. Permit data stays in the `PERMITS` table in `assets/js/job-tiers-v45.js`.
+Only the federal rules and Vermont were checked against official text (29 CFR 570.35, US DOL Fact Sheet #43, the US DOL work-permit table, 21 V.S.A. §§ 431, 434, 436, 437 and Vermont DOL guide WH-30) on 2026-11-02. Other states show the federal rules plus their older notes, labelled as not re-checked. Change a number only after checking the source again, and update the date in the file.
+The teen's weekly hours goal (the old `max-weekly-hours` setting, 15 h by default) is a personal target and is always labelled "not a law".
 
 ## Source layout and secure AI deployment
 

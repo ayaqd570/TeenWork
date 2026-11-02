@@ -364,11 +364,11 @@
     toast('Everything from that account was deleted.', 'success');
   }
 
-  /* ── admin: Danger zone with the admin password ──────────────────── */
+  /* ── admin: Danger zone, confirmed with the admin's own password (v51: a Supabase sign-in, no admin password) ── */
   function askAdmin(o) {
     return new Promise(resolve => {
       const m = sheet('tw47-adm', '<button type="button" class="tw47-x" aria-label="Close" data-a="no">✕</button><h3>' + esc(o.title) + '</h3>' + (o.html || '') +
-        '<label class="tw47-lbl">Admin password<input type="password" id="tw47-adm-pw" autocomplete="current-password"></label>' +
+        '<label class="tw47-lbl">Your admin account password<input type="password" id="tw47-adm-pw" autocomplete="current-password"></label>' +
         (o.confirm ? '<label class="tw47-lbl">Type <b>' + esc(o.confirm) + '</b> to confirm<input type="text" id="tw47-adm-word" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"></label>' : '') +
         '<div class="tw47-msg" id="tw47-adm-msg" role="status" aria-live="polite"></div>' +
         '<div class="tw47-row"><button type="button" class="tw47-btn" data-a="no">Cancel</button><button type="button" class="tw47-btn danger" data-a="go">' + esc(o.go || 'Confirm') + '</button></div>');
@@ -378,10 +378,11 @@
         if (a.getAttribute('data-a') === 'no') return done(null);
         const pw = $('tw47-adm-pw').value, say = t => { $('tw47-adm-msg').textContent = t; };
         if (o.confirm && low($('tw47-adm-word').value) !== low(o.confirm)) return say('Type ' + o.confirm + ' exactly to confirm.');
-        if (!pw) return say('Type the admin password.');
+        if (!pw) return say('Type your password.');
+        say('Checking…');
         let right = false; try { right = typeof _twCheckAdminPassword === 'function' ? await _twCheckAdminPassword(pw) : false; } catch (e) {}
-        if (!right) return say('That isn\'t the admin password.');
-        done(pw);
+        if (!right) return say('That password didn\'t work for the admin account (or TeenWork can\'t be reached right now).');
+        done(true);
       });
       setTimeout(() => { try { $('tw47-adm-pw').focus(); } catch (e) {} }, 50);
     });
@@ -422,7 +423,7 @@
     let dz = card.querySelector('.tw47-dz');
     if (dz) { dz.remove(); return; }
     dz = document.createElement('div'); dz.className = 'tw47-dz';
-    dz.innerHTML = '<b>⚠️ Danger zone</b><p class="tw47-muted">Each of these asks for the admin password.</p><div class="tw47-row start">' +
+    dz.innerHTML = '<b>⚠️ Danger zone</b><p class="tw47-muted">Each of these asks for your admin account password.</p><div class="tw47-row start">' +
       (ADMIN_CAN_SET_FREE ? '<button type="button" class="adm-btn adm-btn-mark" data-tw47-free>Set to the Free plan</button>' : '') +
       (ADMIN_CAN_DELETE ? '<button type="button" class="adm-btn adm-btn-delete" data-tw47-close>🗑 Delete this account</button>' : '') + '</div>' +
       (ADMIN_CAN_DELETE ? '<p class="tw47-muted">Deleting hides the account from everyone right away and emails them. They can sign in for ' + KEEP_DAYS + ' days only to download their records; then everything is deleted.</p>' : '');
@@ -430,9 +431,9 @@
   }
   async function adminDelete(card) {
     const key = low(card.getAttribute('data-key')), name = cardName(card), email = key.split('#')[0];
-    const pw = await askAdmin({ title: 'Delete ' + (name || email) + '?', confirm: email, go: 'Delete account',
+    const ok = await askAdmin({ title: 'Delete ' + (name || email) + '?', confirm: email, go: 'Delete account',
       html: '<p><code>' + esc(key) + '</code> disappears from TeenWork for everyone right away: profile, jobs, applications, chats and contacts. People connected to it are told.</p><p>They get an email and can sign in for ' + KEEP_DAYS + ' days only to download their records (like money earned); then everything is deleted.</p>' });
-    if (!pw) return;
+    if (!ok) return;
     // An account whose key isn't an email address (made offline, before the cloud) was only ever saved on
     // this device: TeenWork's server can't take it, so it is deleted here.
     const deviceOnly = () => {
@@ -442,9 +443,10 @@
     };
     if (!VALID_KEY.test(key)) return deviceOnly();
     toast('Deleting…', 'info');
-    const res = await callFn({ action: 'close', key, adminPassword: pw });
+    let token = null; try { token = typeof _twAdminToken === 'function' ? await _twAdminToken() : null; } catch (e) {}
+    const res = await callFn({ action: 'close', key }, token);
     if (!res.ok && res.code === 'bad_key') return deviceOnly();
-    if (!res.ok) { toast('⚠️ ' + (res.code === 'admin_password' ? 'TeenWork\'s server didn\'t take that admin password. A password changed only on this device (Admin → Security) isn\'t known to the server.' : res.error || 'Couldn\'t delete the account.'), 'error'); return; }
+    if (!res.ok) { toast('⚠️ ' + (res.code === 'admin_only' ? 'TeenWork\'s server says this sign-in isn\'t the admin. Sign out, sign in again and pick Admin panel.' : res.error || 'Couldn\'t delete the account.'), 'error'); return; }
     const until = res.purge_after || new Date(Date.now() + KEEP_DAYS * 864e5).toISOString();
     remember({ key, type: res.type || '', closed_by: 'admin', closed_at: new Date().toISOString(), purge_after: until, purged_at: null });
     const a = localAccounts()[key] || {};

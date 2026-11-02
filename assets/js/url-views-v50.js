@@ -198,9 +198,16 @@
       }
       if (m.kind === 'admin') {
         if (typeof window.launchAdminPanel !== 'function' || typeof ADMIN_EMAIL === 'undefined') return false;
+        // v51: only while this browser is still signed in to Supabase as the admin (checked again online below)
+        if (typeof window._twStoredAdminSession !== 'function' || !window._twStoredAdminSession()) return false;
         setUser({ name: 'Admin', email: String(ADMIN_EMAIL).toLowerCase(), type: 'admin', emailVerified: true, isAdmin: true });
         try { window._loadUserDarkPref && window._loadUserDarkPref(); } catch (e) {}
         window.launchAdminPanel();
+        // null: signed out or not the admin, so close the panel. undefined: offline, so leave it (the server checks anyway).
+        if (typeof window._twAdminToken === 'function') window._twAdminToken(15000).then(t => {
+          const u = me();
+          if (t === null && u && u.isAdmin && typeof window.doLogout === 'function') window.doLogout();
+        });
         return !!$('tw-admin-panel');
       }
       if (m.kind === 'real') {

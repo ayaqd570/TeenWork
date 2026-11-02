@@ -513,43 +513,22 @@
   function renderSecurity() {
     const el = $('adm39-sec-login');
     if (el) {
-      const rec = _twAdminPwRecord();
       el.innerHTML = `
         <div style="font-weight:700;font-size:.9rem;margin-bottom:6px">🔑 Admin sign-in</div>
-        <p class="adm39-muted">Sign in on the normal <strong>Sign In</strong> page with <strong>${esc(ADMIN_EMAIL)}</strong> (or just <strong>admin</strong>) and the admin password.
-        Password in use on this device: ${rec.custom ? '<span class="adm39-ok">custom password</span> set ' + fmtDate(rec.at) : '<span class="adm39-ok">built-in password</span> (from the app file)'}.</p>
-        <div class="adm39-row" style="margin-top:10px">
-          <input id="adm39-pw1" class="adm39-in" type="password" placeholder="New admin password (12+ characters)" style="flex:1;min-width:200px" autocomplete="new-password">
-          <input id="adm39-pw2" class="adm39-in" type="password" placeholder="Repeat it" style="flex:1;min-width:140px" autocomplete="new-password">
-          <button class="adm-btn adm-btn-reply" id="adm39-pw-save">Change admin password</button>
-          ${rec.custom ? '<button class="adm-btn adm-btn-mark" id="adm39-pw-reset">Back to built-in</button>' : ''}
-        </div>
-        <p class="adm39-muted" style="margin-top:8px">A changed password is saved (hashed) in this browser and works here right away. To make it the built-in password on every device, open the app file, find <code>ADMIN_PW_SALT</code> / <code>ADMIN_PW_HASH</code> in the CONFIG section and paste these two lines:</p>
-        <div id="adm39-pw-lines">${rec.custom ? `<code class="adm39-code">const ADMIN_PW_SALT = '${esc(rec.salt)}';\nconst ADMIN_PW_HASH = '${esc(rec.hash)}';</code>` : '<span class="adm39-muted">(appears after you change the password)</span>'}</div>`;
-      el.querySelector('#adm39-pw-save').onclick = changeAdminPassword;
-      const rs = el.querySelector('#adm39-pw-reset'); if (rs) rs.onclick = () => { if (!confirm('Go back to the built-in admin password on this device?')) return; localStorage.removeItem('tw_admin_pw'); audit('Admin password', 'reset to built-in'); toast('Built-in admin password is active again.'); renderSecurity(); };
+        <p class="adm39-muted">Sign in on the normal <strong>Sign In</strong> page with <strong>${esc(ADMIN_EMAIL)}</strong> (or just <strong>admin</strong>) and that account's own TeenWork password, then pick <strong>Admin panel</strong>.
+        The admin is a real Supabase sign-in: the account is marked as admin in Supabase, and the database and the delete-account function check that mark. There is no admin password in the app any more.</p>
+        <p class="adm39-muted" style="margin-top:8px">To change the password, sign out and use <strong>Forgot password?</strong> on the Sign In page with ${esc(ADMIN_EMAIL)}.</p>`;
     }
     const al = $('adm39-audit-list');
     if (al) { const log = read('tw_admin_audit', []); al.innerHTML = log.length ? log.slice(0, 150).map(e => `<div><time>${fmtDate(e.at)}</time><span><strong>${esc(e.action)}</strong>${e.detail ? ' · ' + esc(e.detail) : ''}</span></div>`).join('') : '<div class="adm39-muted">Nothing logged yet.</div>'; }
     const sl = $('adm39-signin-list');
     if (sl) {
       const log = read('tw_signin_log', []);
-      const fails = log.filter(e => !e.ok).length, adminFails = log.filter(e => e.event === 'admin-wrong-password').length;
-      const sum = $('adm39-signin-summary'); if (sum) sum.textContent = log.length + ' events · ' + fails + ' failed sign-ins · ' + adminFails + ' wrong admin password attempts';
+      const fails = log.filter(e => !e.ok).length;
+      const sum = $('adm39-signin-summary'); if (sum) sum.textContent = log.length + ' events · ' + fails + ' failed sign-ins';
       const label = { login: 'Signed in', signup: 'Signed up', 'wrong-password': 'Wrong password', suspended: 'Blocked (suspended)', 'admin-wrong-password': 'Wrong admin password', 'created-by-admin': 'Created by admin' };
       sl.innerHTML = log.length ? log.slice(0, 150).map(e => `<div><time>${fmtDate(e.at)}</time><span class="${e.ok ? 'adm39-ok' : 'adm39-bad'}">${esc(label[e.event] || e.event)}</span><span>${esc(e.email || '')}${e.type ? ' · ' + esc(e.type) : ''}${e.slot > 1 ? ' #' + e.slot : ''}</span></div>`).join('') : '<div class="adm39-muted">No sign-ins logged yet.</div>';
     }
-  }
-  async function changeAdminPassword() {
-    const p1 = $('adm39-pw1').value, p2 = $('adm39-pw2').value;
-    if (p1.length < 12) { toast('Use at least 12 characters for the admin password.', 'error'); return; }
-    if (p1 !== p2) { toast('The two passwords do not match.', 'error'); return; }
-    const salt = Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
-    const hash = await _twHashPw(p1, salt);
-    write('tw_admin_pw', { salt, hash, at: new Date().toISOString() });
-    audit('Admin password', 'changed on this device');
-    toast('🔐 Admin password changed. Use it from now on.');
-    renderSecurity();
   }
 
   /* ── DATA TOOLS ────────────────────────────────────────────────── */

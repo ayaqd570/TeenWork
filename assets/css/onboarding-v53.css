@@ -1,0 +1,118 @@
+/* v53 · teen onboarding, Messages dialog, verification, home demos (see assets/js/onboarding-v53.js) */
+
+/* ── 5. Empty job feed: next steps ───────────────────────────────── */
+.tw53-next{margin:0 1rem 1rem;padding:1rem 1.1rem;border:1.5px solid var(--border,#e5e0d5);border-radius:14px;background:var(--card,#fff);text-align:left}
+.tw53-next h3{font-family:'Fraunces',Georgia,serif;font-size:1.05rem;margin:0 0 .2rem;color:var(--text,#1b1b1b)}
+.tw53-next-sub{margin:0 0 .7rem;font-size:.86rem;color:var(--muted,#5b6470);line-height:1.45}
+.tw53-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tw53-step{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg,#f6f3ec)}
+.tw53-step-icon{font-size:1.3rem;line-height:1}
+.tw53-step-text{min-width:0;display:flex;flex-direction:column;gap:2px}
+.tw53-step-text b{font-size:.9rem;color:var(--text,#1b1b1b)}
+.tw53-step-text span{font-size:.8rem;color:var(--muted,#5b6470);line-height:1.4}
+.tw53-step.is-done .tw53-step-text b::after{content:' ✓';color:var(--green,#2d6a4f)}
+.tw53-btn{font-family:inherit;font-weight:700;font-size:.84rem;border-radius:10px;padding:8px 12px;min-height:44px;cursor:pointer;border:1.5px solid var(--green,#2d6a4f);background:var(--card,#fff);color:var(--green,#2d6a4f);white-space:nowrap}
+.tw53-btn.pri{background:var(--green,#2d6a4f);color:#fff}
+.tw53-btn:focus-visible,.tw53-msg-bar button:focus-visible,.tw53-fj-check:focus-visible,.tw53-go:focus-visible{outline:3px solid var(--blue,#1a5276);outline-offset:2px}
+.tw53-next-foot{margin:.8rem 0 0;font-size:.84rem;color:var(--muted,#5b6470)}
+@media (max-width:480px){
+  .tw53-next{margin:0 .5rem 1rem;padding:.9rem .8rem}
+  .tw53-step{grid-template-columns:auto minmax(0,1fr)}
+  .tw53-step .tw53-btn{grid-column:1/-1;width:100%}
+}
+.tw53-flash{animation:tw53-flash 2.4s ease-out}
+@keyframes tw53-flash{0%,40%{box-shadow:0 0 0 4px var(--amber,#b9770e)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.tw53-flash{animation:none;outline:3px solid var(--amber,#b9770e)}}
+
+/* Lessons: the starting lesson */
+.lesson-card.tw53-start{border-color:var(--green,#2d6a4f)!important;box-shadow:0 0 0 2px var(--green-pale,#d8f3dc)}
+.tw53-start-tag{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:20px;background:var(--green,#2d6a4f);color:#fff;font-size:.7rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
+
+/* ── 6. First Job Checklist ──────────────────────────────────────── */
+.tw53-gates{border:2px solid var(--blue,#1a5276)!important}
+.tw53-when{margin:0 0 .8rem;padding:.7rem .9rem;border-radius:10px;font-size:.9rem;line-height:1.5;background:var(--blue-pale,#e8f0fb);color:var(--text,#1b1b1b)}
+.tw53-when.ok{background:var(--green-pale,#d8f3dc)}
+.tw53-gate-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tw53-gate{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px;border-radius:10px;background:var(--bg,#f6f3ec)}
+.tw53-gate-mark{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;border:2px solid var(--border,#ddd);color:var(--muted,#5b6470);background:var(--card,#fff)}
+.tw53-gate.is-done .tw53-gate-mark,.tw53-gate.is-na .tw53-gate-mark{background:var(--green,#2d6a4f);border-color:var(--green,#2d6a4f);color:#fff}
+.tw53-gate.is-waiting .tw53-gate-mark{border-color:var(--amber,#b9770e);color:var(--amber,#b9770e)}
+.tw53-gate-body{min-width:0;font-size:.88rem;line-height:1.45}
+.tw53-gate-body b{display:block;color:var(--text,#1b1b1b)}
+.tw53-gate-status{display:inline-block;margin:3px 0 0;padding:1px 8px;border-radius:20px;font-size:.76rem;font-weight:700;background:var(--card,#fff);border:1px solid var(--border,#ddd);color:var(--muted,#5b6470)}
+.tw53-gate.is-done .tw53-gate-status,.tw53-gate.is-na .tw53-gate-status{color:var(--green,#2d6a4f);border-color:var(--green,#2d6a4f)}
+.tw53-gate.is-waiting .tw53-gate-status{color:var(--amber,#b9770e);border-color:var(--amber,#b9770e)}
+.tw53-gate.is-todo .tw53-gate-status{color:var(--red,#c0392b);border-color:var(--red,#c0392b)}
+.tw53-gate-body p{margin:4px 0 0;font-size:.8rem;color:var(--muted,#5b6470)}
+.tw53-after{margin:.8rem 0 0;font-size:.82rem;color:var(--muted,#5b6470);line-height:1.45}
+.tw53-sec-note{margin:0 0 .6rem;font-size:.82rem;color:var(--muted,#5b6470)}
+.tw53-fj-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tw53-fj-check{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:10px;cursor:pointer;border:none;text-align:left;font:inherit;background:var(--bg,#f6f3ec);color:var(--text,#1b1b1b);min-height:44px}
+.tw53-fj-check[aria-checked="true"]{background:var(--green-pale,#d8f3dc)}
+.tw53-fj-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border,#ddd);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:.85rem;font-weight:900}
+.tw53-fj-check[aria-checked="true"] .tw53-fj-box{background:var(--green,#2d6a4f);border-color:var(--green,#2d6a4f)}
+.tw53-fj-text{font-size:.88rem;line-height:1.4}
+.tw53-fj-check[aria-checked="true"] .tw53-fj-text{color:var(--green,#2d6a4f);font-weight:600;text-decoration:line-through}
+.tw53-go{flex-shrink:0;font-family:inherit;font-size:.78rem;font-weight:700;border:1.5px solid var(--border,#ddd);background:var(--card,#fff);color:var(--green,#2d6a4f);border-radius:9px;padding:6px 10px;min-height:44px;cursor:pointer;white-space:nowrap}
+@media (max-width:480px){
+  .tw53-gate{grid-template-columns:28px minmax(0,1fr)}
+  .tw53-gate .tw53-btn{grid-column:2;justify-self:start}
+  .tw53-go{padding:6px 8px;max-width:38%;white-space:normal;line-height:1.2}
+}
+
+/* ── 7. Messages dialog ──────────────────────────────────────────── */
+#msgModal .msg-modal{display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+#msgModal .msg-modal:focus{outline:none}
+#msgModal .tw53-msg-bar{grid-column:1/-1;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border,#e5e0d5);background:var(--card,#fff)}
+#msgModal .msg-sidebar{grid-column:1;grid-row:2;min-height:0}
+#msgModal .msg-main{grid-column:2;grid-row:2;min-height:0}
+.tw53-msg-bar button{font-family:inherit;font-weight:700;font-size:.86rem;border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer}
+.tw53-msg-sos{background:var(--red-pale,#fdecea);color:var(--red,#c0392b);border:1.5px solid var(--red,#c0392b)}
+.tw53-msg-sos:hover{background:var(--red,#c0392b);color:#fff}
+.tw53-msg-close{background:var(--card,#fff);color:var(--text,#1b1b1b);border:1.5px solid var(--border,#d6d0c4)}
+.tw53-msg-close:hover{border-color:var(--text,#1b1b1b)}
+/* The bar has the one Close; the old ✕ in the chat header went with it. */
+#msgModal .msg-header-close{display:none}
+/* The labeled button inside Messages replaces the floating red one while Messages is open. */
+body.tw53-msg-open #featpack-emergency{display:none!important}
+@media (max-width:768px){
+  #msgModal .msg-modal{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}
+  #msgModal .msg-sidebar{grid-column:1;grid-row:2;width:100%}
+  #msgModal .msg-main{grid-column:1;grid-row:3}
+}
+@media (max-width:360px){.tw53-msg-bar button{padding:8px 10px;font-size:.8rem}}
+/* The alert window opens on top of Messages (and everything else). */
+#feelsWrongModal{z-index:10080}
+#feelsWrongModal.open,#feelsWrongModal.active{display:flex}
+
+/* ── 8. Profile photo ────────────────────────────────────────────── */
+.tw53-photo{text-align:left}
+.tw53-avatar{width:80px;height:80px;border-radius:50%;background:var(--green,#2d6a4f);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',Georgia,serif;font-size:1.8rem;font-weight:800;margin:0 auto 6px}
+.tw53-avatar-cap{text-align:center;font-size:.76rem;color:var(--muted,#5b6470);margin:0 0 10px}
+.tw53-photo p{font-size:.84rem;line-height:1.5;margin:0 0 8px;color:var(--text,#1b1b1b)}
+.tw53-photo .tw53-hint{color:var(--muted,#5b6470);font-size:.8rem}
+
+/* ── 9. Verification ─────────────────────────────────────────────── */
+.tw53-badge-cap{margin:.6rem 0 0;font-size:.8rem;line-height:1.45;color:var(--muted,#5b6470)}
+
+/* ── 10. Home page: demo buttons in the first phone screen ───────── */
+@media (max-width:600px){
+  #page-landing #tw48-hero #tw48-demo{margin-top:.2rem;padding:.7rem .75rem!important}
+  #page-landing #tw48-demo > div:first-child{margin-bottom:.45rem!important}
+  #page-landing #tw48-demo > div:nth-child(2){flex-wrap:nowrap!important;gap:6px!important}
+  #page-landing #tw48-demo > div:nth-child(2) > button{flex:1 1 0;min-width:0;min-height:44px;padding:10px 6px!important;font-size:.92rem!important}
+  #page-landing #tw48-demo .tw53-long{display:none}
+  #page-landing #tw48-hero #tw51-trust{margin:1rem auto .4rem}
+}
+@media (max-width:330px){
+  #page-landing #tw48-demo > div:nth-child(2){flex-wrap:wrap!important}
+}
+
+/* Dark mode: the dark greens and blues used above are too dim on a dark card */
+html.dark .tw53-btn:not(.pri),html.dark .tw53-go{color:#95d5b2;border-color:#52b788}
+html.dark .tw53-gates{border-color:#7fb3e6!important}
+html.dark .tw53-gates .panel-head h2{color:#a9cdf2!important}
+html.dark .tw53-gate.is-done .tw53-gate-status,html.dark .tw53-gate.is-na .tw53-gate-status,html.dark .tw53-step.is-done .tw53-step-text b::after{color:#95d5b2;border-color:#52b788}
+html.dark .tw53-gate.is-todo .tw53-gate-status{color:#f5a3a3;border-color:#f5a3a3}
+html.dark .tw53-msg-sos{background:transparent;color:#f5a3a3;border-color:#f5a3a3}
+html.dark .tw53-btn:focus-visible,html.dark .tw53-msg-bar button:focus-visible,html.dark .tw53-fj-check:focus-visible,html.dark .tw53-go:focus-visible{outline-color:#a9cdf2}

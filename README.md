@@ -40,8 +40,8 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 3. Deploy `supabase/functions/delete-account/` (Verify JWT off). The `ADMIN_PW_SALT` / `ADMIN_PW_HASH` secrets, if set, are no longer used.
 4. Sign in again as the admin, so the new sign-in carries the role.
 
-Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs` and
-`node --experimental-strip-types tests/delete-account-auth.mjs`.
+Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
+`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs` and `node --experimental-strip-types tests/delete-account-auth.mjs`.
 
 ## Search engines
 
@@ -55,6 +55,11 @@ Every teen screen that talks about work hours or permits reads `assets/js/work-r
 Every state and DC has its own hours, days and time-of-day rules for under 16 and for 16 and 17 (the `RAW` table in that file), taken on 2026-11-02 from the US DOL table "Selected State Child Labor Standards Affecting Minors Under 18 in Non-farm Employment as of July 15, 2025". For ages 14 and 15 the app shows the stricter of the federal and state numbers. Federal rules come from 29 CFR 570.35 and US DOL Fact Sheet #43. Vermont was also checked against 21 V.S.A. §§ 431, 434, 436, 437 and Vermont DOL guide WH-30. California's 16–17 hours come from the California Labor Commissioner's child labor guide, because the DOL table's figure for them doesn't match it. The rules file also rewrites `STATE_DATA`'s hour fields and notes, so other scripts and the AI read the same numbers. Change a number only after checking the source again, and update the date in the file. Laws passed after July 15, 2025 are not in the DOL table.
 The teen's weekly hours goal (the old `max-weekly-hours` setting, 15 h by default) is a personal target and is always labelled "not a law".
 A linked parent's ⏰ Weekly Hour Limit (`assets/js/parent-hours-v52.js`) is saved in `user_data` as `<parent>/hour_limit:<teen key>` and counts for the teen only when that parent is linked and approved on the teen's own `parent_link`. The teen's weekly bar, apply check and chat check use the lowest of the legal limit, the parent's limit and the teen's goal.
+
+## Teen onboarding, Messages and Verification (v53)
+
+`assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (photo upload isn't built; the Profile Photo box says so).
+Messages is a labeled dialog with a Close button and a "Something feels wrong" button inside it; focus moves in and back out, Tab stays inside, and Escape closes the top window even while typing. The Verification permit step says exactly where the teen stands (`window.twPermitStepStatus`, called from `parent-consent-v44.js`). Check with `node tests/onboarding-v53.cjs`.
 
 ## Source layout and secure AI deployment
 

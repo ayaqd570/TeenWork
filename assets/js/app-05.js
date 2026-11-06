@@ -958,7 +958,7 @@ function adminReplyToSupport(email, name, msgId) {
 
       <div id="adm-reply-info" style="font-size:.74rem;color:#6b7280;margin-bottom:10px;padding:7px 10px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
         ${hasEmail
-          ? '📤 This will save to in-app inbox <strong>and</strong> open your email app to send to <strong>' + safeEmail + '</strong>'
+          ? '📤 TeenWork emails this reply to <strong>' + safeEmail + '</strong> and saves it here. If they answer, it comes to your email.'
           : '📥 No email on file — reply will be saved in the admin panel only. To reach this user, ask them to update their profile.'}
       </div>
 
@@ -966,7 +966,7 @@ function adminReplyToSupport(email, name, msgId) {
         <button id="adm-reply-send" style="flex:1;background:linear-gradient(135deg,#2d6a4f,#52b788);color:#fff;border:none;padding:11px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;">
           ${hasEmail ? '📨 Send Reply' : '💾 Save Reply'}
         </button>
-        ${hasEmail ? `<button id="adm-reply-email-only" style="background:#f0fdf4;color:#2d6a4f;border:1.5px solid #86efac;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">📧 Email Only</button>` : ''}
+        ${hasEmail ? `<button id="adm-reply-email-only" style="background:#f0fdf4;color:#2d6a4f;border:1.5px solid #86efac;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">✉️ Use my email app</button>` : ''}
         <button id="adm-reply-cancel" style="background:#f9fafb;color:#6b7280;border:1.5px solid #e2ddd4;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;">Cancel</button>
       </div>
     </div>`;
@@ -993,24 +993,61 @@ function adminReplyToSupport(email, name, msgId) {
     } catch(e) {}
   }
 
+  // v54: "Send Reply" emails the reply from TeenWork itself (twSendEmail: Resend first, EmailJS as backup).
+  // It used to open the admin's own email app (Outlook) with a draft. That is now only the
+  // "Use my email app" button, or the way out when TeenWork couldn't send.
+  const REPLY_SUBJECT = 'Re: Your TeenWork Support Request';
+  const canSend = hasEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail) && typeof window.twSendEmail === 'function';
+  function _openMailApp(body) {
+    window.open('mailto:' + safeEmail + '?subject=' + encodeURIComponent(REPLY_SUBJECT) + '&body=' + encodeURIComponent(body));
+  }
+  function _replyHtml(body) {
+    return String(body).split(/\r?\n\s*\r?\n/).map(function (para) {
+      return '<p>' + para.replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }).replace(/\r?\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
   document.getElementById('adm-reply-send').onclick = function() {
     const body = document.getElementById('adm-reply-body')?.value?.trim();
     if (!body) { return; }
+    const btn = this;
+    if (btn.disabled) return;
     _saveReplyNote(body);
-    if (hasEmail) {
-      const subject = encodeURIComponent('Re: Your TeenWork Support Request');
-      window.open('mailto:' + safeEmail + '?subject=' + subject + '&body=' + encodeURIComponent(body));
+    if (!hasEmail) {
+      _close();
+      if (typeof showToast === 'function') showToast('✅ Reply saved', 'success');
+      return;
     }
-    _close();
-    if (typeof showToast === 'function') showToast('✅ Reply ' + (hasEmail ? 'sent to ' + safeName : 'saved'), 'success');
+    if (!canSend) {
+      _openMailApp(body);
+      _close();
+      if (typeof showToast === 'function') showToast('Reply saved. Your email app opened so you can send it.', 'info');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    window.twSendEmail(safeEmail, REPLY_SUBJECT, _replyHtml(body), { heading: 'A reply from TeenWork Support', icon: '💬' }).then(function (ok) {
+      if (ok) {
+        _close();
+        if (typeof showToast === 'function') showToast('✅ Reply emailed to ' + safeName, 'success');
+        return;
+      }
+      btn.disabled = false;
+      btn.textContent = '📨 Try again';
+      const info = document.getElementById('adm-reply-info');
+      if (info) {
+        info.style.background = '#fef2f2'; info.style.borderColor = '#fecaca'; info.style.color = '#991b1b';
+        info.textContent = 'TeenWork couldn’t send this email right now. Your reply is saved here. Try again, or press “Use my email app” to send it yourself.';
+      }
+    });
   };
 
   if (hasEmail) {
     const emailOnlyBtn = document.getElementById('adm-reply-email-only');
     if (emailOnlyBtn) emailOnlyBtn.onclick = function() {
       const body = document.getElementById('adm-reply-body')?.value?.trim() || '';
-      const subject = encodeURIComponent('Re: Your TeenWork Support Request');
-      window.open('mailto:' + safeEmail + '?subject=' + subject + '&body=' + encodeURIComponent(body));
+      if (body) _saveReplyNote(body);
+      _openMailApp(body);
       _close();
     };
   }

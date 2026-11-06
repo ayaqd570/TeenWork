@@ -205,6 +205,41 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.deepEqual(errors, []);
         await context.close();
       }
+      {
+        // Admin support replies are emailed by TeenWork (Resend / EmailJS), not opened in the admin's email app
+        const { context, p, errors } = await open(browser, viewport);
+        const reply = async (ok) => {
+          await p.evaluate((ok) => {
+            window.__sent = []; window.__opened = [];
+            window.twSendEmail = (to, subject, html, opts) => { window.__sent.push({ to, subject, html, opts }); return Promise.resolve(ok); };
+            window.open = (u) => { window.__opened.push(String(u)); return null; };
+            adminReplyToSupport('kid@example.com', 'Kid', 'm1');
+          }, ok);
+          await p.fill('#adm-reply-body', 'Hi Kid,\n\nWe fixed it <b>today</b>.');
+          await p.click('#adm-reply-send');
+          await p.waitForTimeout(200);
+          return p.evaluate(() => ({ sent: window.__sent, opened: window.__opened, open: !!document.getElementById('adm-reply-modal') }));
+        };
+        assert(/TeenWork emails this reply/.test(await p.evaluate(() => { adminReplyToSupport('kid@example.com', 'Kid', 'm1'); const t = document.getElementById('adm-reply-info').textContent; document.getElementById('adm-reply-modal').remove(); return t; })));
+        let r = await reply(true);
+        assert.equal(r.sent.length, 1);
+        assert.equal(r.sent[0].to, 'kid@example.com');
+        assert.equal(r.sent[0].subject, 'Re: Your TeenWork Support Request');
+        assert(r.sent[0].html.includes('&lt;b&gt;today&lt;/b&gt;') && r.sent[0].html.startsWith('<p>Hi Kid,</p>'), 'reply body not escaped: ' + r.sent[0].html);
+        assert.deepEqual(r.opened, [], 'the email app opened although TeenWork sent the reply');
+        assert.equal(r.open, false);
+        assert(/Reply emailed to Kid/.test(await p.locator('#global-toast').innerText()));
+        // TeenWork couldn't send: the window stays, says so, and nothing opens until the admin asks
+        r = await reply(false);
+        assert.deepEqual(r.opened, []);
+        assert.equal(r.open, true);
+        assert(/couldn’t send/.test(await p.locator('#adm-reply-info').innerText()));
+        await p.click('#adm-reply-email-only');
+        r = await p.evaluate(() => window.__opened);
+        assert(r.length === 1 && r[0].startsWith('mailto:kid@example.com?subject=Re%3A%20Your%20TeenWork%20Support%20Request'), JSON.stringify(r));
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
 
       /* 4. Pro checkout: unchanged before Paid Launch; Stripe after */
       {
@@ -310,7 +345,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.deepEqual(errors, []);
         await context.close();
       }
-      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, Pro before/after Paid Launch (prices, ask a parent, checkout, employer, parent note, not set up), return from Stripe + Manage billing');
+      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch (prices, ask a parent, checkout, employer, parent note, not set up), return from Stripe + Manage billing');
     }
   } finally {
     await browser.close();

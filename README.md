@@ -5,7 +5,7 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v51: the Build Brief's home screen and quick fixes, and the admin's Supabase sign-in).
+- `index.html` – app markup (currently TeenWork v54: Share TeenWork, Stripe payments for Pro, Resend for sending email and EmailJS for the team inbox).
 - `assets/img/hero-*.avif`, `hero-*.webp` – the home page picture in three sizes (it used to be inside `index.html`).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase.
@@ -13,13 +13,19 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 - `supabase/migrations/20261018_closed_accounts.sql` – the `closed_accounts` table the app reads to hide deleted accounts.
 - `supabase/migrations/20261018_tw_public_counts.sql` – `tw_public_counts()`, the counts-only function the homepage calls for its live numbers (no names or emails).
 - `supabase/migrations/20261030_admin_role.sql` – makes Aya's own Supabase account the admin and lets only the admin change plan settings or send as "TeenWork Admin".
+- `supabase/functions/billing/` – the Supabase Edge Function behind Pro payments: Stripe Checkout, the Stripe billing page, plan status and Stripe's webhook (deploy with Verify JWT off).
+- `supabase/functions/send-email/` – the Supabase Edge Function that sends app emails through Resend (deploy with Verify JWT off).
+- `supabase/migrations/20261015_email_send_log.sql` – the email limits table `send-email` uses (already applied on 2026-10-15; kept here as a record).
+- `supabase/migrations/20261106_billing_and_sharing.sql` – the `tw_billing` and `tw_stripe_events` tables, the rule that only payments can switch someone to Pro once Paid Launch is on, and `tw_referral_count()` for the share window.
+- `manifest.json`, `sw.js`, `icon-512.png`, `icon-maskable-512.png` – lets phones add TeenWork to the home screen. `sw.js` always asks the network first and only falls back to its copy when offline.
 - `robots.txt`, `sitemap.xml` – tell search engines they may read the site and where its one page is.
 - `favicon.ico`, `icon-192.png`, `apple-touch-icon.png`, `logo.png`, `og-image.png` – site icon, logo and the picture shown when a link is shared.
 
 ## Keys
 
 Only public keys belong in this repo (the Supabase publishable key and the EmailJS public key inside `index.html`).
-The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`. Never commit Groq keys, the Supabase service-role key, or the EmailJS private key.
+The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`. The Stripe and Resend keys live there too (see "Payments and email (v54)").
+Never commit Groq, Stripe or Resend keys, the Supabase service-role key, or the EmailJS private key.
 
 ## Deploying
 
@@ -41,7 +47,8 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 4. Sign in again as the admin, so the new sign-in carries the role.
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
-`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs` and `node --experimental-strip-types tests/delete-account-auth.mjs`.
+`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs`,
+`node --experimental-strip-types tests/delete-account-auth.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
 
 ## Search engines
 
@@ -60,6 +67,28 @@ A linked parent's ⏰ Weekly Hour Limit (`assets/js/parent-hours-v52.js`) is sav
 
 `assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (photo upload isn't built; the Profile Photo box says so).
 Messages is a labeled dialog with a Close button and a "Something feels wrong" button inside it; focus moves in and back out, Tab stays inside, and Escape closes the top window even while typing. The Verification permit step says exactly where the teen stands (`window.twPermitStepStatus`, called from `parent-consent-v44.js`). Check with `node tests/onboarding-v53.cjs`.
+
+## Sharing (v54)
+
+`assets/js/share-v54.js` (+ `assets/css/share-v54.css`) holds `window.twShare()`, the "📣 Share TeenWork" window: the link with a Copy button, Text, Email, WhatsApp, Facebook and "More…" (the phone's own share sheet). On a phone it opens the phone's share sheet straight away. It is reached from the menu, the home page band and footer, the old referral window, the rate window and a one-time note on the 3rd dashboard visit.
+A real member's link carries their 8-letter code (`?ref=CODE`, saved as `ref_code` in `user_data`). Whoever signs up within 60 days of opening that link gets `referred_by` saved, and the window shows how many people joined with the code (`tw_referral_count()`, counts only). Practice accounts, the admin and visitors share the plain address. There are no rewards for sharing, so the app promises none.
+Welcome, parent-link, consent and recommendation emails end with a small "Know someone who'd use TeenWork?" box (`window.twEmailShareBlock`, used by `branded-email-v41.js`). Emails to the team inbox never get it. Nothing sends invites for people: sharing always goes out from the member's own phone or email app.
+
+## Payments and email (v54)
+
+**Who sends what.** Emails to people (welcome, parent links, alerts) go through Resend from the `send-email` function. Emails to the TeenWork team (contact form, support, admin alerts) go through EmailJS straight to the team inbox. If Resend isn't set up or fails, people's emails fall back to EmailJS.
+`send-email` only keeps links to the TeenWork site (and `mailto:`) and only when a signed-in member sends; everything else is turned into plain text, so the function can't be used to send phishing links. Limits: 20 an hour per member, 15 an hour per visitor address, 8 an hour per recipient (60 for team inboxes) and 95 a day in all.
+
+**Pro payments.** Until the admin turns on Paid Launch (Admin → Launch Controls), Pro stays free and works as before. Once it's on, "Upgrade" opens Stripe Checkout through the `billing` function ($4.99 a month for Teen Pro, $49 a month for Employer Pro). A teen is first asked to get a parent or guardian. Stripe tells the `billing` function when a payment starts, renews or stops; the function then sets `app_metadata.tw_plan` and `tw_ai_plan` (so the AI's Pro key follows the payment) and the account's `plan` row. "Manage billing" on the plans page opens Stripe's own page to change the card or cancel. Once Paid Launch is on, the database refuses a `plan` of "pro" written by anyone but the admin or the `billing` function.
+
+Set up, in this order:
+
+1. Stripe (test mode first): create two monthly prices, Teen Pro $4.99 and Employer Pro $49. Turn on the customer portal (Settings → Billing → Customer portal).
+2. Supabase → Edge Functions → Secrets: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_TEEN_PRO`, `STRIPE_PRICE_EMPLOYER_PRO`.
+3. Apply `supabase/migrations/20261106_billing_and_sharing.sql`, then deploy `billing` and `send-email` with Verify JWT off.
+4. Stripe → Developers → Webhooks: add `https://qocmpwimsfcnqijtfmki.supabase.co/functions/v1/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Save its signing secret as `STRIPE_WEBHOOK_SECRET`.
+5. Admin → System Health shows "Payments (Stripe)". Test with Stripe's test card 4242 4242 4242 4242, then switch every key and price to live mode.
+6. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
 
 ## Source layout and secure AI deployment
 

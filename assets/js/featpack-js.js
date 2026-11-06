@@ -436,6 +436,7 @@
     return c;
   }
   window.openReferral = function(){
+    if (typeof window.twShare === 'function') { window.twShare({ source: 'refer', sheet: true }); return; }   // v54: one share window
     document.getElementById('referral-code-display').textContent = getReferralCode();
     document.getElementById('referral-count').textContent = load(LS.invites, 0);
     document.getElementById('referralModal').classList.add('active');
@@ -443,7 +444,8 @@
   window.closeReferral = ()=>document.getElementById('referralModal').classList.remove('active');
   window.copyReferralCode = function(){
     const c = getReferralCode();
-    navigator.clipboard?.writeText(`Join me on TeenWork! Use my code ${c} and we both get a free month: https://teenwork.ayaqd.com/?ref=${c}`);
+    if (typeof window.twShare === 'function') { window.twShare({ source: 'refer', sheet: true }); return; }
+    navigator.clipboard?.writeText(`Join me on TeenWork, the free app for safe local teen jobs: https://teenwork.ayaqd.com/`);
     showToast?.('📋 Code + link copied','success');
     save(LS.invites, load(LS.invites, 0) + 1);
     document.getElementById('referral-count').textContent = load(LS.invites, 0);
@@ -603,8 +605,7 @@
   };
   window.incrementEmployerPost = function(){ save(LS.freemium, load(LS.freemium, 0) + 1); };
   window.boostJobListing = function(jobId){
-    const list = load(LS.featured, []); if(!list.includes(jobId)){ list.push(jobId); save(LS.featured, list); }
-    showToast?.('🔥 Job boosted — appears at the top for 7 days ($9)','success');
+    showToast?.('Featured job boosts aren\'t available yet. Nothing was charged.','info');
   };
   window.isJobFeatured = function(jobId){ return load(LS.featured, []).includes(jobId); };
 

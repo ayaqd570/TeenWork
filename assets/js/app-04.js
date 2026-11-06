@@ -2246,11 +2246,11 @@ function _twShowFreeProReviewAsk() {
       <div style="background:linear-gradient(135deg,var(--green-pale),#f0fdf4);border:1.5px solid var(--green-light);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem">
         <div style="font-size:.75rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.5rem">What's included in your free Pro:</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.8rem;color:var(--text)">
-          <div>✓ Unlimited AI requests</div>
+          <div>✓ More AI (500 a day)</div>
           <div>✓ AI Resume Builder</div>
           <div>✓ AI Job Coach</div>
           <div>✓ Pitch AI</div>
-          <div>✓ Priority matching</div>
+          <div>✓ Wage Coach</div>
           <div>✓ Unlimited applies</div>
         </div>
       </div>
@@ -3173,7 +3173,7 @@ Suggestion: [one sentence fix]`;
   renderBrowseJobs();
   showAlert('emp-post-alert', `✅ "${title}" posted! This is not a compliance certification. Teens in ${city} can now apply.`, 'success');
   // Check if new job matches any tracked teen profile
-  setTimeout(aiJobMatchForParent, 500);
+  if (typeof window.aiJobMatchForParent === 'function') setTimeout(window.aiJobMatchForParent, 500);   // v54: it was never defined, so every post ended in an error
 }
 
 function closeJob(idx) {

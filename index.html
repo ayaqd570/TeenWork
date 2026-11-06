@@ -309,7 +309,7 @@
 <script id="demo-guard-v49" src="assets/js/demo-guard-v49.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" async></script>
-<!-- manifest removed: data: URIs are blocked in file: origins -->
+<link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TeenWork">
@@ -526,6 +526,10 @@
           <button class="btn-primary" onclick="gotoPage('signup')" style="font-size:1rem;padding:14px 32px;">Sign Up — It's Free</button>
           <button class="btn-secondary" onclick="gotoPage('login')" style="font-size:1rem;padding:14px 28px;">Sign In</button>
         </div>
+        <div class="tw54-share-band" id="tw54-share-band">
+          <p>Know a teen, a parent or a local business who’d like TeenWork? Send it to them. It’s free.</p>
+          <button type="button" onclick="twShare({source:'home'})">📣 Share TeenWork</button>
+        </div>
       </section>
 
       <div class="landing-footer">
@@ -534,6 +538,7 @@
         &nbsp;·&nbsp; <button class="terms-link" onclick="twOpenHelp()">Help &amp; Support</button>
         &nbsp;·&nbsp; <button class="terms-link" onclick="twGoEmployers()">For employers</button>
         &nbsp;·&nbsp; <button class="terms-link" onclick="gotoPage('school')">For schools</button>
+        &nbsp;·&nbsp; <button class="terms-link" onclick="twShare({source:'footer'})">Share TeenWork</button>
         <span id="tw51-pro-show-wrap" hidden>&nbsp;·&nbsp; <button class="terms-link" id="tw51-pro-show" onclick="twShowProInfo()">Show Pro info</button></span>
         &nbsp;·&nbsp; TeenWork 2026 &nbsp;·&nbsp; Built by a teen, for teens
       </div>
@@ -713,7 +718,7 @@
           <label id="su-plan-pro-card" style="display:block;border:2px solid var(--amber);border-radius:14px;padding:16px 14px;cursor:pointer;transition:border-color .15s;background:var(--amber-pale)">
             <input type="radio" name="su-plan" value="pro" style="margin-right:6px">
             <strong style="color:var(--amber);font-size:1rem">⭐ Pro</strong>
-            <div id="su-plan-pro-price" style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.6">✓ Unlimited AI requests<br>✓ AI Resume Builder<br>✓ AI Job Coach (always on)<br>✓ Pitch AI for applications<br>✓ Priority job matching<br>✓ Early access to new features</div>
+            <div id="su-plan-pro-price" style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.6">✓ More AI (up to 500 a day)<br>✓ AI Resume Builder<br>✓ AI Job Coach (always on)<br>✓ Pitch AI for applications<br>✓ Wage Coach</div>
           </label>
         </div>
         <div id="su-plan-notice" style="display:none;margin-top:8px;padding:8px 12px;background:var(--green-pale);border:1.5px solid var(--green-light);border-radius:8px;font-size:.78rem;color:var(--green);font-weight:600"></div>
@@ -1588,13 +1593,6 @@
               </div>
             </div>
           </div>
-          <div class="panel" style="margin-top:1rem">
-            <div class="panel-head"><h2>🗑️ Account Actions</h2></div>
-            <div class="panel-body">
-              <button class="btn-secondary" style="width:100%;margin-bottom:8px;color:var(--amber);border-color:var(--amber)" onclick="showToast('Account deactivation would require email confirmation in production','info')">⏸ Deactivate Account</button>
-              <p style="font-size:.72rem;color:var(--muted)">Deactivating hides your profile from employers. You can reactivate anytime by signing back in.</p>
-            </div>
-          </div>
         </div>
       </div>
       </div>
@@ -2246,12 +2244,6 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
           <div class="form-group"><label>Date Completed</label><input type="date" id="proj-date"></div>
           <div class="form-group"><label>Skills Used (comma separated)</label><input type="text" id="proj-skills" placeholder="e.g. mowing, trimming"></div>
-        </div>
-        <div class="form-group"><label>📷 Photo (optional)</label>
-          <div style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:var(--bg)" onclick="showToast('Photo upload would open file picker in production','info')">
-            <div style="font-size:1.5rem">📷</div>
-            <div style="font-size:.8rem;color:var(--muted);margin-top:4px">Click to upload a photo of your work</div>
-          </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:1rem">
           <button class="btn-primary" style="flex:1" onclick="savePortfolioProject()">💾 Save Project</button>
@@ -3412,7 +3404,7 @@
 </div>
 
 
-<script src="assets/js/app-04.js?v=51"></script>
+<script src="assets/js/app-04.js?v=54"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
@@ -3498,8 +3490,8 @@
 
 <div class="modal-overlay" id="referralModal" onclick="if(event.target===this)closeReferral()">
   <div class="modal" style="max-width:460px">
-    <h3>🎁 Refer a Friend</h3>
-    <p style="font-size:.86rem;color:var(--muted);margin:6px 0 1rem">Share your code — when a friend signs up, you both get a Premium month free.</p>
+    <h3>📣 Share TeenWork</h3>
+    <p style="font-size:.86rem;color:var(--muted);margin:6px 0 1rem">Share your link with a friend. It’s free for them too.</p>
     <div style="display:flex;gap:8px;align-items:center;background:var(--green-pale);padding:14px;border-radius:12px;margin-bottom:1rem">
       <div style="flex:1">
         <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Your code</div>
@@ -3507,7 +3499,7 @@
       </div>
       <button class="btn-primary" onclick="copyReferralCode()">📋 Copy</button>
     </div>
-    <div style="font-size:.82rem">Invites sent: <strong id="referral-count">0</strong></div>
+    <div style="font-size:.82rem" hidden>Invites sent: <strong id="referral-count">0</strong></div>
     <button class="btn-secondary" style="width:100%;margin-top:1rem" onclick="closeReferral()">Close</button>
   </div>
 </div>
@@ -3540,23 +3532,21 @@
         <div class="pricing-li" style="color:#bbb">✗ AI Resume Builder</div>
         <div class="pricing-li" style="color:#bbb">✗ AI Job Coach (unlimited)</div>
         <div class="pricing-li" style="color:#bbb">✗ Pitch AI for applications</div>
-        <div class="pricing-li" style="color:#bbb">✗ Priority job matching</div>
         <button class="btn-secondary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Get started free</button>
       </div>
       <div class="pricing-card featured" style="position:relative;border-color:var(--amber);box-shadow:0 4px 24px rgba(217,158,50,.18)">
         <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--amber);color:#fff;font-size:.72rem;font-weight:800;padding:4px 16px;border-radius:20px;white-space:nowrap">⭐ Most Popular</div>
         <div style="font-weight:700;color:var(--amber);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Pro Plan</div>
-        <div class="pricing-price" style="font-size:2.4rem;color:var(--amber)">Free<span style="font-size:.9rem;font-weight:600;color:var(--muted)"> right now</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:.4rem">App is still in testing — Pro is free.</div>
-        <div style="background:var(--amber-pale);border:1.5px solid var(--amber);border-radius:10px;padding:8px 12px;font-size:.79rem;color:#7a4700;font-weight:600;margin-bottom:1rem">🧪 Currently in testing. You'll get a <strong>10-day email notice</strong> before any paid plan is added — no surprise charges.</div>
-        <div class="pricing-li">✓ <strong>Unlimited AI requests</strong></div>
+        <div class="pricing-price" id="tw54-teen-pro-price" style="font-size:2.4rem;color:var(--amber)">Free<span style="font-size:.9rem;font-weight:600;color:var(--muted)"> right now</span></div>
+        <div id="tw54-teen-pro-note" style="font-size:.83rem;color:var(--muted);margin-bottom:.4rem">App is still in testing — Pro is free.</div>
+        <div id="tw54-testing-box" style="background:var(--amber-pale);border:1.5px solid var(--amber);border-radius:10px;padding:8px 12px;font-size:.79rem;color:#7a4700;font-weight:600;margin-bottom:1rem">🧪 Currently in testing. You'll get a <strong>10-day email notice</strong> before any paid plan is added — no surprise charges.</div>
+        <div class="pricing-li">✓ <strong>More AI: up to 500 requests a day</strong></div>
         <div class="pricing-li">✓ AI Resume Builder</div>
         <div class="pricing-li">✓ AI Job Coach (always on)</div>
         <div class="pricing-li">✓ Pitch AI — stand-out applications</div>
-        <div class="pricing-li">✓ Priority job matching</div>
         <div class="pricing-li">✓ Wage Coach &amp; negotiation tips</div>
         <div class="pricing-li">✓ All Free features included</div>
-        <button class="btn-primary" id="pricing-pro-btn" onclick="handleUpgradeClick()" style="width:100%;margin-top:1.2rem;background:var(--amber)">Upgrade to Pro →</button>
+        <button class="btn-primary" id="pricing-pro-btn" onclick="handleUpgradeClick('teen_pro')" style="width:100%;margin-top:1.2rem;background:var(--amber)">Upgrade to Pro →</button>
       </div>
     </div>
 
@@ -3564,23 +3554,23 @@
     <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
       <div class="pricing-card">
         <div style="font-weight:700;color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Starter</div>
-        <div class="pricing-price">Free<span style="font-size:.85rem;color:var(--muted)"> / 2 posts</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Then $19 per extra post</div>
-        <div class="pricing-li">✓ 2 free job posts</div>
+        <div class="pricing-price">Free</div>
+        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Always free to start</div>
+        <div class="pricing-li">✓ 2 job posts a month</div>
         <div class="pricing-li">✓ View up to 3 applicants per job</div>
         <div class="pricing-li">✓ Applicant pipeline board</div>
         <button class="btn-secondary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Post a job free</button>
       </div>
       <div class="pricing-card featured">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;color:var(--green);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Employer Pro</span><span class="feat-ribbon">Popular</span></div>
-        <div class="pricing-price">$49<span style="font-size:.9rem;font-weight:600;color:var(--muted)">/mo</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Unlimited posts + analytics</div>
-        <div class="pricing-li">✓ Unlimited job postings (20 active)</div>
-        <div class="pricing-li">✓ See all applicants</div>
-        <div class="pricing-li">✓ 2 featured listing boosts/mo</div>
-        <div class="pricing-li">✓ Bulk messaging &amp; saved teens</div>
-        <div class="pricing-li">✓ Full analytics + interview scheduler</div>
-        <button class="btn-primary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Go Pro →</button>
+        <div class="pricing-price" id="tw54-emp-pro-price">$49<span style="font-size:.9rem;font-weight:600;color:var(--muted)">/mo</span></div>
+        <div id="tw54-emp-pro-note" style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Free while TeenWork is in testing</div>
+        <div class="pricing-li">✓ Unlimited job posts</div>
+        <div class="pricing-li">✓ See every applicant</div>
+        <div class="pricing-li">✓ Bulk messaging</div>
+        <div class="pricing-li">✓ More AI: up to 500 requests a day</div>
+        <div class="pricing-li">✓ Everything in Starter</div>
+        <button class="btn-primary" id="tw54-emp-pro-btn" onclick="handleUpgradeClick('employer_pro')" style="width:100%;margin-top:1.2rem">Go Pro — free during testing →</button>
       </div>
       <div class="pricing-card">
         <div style="font-weight:700;color:var(--purple);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Schools / Orgs</div>
@@ -3598,15 +3588,19 @@
       <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;margin-bottom:1rem;color:var(--text)">Common questions</h3>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">Can I try Pro before paying?</summary>
-        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Yes — while TeenWork is in early access, all Pro features are available for free. You'll be notified before any billing starts.</p>
+        <p id="tw54-faq-try" style="margin-top:8px;font-size:.88rem;color:var(--muted)">Yes — while TeenWork is in early access, all Pro features are available for free. You’ll get an email at least 10 days before any paid plan starts.</p>
       </details>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">What counts as an "AI request"?</summary>
-        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Each time the AI writes or suggests something — resume bullet, cover letter, coaching tip — counts as one request. Free and Pro accounts share the same AI service (Groq), but use separate API quotas so Pro usage never limits Free users and vice versa. During testing, both plans get generous access.</p>
+        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Each time the AI writes or suggests something — resume bullet, cover letter, coaching tip — counts as one request. Free accounts get a smaller daily allowance; Pro accounts get up to 500 a day. Safety checks on messages and job posts never count.</p>
       </details>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">Is it really free for teens and parents?</summary>
         <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">The Free plan is free forever. Pro unlocks more AI and advanced features. We never take a cut of what teens earn.</p>
+      </details>
+      <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
+        <summary style="font-weight:700;cursor:pointer;list-style:none">How do payments and canceling work?</summary>
+        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Payments go through Stripe, so TeenWork never sees or stores card numbers. Teens should ask a parent or guardian before paying. Cancel anytime with <strong>Manage billing</strong> on this page; Pro stays on until the end of the month you paid for.</p>
       </details>
     </div>
   </div>
@@ -3659,7 +3653,7 @@
   </div>
 </div>
 
-<script id="featpack-js" src="assets/js/featpack-js.js"></script>
+<script id="featpack-js" src="assets/js/featpack-js.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3743,7 +3737,7 @@
      ═══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-07.css">
 
-<script src="assets/js/app-12.js?v=51"></script>
+<script src="assets/js/app-12.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v16 PATCH
@@ -3804,8 +3798,8 @@
 ══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-11.css">
 
-<script src="assets/js/app-16.js"></script>
-<script src="assets/js/app-17.js?v=51"></script>
+<script src="assets/js/app-16.js?v=54"></script>
+<script src="assets/js/app-17.js?v=54"></script>
 
 <script src="assets/js/app-18.js"></script>
 
@@ -3824,15 +3818,15 @@
 
 <script id="plan-limits-v40" src="assets/js/plan-limits-v40.js?v=51"></script>
 
-<script id="branded-email-v41" src="assets/js/branded-email-v41.js"></script>
+<script id="branded-email-v41" src="assets/js/branded-email-v41.js?v=54"></script>
 
 <script id="support-reply-email-v42" src="assets/js/support-reply-email-v42.js"></script>
 
-<script id="resend-email-v42" src="assets/js/resend-email-v42.js"></script>
+<script id="resend-email-v42" src="assets/js/resend-email-v42.js?v=54"></script>
 
 <script id="address-autocomplete-v42" src="assets/js/address-autocomplete-v42.js"></script>
 
-<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js"></script>
+<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=54"></script>
 
 <script id="real-data-v43" src="assets/js/real-data-v43.js"></script>
 
@@ -3888,5 +3882,8 @@
 <link rel="stylesheet" href="assets/css/home-v51.css?v=51">
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>
 <script id="app-fixes-v51" src="assets/js/app-fixes-v51.js?v=51"></script>
+<link rel="stylesheet" href="assets/css/share-v54.css?v=54">
+<script id="share-v54" src="assets/js/share-v54.js?v=54"></script>
+<script id="billing-v54" src="assets/js/billing-v54.js?v=54"></script>
 </body>
 </html>

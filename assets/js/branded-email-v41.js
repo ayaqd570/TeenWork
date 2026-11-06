@@ -172,7 +172,7 @@
         /* header */
         '<tr><td bgcolor="' + C.green + '" style="background:' + C.green + ';background-image:linear-gradient(135deg,' + C.green + ' 0%,' + C.dark + ' 60%,' + C.darker + ' 100%);padding:26px 32px 22px;border-radius:20px 20px 0 0;">' +
           '<div style="font-family:' + DISPLAY + ';font-size:30px;font-weight:900;line-height:1.1;color:#ffffff;">&#127793; Teen<span style="color:' + C.amberMid + ';">Work</span></div>' +
-          '<div style="font-family:' + FONT + ';font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:' + C.greenLight + ';margin-top:8px;">Safe local jobs for Vermont teens 13&ndash;17</div>' +
+          '<div style="font-family:' + FONT + ';font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:' + C.greenLight + ';margin-top:8px;">Safe local jobs for teens 13&ndash;17</div>' +
         '</td></tr>' +
         '<tr><td height="6" style="height:6px;line-height:6px;font-size:0;' + stripe + '">&nbsp;</td></tr>' +
         /* headline */
@@ -182,6 +182,8 @@
         '</td></tr>' +
         /* body */
         '<tr><td style="padding:14px 32px 30px;font-family:' + FONT + ';font-size:16px;line-height:1.6;color:' + C.text + ';">' + o.body + '</td></tr>' +
+        /* v54: "Know someone who'd like TeenWork?" box in friendly emails (share-v54) */
+        (o.share ? '<tr><td style="padding:0 32px 26px;">' + o.share + '</td></tr>' : '') +
         /* footer */
         '<tr><td bgcolor="' + C.bg + '" style="background:' + C.bg + ';border-top:1px solid ' + C.border + ';padding:20px 32px 24px;text-align:center;font-family:' + FONT + ';font-size:12px;line-height:1.6;color:' + C.muted + ';border-radius:0 0 20px 20px;">' +
           '<div style="font-family:' + DISPLAY + ';font-size:15px;font-weight:900;color:' + C.green + ';margin-bottom:4px;">&#127793; Built by a teen, for teens.</div>' +
@@ -231,10 +233,12 @@
     var body = restyle(inner);
     var tmp = document.createElement('div'); tmp.innerHTML = inner;
     var preheader = p.tw_preheader || String(tmp.textContent || '').replace(/\s+/g, ' ').replace(/^\s*Hi\b[^,]{0,40},\s*/i, '').trim();
-    p.message = frame({ heading: heading, icon: icon, tone: tone, body: body, preheader: preheader });
+    var share = '';
+    try { if (tone !== 'alert' && typeof window.twEmailShareBlock === 'function') share = window.twEmailShareBlock(p, C, FONT) || ''; } catch (e) { share = ''; }
+    p.message = frame({ heading: heading, icon: icon, tone: tone, body: body, preheader: preheader, share: share });
     if (!p.from_name) p.from_name = 'TeenWork';
     if (!p.to_name) p.to_name = '';
-    delete p.tw_tone; delete p.tw_heading; delete p.tw_icon; delete p.tw_preheader;
+    delete p.tw_tone; delete p.tw_heading; delete p.tw_icon; delete p.tw_preheader; delete p.tw_share;
     return [service, template, p];
   }
   window.twBrandEmailParams = function (params) { var c = cfg(); return brand(c.service, c.template, params)[2]; };

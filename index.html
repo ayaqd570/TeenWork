@@ -1572,12 +1572,24 @@
           </div>
           <div class="panel" style="margin-top:1rem">
             <div class="panel-head"><h2>📷 Profile Photo</h2><span class="badge badge-green">Optional</span></div>
-            <div class="panel-body tw53-photo">
+            <div class="panel-body tw53-photo" id="tw55-photo">
               <div class="tw53-avatar" id="tw53-avatar" aria-hidden="true">🙂</div>
-              <p class="tw53-avatar-cap">Default avatar (your initials)</p>
-              <p><b>You don't need a photo.</b> You can apply for jobs and use every part of TeenWork without one.</p>
-              <p><b>Who can see it:</b> photo upload isn't turned on yet, so nobody sees a photo of you. Your profile shows this default avatar instead.</p>
-              <p class="tw53-hint">If photo upload is added later, pick a friendly picture that doesn't show your school name, your house or street, or a team jersey.</p>
+              <p class="tw53-avatar-cap" id="tw55-cap">Default avatar (your initials)</p>
+              <div class="tw55-btns">
+                <button type="button" class="btn-secondary" id="tw55-pick">📷 Add a photo</button>
+                <button type="button" class="btn-secondary tw55-remove" id="tw55-remove" hidden>Remove photo</button>
+                <input type="file" id="tw55-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
+              </div>
+              <p class="tw55-status" id="tw55-status" role="status" aria-live="polite"></p>
+              <p><b>You don't need a photo.</b> You can apply for jobs and use every part of TeenWork without one. Without a photo, people see your initials.</p>
+              <fieldset class="tw55-aud" id="tw55-aud">
+                <legend>Who can see your photo</legend>
+                <label><input type="radio" name="tw55-aud" value="me"><span><b>Only me</b></span></label>
+                <label><input type="radio" name="tw55-aud" value="parent" checked><span><b>Me and my parent</b><small>Parents linked to your account</small></span></label>
+                <label><input type="radio" name="tw55-aud" value="employers"><span><b>My parent and employers</b><small>An employer sees it only after your parent approves your application to their job</small></span></label>
+              </fieldset>
+              <div class="tw55-who" id="tw55-who" hidden></div>
+              <p class="tw53-hint">Pick a friendly picture of your face that doesn't show your school name, your house or street, or a team jersey. TeenWork makes it a small square and removes hidden details phone cameras add, like where the photo was taken.</p>
             </div>
           </div>
           <div class="panel" style="margin-top:1rem">
@@ -3823,7 +3835,7 @@
 
 <script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=54"></script>
 
-<script id="real-data-v43" src="assets/js/real-data-v43.js"></script>
+<script id="real-data-v43" src="assets/js/real-data-v43.js?v=55"></script>
 
 <script id="find-jobs-simple-v45" src="assets/js/find-jobs-simple-v45.js"></script>
 
@@ -3873,6 +3885,8 @@
 <script id="practice-v52" src="assets/js/practice-v52.js?v=52"></script>
 <link rel="stylesheet" href="assets/css/onboarding-v53.css?v=53">
 <script id="onboarding-v53" src="assets/js/onboarding-v53.js?v=53"></script>
+<link rel="stylesheet" href="assets/css/profile-photo-v55.css?v=55">
+<script id="profile-photo-v55" src="assets/js/profile-photo-v55.js?v=55"></script>
 <script id="dob-start-v50" src="assets/js/dob-start-v50.js"></script>
 <link rel="stylesheet" href="assets/css/home-v51.css?v=51">
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>

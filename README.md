@@ -47,7 +47,7 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 4. Sign in again as the admin, so the new sign-in carries the role.
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
-`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs`,
+`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing),
 `node --experimental-strip-types tests/delete-account-auth.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
 
 ## Search engines
@@ -70,9 +70,13 @@ Messages is a labeled dialog with a Close button and a "Something feels wrong" b
 
 ## Sharing (v54)
 
-`assets/js/share-v54.js` (+ `assets/css/share-v54.css`) holds `window.twShare()`, the "📣 Share TeenWork" window: the link with a Copy button, Text, Email, WhatsApp, Facebook and "More…" (the phone's own share sheet). On a phone it opens the phone's share sheet straight away. It is reached from the menu, the home page band and footer, the old referral window, the rate window and a one-time note on the 3rd dashboard visit.
+`assets/js/share-v54.js` (+ `assets/css/share-v54.css`) holds `window.twShare()`, the "📣 Share TeenWork" window: the link with a Copy button, Text, Email, WhatsApp, Facebook and "More…" (the phone's own share sheet). Visitors on a phone get the phone's share sheet straight away; members always get the window, because it also has their joined count and the email invite. It is reached from the menu, the home page band and footer, the old referral window, the rate window and a one-time note on the 3rd dashboard visit.
 A real member's link carries their 8-letter code (`?ref=CODE`, saved as `ref_code` in `user_data`). Whoever signs up within 60 days of opening that link gets `referred_by` saved, and the window shows how many people joined with the code (`tw_referral_count()`, counts only). Practice accounts, the admin and visitors share the plain address. There are no rewards for sharing, so the app promises none.
-Welcome, parent-link, consent and recommendation emails end with a small "Know someone who'd use TeenWork?" box (`window.twEmailShareBlock`, used by `branded-email-v41.js`). Emails to the team inbox never get it. Nothing sends invites for people: sharing always goes out from the member's own phone or email app.
+Welcome, parent-link, consent and recommendation emails end with a small "Know someone who'd use TeenWork?" box (`window.twEmailShareBlock`, used by `branded-email-v41.js`). Emails to the team inbox never get it. **Invite by email:** a member can type a friend's address in the window and TeenWork emails them a short invite with the member's first name and link (`sendInvite` in `share-v54.js`). Invites only go through Resend, with the member's sign-in, at most 5 a day per account and once a month per address, never to the member's own address or the team inbox. If Resend isn't set up or refuses, the window offers "Send it from your email app instead". Invites never use EmailJS, so they can't use up the EmailJS allowance that sign-up codes and parent emails need.
+
+## Polish pass (v54)
+
+`assets/js/polish-v54.js` + `assets/css/polish-v54.css`: the empty bottom bar that showed as a green line on the home page is hidden there, the last Sign Up / Sign In buttons are centered on phones, the floating Help / Rate buttons stay off the plans page, and the sign-up plan choices stack on phones. The sign-up form has no required "track my activity" box any more (the Terms already say how account data is used) and no pop-up when notifications are turned off. "Add to home screen" is one sheet (`twOfferInstall` in `featpack-js.js`): only for real members on their dashboard, about 8 seconds after it opens, and "Not now" waits 30 days; app-04's green banner and the iPhone banner on every visit are gone. AI badges say "AI" (they said "Gemini AI" or "Grok AI", but the app uses Groq). The plans page and the school page only list what the app does.
 
 ## Payments and email (v54)
 

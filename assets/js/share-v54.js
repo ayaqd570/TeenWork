@@ -19,6 +19,13 @@
      (branded-email-v41 asks window.twEmailShareBlock for it).
    • Practice accounts (demos) and the admin share the plain link and never
      get a code or the dashboard note.
+   • v54b (2026-11-07, Aya: "use emails … to try and share it", "full ready
+     setup"): members can also invite a friend by email from the window.
+     TeenWork sends the invite through Resend (send-email, with the member's
+     sign-in), at most 5 a day per account and once a month per address.
+     If Resend isn't set up, the window offers the member's own email app
+     instead. Invites never go through EmailJS, so they can't use up the
+     EmailJS allowance that sign-up codes and parent emails need.
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -171,6 +178,7 @@
           '<a class="tw54-btn" data-tw54="facebook" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=' + enc(p.url) + '"><span aria-hidden="true">📘</span>Facebook</a>' +
           (navigator.share ? '<button type="button" class="tw54-btn" data-tw54="more"><span aria-hidden="true">⋯</span>More…</button>' : '') +
         '</div>' +
+        (member ? inviteForm() : '') +
         (member ? '<p class="tw54-count" id="tw54-count" aria-live="polite">' + (code ? 'Checking who joined with your link…' : '') + '</p>' : '') +
         '<p class="tw54-small">' + (member ? 'Your link has a short code so we can count who joins. It never shows your name or email.' : 'Sign up to get your own link and see how many people join with it.') + '</p>' +
       '</div>';
@@ -191,6 +199,8 @@
       if (what === 'more') { e.preventDefault(); nativeShare(p).then(function (r) { if (r === 'shared') close(); }); return; }
       remember(what);
     });
+    var form = m.querySelector('#tw54-invite');
+    if (form) form.addEventListener('submit', function (e) { e.preventDefault(); sendInvite(form); });
     document.body.appendChild(m);
     document.addEventListener('keydown', onKey, true);
     var first = m.querySelector('.tw54-copy'); if (first) try { first.focus({ preventScroll: true }); } catch (e) {}
@@ -201,6 +211,87 @@
     });
     remember('open:' + (opts.source || ''));
   }
+  /* ── 5b. invite a friend by email ───────────────────────────────── */
+  var INVITES_PER_DAY = 5, INVITE_AGAIN_DAYS = 30;
+  var EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[a-z]{2,}$/i;
+  function inviteKey(u) { return 'tw54_invites_' + acctKey(u).replace(/[^a-z0-9]/g, '_'); }
+  function hashAddr(a) { var h = 2166136261; a = String(a).toLowerCase(); for (var i = 0; i < a.length; i++) { h ^= a.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+  function inviteState(u) {
+    var s = lsGet(inviteKey(u)) || {}, today = new Date().toISOString().slice(0, 10), cut = Date.now() - INVITE_AGAIN_DAYS * 864e5;
+    if (s.day !== today) { s.day = today; s.n = 0; }
+    s.sent = (Array.isArray(s.sent) ? s.sent : []).filter(function (x) { return x && x.at > cut; });
+    return s;
+  }
+  function inviteForm() {
+    var left = Math.max(0, INVITES_PER_DAY - inviteState(user()).n);
+    return '<form class="tw54-invite" id="tw54-invite" novalidate>' +
+      '<label for="tw54-inv-to">✉️ Invite a friend by email</label>' +
+      '<div class="tw54-link"><input id="tw54-inv-to" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="friend@example.com" aria-describedby="tw54-inv-msg">' +
+      '<button type="submit" class="tw54-copy tw54-inv-send">Send invite</button></div>' +
+      '<p class="tw54-inv-msg" id="tw54-inv-msg" role="status" aria-live="polite">TeenWork emails them your link. ' + left + ' invite' + (left === 1 ? '' : 's') + ' left today.</p>' +
+      '</form>';
+  }
+  function firstName(u) { return String((u && (u.firstName || u.name)) || '').trim().split(/\s+/)[0].replace(/[^\p{L}\p{M}'’-]/gu, '').slice(0, 30); }
+  function inviteEmail(u, link) {
+    var name = firstName(u), who = name ? esc(name) : 'A friend';
+    var about = u.type === 'employer'
+      ? 'TeenWork connects local businesses and neighbors with teens 13&ndash;17 for small jobs. A parent approves every application, and posting a job is free.'
+      : 'TeenWork helps teens 13&ndash;17 find safe local jobs like lawn care, pet sitting and snow shoveling. A parent approves every application, and chats with employers stay inside the app. It&rsquo;s free for teens and parents.';
+    var html =
+      '<p>Hi there,</p>' +
+      '<p><strong>' + who + '</strong> thinks you&rsquo;d like TeenWork and sent you this invite.</p>' +
+      '<p>' + about + '</p>' +
+      '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 8px;"><tr><td bgcolor="#2d6a4f" style="background:#2d6a4f;border-radius:12px;">' +
+        '<a href="' + esc(link) + '" style="display:inline-block;padding:14px 26px;font-family:\'DM Sans\',Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:12px;">See TeenWork</a>' +
+      '</td></tr></table>' +
+      '<p style="font-size:13px;color:#4b5563;">You got this email because ' + who + ' typed your address into TeenWork. We won&rsquo;t email you again unless you sign up.</p>';
+    return {
+      subject: (name ? name + ' invited you to TeenWork' : 'You’re invited to TeenWork'),
+      html: html,
+      text: (name ? name : 'A friend') + ' thinks you’d like TeenWork. ' + message(u.type) + ' ' + link
+    };
+  }
+  function inviteMsg(form, text, kind, mailto) {
+    var el = form.querySelector('#tw54-inv-msg'); if (!el) return;
+    el.className = 'tw54-inv-msg' + (kind ? ' tw54-inv-' + kind : '');
+    el.textContent = text;
+    if (mailto) {
+      var a = document.createElement('a'); a.href = mailto; a.textContent = 'Send it from your email app instead';
+      a.addEventListener('click', function () { remember('invite_app'); });
+      el.appendChild(document.createTextNode(' ')); el.appendChild(a);
+    }
+  }
+  function sendInvite(form) {
+    var u = user(); if (!isMember(u)) return;
+    var input = form.querySelector('#tw54-inv-to'), btn = form.querySelector('.tw54-inv-send');
+    var to = String(input.value || '').trim().toLowerCase();
+    var mine = String(u.email || '').toLowerCase().split('#')[0];
+    if (!EMAIL_RE.test(to)) { inviteMsg(form, 'That doesn’t look like an email address.', 'warn'); input.focus(); return; }
+    if (to === mine) { inviteMsg(form, 'That’s your own email. Try a friend’s.', 'warn'); input.focus(); return; }
+    if ((window.twIsTeamInbox && window.twIsTeamInbox(to)) || TEAM.indexOf(to) >= 0) { inviteMsg(form, 'That’s the TeenWork team’s address. Try a friend’s.', 'warn'); input.focus(); return; }
+    var st = inviteState(u), h = hashAddr(to);
+    if (st.sent.some(function (x) { return x.h === h; })) { inviteMsg(form, 'You already invited them this month.', 'warn'); return; }
+    if (st.n >= INVITES_PER_DAY) { inviteMsg(form, 'You’ve sent ' + INVITES_PER_DAY + ' invites today. You can send more tomorrow.', 'warn'); return; }
+    var link = linkFor(myCode(true)), mail = inviteEmail(u, link);
+    var mailto = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(mail.subject) + '&body=' + encodeURIComponent(mail.text);
+    if (typeof window.twSendViaResend !== 'function') { inviteMsg(form, 'TeenWork can’t send email invites right now.', 'warn', mailto); return; }
+    var params = { to_email: to, to_name: '', from_name: 'TeenWork', reply_to: '', subject: mail.subject, message: mail.html,
+      tw_heading: 'You’re invited to TeenWork', tw_icon: '📣', tw_preheader: (firstName(u) || 'A friend') + ' thinks you’d like TeenWork.', tw_share: false };
+    try { if (typeof window.twBrandEmailParams === 'function') params = window.twBrandEmailParams(params); } catch (e) {}
+    btn.disabled = true; var label = btn.textContent; btn.textContent = 'Sending…';
+    inviteMsg(form, 'Sending…');
+    window.twSendViaResend(params).then(function () {
+      var s2 = inviteState(u); s2.n += 1; s2.sent.push({ h: h, at: Date.now() }); lsSet(inviteKey(u), s2);
+      remember('invite');
+      input.value = '';
+      var left = Math.max(0, INVITES_PER_DAY - s2.n);
+      inviteMsg(form, '✓ Invite sent to ' + to + '. Thank you for sharing TeenWork! ' + left + ' left today.', 'ok');
+    }, function (err) {
+      var code = err && err.code;
+      inviteMsg(form, code === 'rate_limited' || code === 'limit' ? 'TeenWork has sent a lot of emails today. Try again later, or' : 'TeenWork can’t send email invites right now.', 'warn', mailto);
+    }).then(function () { btn.disabled = false; btn.textContent = label; });
+  }
+
   // A tiny per-account tally, so the admin can see sharing is used (user_data row "share_stats").
   function remember(what) {
     var u = user(); if (!isMember(u)) return;
@@ -222,7 +313,7 @@
   window.twShare = function (opts) {
     opts = opts || {};
     try { if (window.twCleanMenu && window.twCleanMenu.close) window.twCleanMenu.close(true); } catch (e) {}
-    if (navigator.share && phoneLike() && !opts.sheet) {
+    if (navigator.share && phoneLike() && !opts.sheet && !isMember(user())) {
       remember('open:' + (opts.source || ''));
       return nativeShare(payload()).then(function (r) { if (r === 'failed') openSheet(opts); return r; });
     }

@@ -31,7 +31,7 @@ async function open(browser, viewport, query = '', fake = {}) {
         if (a === 'checkout') return json({ ok: true, url: 'https://checkout.stripe.com/c/pay/cs_test_1' });
         if (a === 'portal') return json({ ok: true, url: 'https://billing.stripe.com/p/session/test_1' });
       }
-      if (fn === 'send-email') return json(body && body.ping ? { ok: true, configured: true, testing: false } : { ok: true, id: 'em_1' });
+      if (fn === 'send-email') return json(body && body.ping ? { ok: true, configured: true, testing: false } : (fake.sendEmail ? fake.sendEmail(body) : { ok: true, id: 'em_1' }));
       return json({ ok: false });
     }
     if (u.hostname === 'checkout.stripe.com' || u.hostname === 'billing.stripe.com') return r.fulfill({ status: 200, contentType: 'text/html', body: '<title>stripe</title>' + u.hostname });
@@ -206,6 +206,105 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await context.close();
       }
       {
+        // Invite a friend by email: members only, through Resend with the member's sign-in, 5 a day, once per address
+        const { context, p, errors, calls } = await open(browser, viewport);
+        await member(p, 'teen', 'sam@example.com');
+        await p.evaluate(() => twShare({ source: 'test' }));
+        await p.waitForSelector('#tw54-invite');
+        assert(/5 invites left today/.test(await p.locator('#tw54-inv-msg').innerText()));
+        const ib = await p.locator('.tw54-inv-send').boundingBox();
+        assert(ib.height >= 44 && ib.x + ib.width <= viewport.width, tag + ': invite button ' + JSON.stringify(ib));
+        const tryTo = async (addr) => { await p.fill('#tw54-inv-to', addr); await p.click('.tw54-inv-send'); await p.waitForTimeout(250); return p.locator('#tw54-inv-msg').innerText(); };
+        assert(/doesn’t look like an email/.test(await tryTo('not-an-email')));
+        assert(/your own email/.test(await tryTo('SAM@example.com')));
+        assert(/TeenWork team/.test(await tryTo('aqdteenwork@gmail.com')));
+        assert.equal(calls.filter(c => c.fn === 'send-email' && c.body && !c.body.ping).length, 0, 'a bad address was sent');
+        assert(/Invite sent to friend@example.com/.test(await tryTo('Friend@Example.com')));
+        let sent = calls.filter(c => c.fn === 'send-email' && c.body && !c.body.ping);
+        assert.equal(sent.length, 1);
+        const code = await p.evaluate(() => twShareCode());
+        assert.equal(sent[0].body.to, 'friend@example.com');
+        assert.equal(sent[0].body.subject, 'Sam invited you to TeenWork');
+        assert.equal(sent[0].auth, 'Bearer tok.en.teen', 'the invite was sent without the member’s sign-in');
+        assert(sent[0].body.html.includes('https://teenwork.ayaqd.com/?ref=' + code) && sent[0].body.html.includes('See TeenWork'), 'invite has no personal link');
+        assert(!/Know someone who/.test(sent[0].body.html), 'invite carries the share box too');
+        assert(/typed your address into TeenWork/.test(sent[0].body.html));
+        assert.equal(await p.inputValue('#tw54-inv-to'), '');
+        assert(/already invited/.test(await tryTo('friend@example.com')));
+        for (const n of [2, 3, 4, 5]) assert(/Invite sent/.test(await tryTo('friend' + n + '@example.com')));
+        assert(/sent 5 invites today/.test(await tryTo('friend6@example.com')));
+        sent = calls.filter(c => c.fn === 'send-email' && c.body && !c.body.ping);
+        assert.equal(sent.length, 5);
+        assert.equal(calls.filter(c => c.fn === 'send-email' && c.body && /friend6/.test(c.body.to || '')).length, 0);
+        assert(await noOverflow(p), tag + ': invite form overflows');
+        await p.keyboard.press('Escape');
+        // a practice account and a visitor get no invite form
+        await p.evaluate(() => { window.currentUser = null; try { currentUser = null; } catch (e) {} twShare({ source: 'test', sheet: true }); });
+        await p.waitForSelector('#tw54-share');
+        assert.equal(await p.locator('#tw54-invite').count(), 0, 'a visitor can send invites');
+        await p.keyboard.press('Escape');
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+      {
+        // Resend not set up yet: nothing goes through EmailJS; the member is offered their own email app
+        const { context, p, errors, calls } = await open(browser, viewport, '', { sendEmail: () => ({ ok: false, code: 'not_configured', error: 'RESEND_API_KEY is not set' }) });
+        await member(p, 'parent', 'mom@example.com');
+        await p.evaluate(() => { window.__ejs = 0; const ej = window.emailjs; if (ej) { const o = ej.send; ej.send = function () { window.__ejs++; return o.apply(this, arguments); }; } });
+        await p.evaluate(() => twShare({ source: 'test' }));
+        await p.waitForSelector('#tw54-invite');
+        await p.fill('#tw54-inv-to', 'neighbor@example.com');
+        await p.click('.tw54-inv-send');
+        await p.waitForSelector('#tw54-inv-msg a');
+        assert(/can’t send email invites right now/.test(await p.locator('#tw54-inv-msg').innerText()));
+        assert((await p.getAttribute('#tw54-inv-msg a', 'href')).startsWith('mailto:neighbor%40example.com?subject='));
+        assert.equal(await p.evaluate(() => window.__ejs), 0, 'an invite went through EmailJS');
+        assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('tw54_invites_mom_example_com') || '{}').n || 0), 0, 'a failed invite was counted');
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+      {
+        // Polish pass: home page, plans page, sign-up, AI labels, the one install offer
+        const { context, p, errors } = await open(browser, viewport);
+        assert.equal(await p.evaluate(() => getComputedStyle(document.getElementById('mobileNav') || document.body).display === 'none' || !document.getElementById('mobileNav')), true, tag + ': green bar along the bottom of the home page');
+        const ctas = await p.evaluate(() => [...document.querySelectorAll('.landing-final .landing-cta button')].map(b => { const r = b.getBoundingClientRect(); return r.left + r.width / 2; }));
+        assert(ctas.length === 2 && (phone ? ctas.every(x => Math.abs(x - 195) < 6) : true), tag + ': last Sign Up / Sign In not centered ' + JSON.stringify(ctas));
+        assert(!/Grok AI|Gemini AI/.test(await p.evaluate(() => document.body.innerText + [...document.querySelectorAll('.badge')].map(b => b.textContent).join(' '))), 'an AI label still names the wrong service');
+        await p.evaluate(() => gotoPage('pricing'));
+        await p.waitForTimeout(300);
+        assert.equal(await p.evaluate(() => document.body.classList.contains('tw54-pricing')), true);
+        const fabs = await p.evaluate(() => [...document.querySelectorAll('[data-tw-fab="1"],#v17-support-fab,#v16-support-fab,#v17-rate-fab,#v16-rate-fab')].filter(e => e.offsetParent !== null).length);
+        assert.equal(fabs, 0, tag + ': floating buttons cover the plans page');
+        const pricing = await p.locator('#page-pricing').innerText();
+        assert(!/API daily quota|AI Job Coach \(unlimited\)|Bulk student onboarding|teacher seat|Cohort progress/i.test(pricing), 'plans page promises things the app does not do');
+        assert(/AI help: 10 requests a day/.test(pricing));
+        await p.evaluate(() => gotoPage('signup'));
+        await p.waitForTimeout(300);
+        assert.equal(await p.locator('#perm-activity-signup').count(), 0, 'the required "track my activity" box is back');
+        assert(!/push &|push notifications/i.test(await p.locator('#page-signup').innerText()));
+        if (phone) {
+          const a = await p.locator('#su-plan-free-card').boundingBox(), b = await p.locator('#su-plan-pro-card').boundingBox();
+          assert(Math.abs(a.x - b.x) < 2 && b.y > a.y, tag + ': plan choices are not stacked');
+          assert(b.x + b.width <= viewport.width, 'Pro plan card runs off the screen');
+        }
+        assert(await noOverflow(p), tag + ': sign-up page overflows');
+        await p.evaluate(() => gotoPage('landing'));
+        // install: never for visitors or practice accounts; a member on their dashboard gets one offer, "Not now" waits a month
+        await p.evaluate(() => { const e = new Event('beforeinstallprompt', { cancelable: true }); e.prompt = () => { window.__prompted = 1; }; e.userChoice = Promise.resolve({ outcome: 'dismissed' }); window.dispatchEvent(e); });
+        assert.equal(await p.evaluate(() => twOfferInstall()), false, 'install offered to a visitor');
+        assert.equal(await p.locator('#pwa-install-banner:visible').count(), 0, 'the old install banner is showing');
+        await member(p, 'teen', 'sam@example.com');
+        await p.evaluate(() => { document.querySelectorAll('.page').forEach(x => x.classList.remove('active')); document.getElementById('page-teen').classList.add('active'); });
+        assert.equal(await p.evaluate(() => twOfferInstall()), true, 'no install offer for a member on their dashboard');
+        assert(/opens like an app/.test(await p.locator('#featpack-install').innerText()));
+        assert(!/push notifications|offline access/i.test(await p.locator('#featpack-install').innerText()));
+        await p.locator('#featpack-install .btn-secondary').click();
+        assert.equal(await p.evaluate(() => document.getElementById('featpack-install').classList.contains('open')), false);
+        assert.equal(await p.evaluate(() => twOfferInstall()), false, '"Not now" did not wait');
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+      {
         // Admin support replies are emailed by TeenWork (Resend / EmailJS), not opened in the admin's email app
         const { context, p, errors } = await open(browser, viewport);
         const reply = async (ok) => {
@@ -345,7 +444,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.deepEqual(errors, []);
         await context.close();
       }
-      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch (prices, ask a parent, checkout, employer, parent note, not set up), return from Stripe + Manage billing');
+      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, email invites (Resend only, 5 a day, members only, email-app fallback), polish (home bar, centered buttons, plans page claims, sign-up boxes, AI labels, one install offer), admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch (prices, ask a parent, checkout, employer, parent note, not set up), return from Stripe + Manage billing');
     }
   } finally {
     await browser.close();

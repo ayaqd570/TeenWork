@@ -357,12 +357,12 @@ function _v18FixSupportLabel() {
 ────────────────────────────────────────────────────── */
 function _v18UpdateAILabels() {
   document.querySelectorAll('.badge').forEach(el => {
-    if (el.textContent.trim() === 'Gemini AI') el.textContent = 'Grok AI';
+    if (el.textContent.trim() === 'Gemini AI') el.textContent = 'AI';
   });
   document.querySelectorAll('[id*="ai-chat"], [class*="ai-chat"]').forEach(el => {
     // Update the Gemini badge near AI chats
     const badge = el.closest('.panel')?.querySelector('.badge-blue');
-    if (badge && badge.textContent.includes('Gemini')) badge.textContent = 'Grok AI';
+    if (badge && badge.textContent.includes('Gemini')) badge.textContent = 'AI';
   });
 }
 

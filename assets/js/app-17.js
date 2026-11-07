@@ -62,16 +62,15 @@ function _injectProInfo() {
   var box = document.createElement('div');
   box.id = 'v24-pro-info';
   box.style.cssText = 'margin-top:10px;padding:11px 13px;background:linear-gradient(135deg,#f0fdf4,#d8f3dc);border:1.5px solid #52b788;border-radius:10px;font-family:"DM Sans",sans-serif';
+  // v54: one column (two squeezed columns broke on phones) and only what Pro really adds
   box.innerHTML =
-    '<div style="font-size:.76rem;font-weight:800;color:#2d6a4f;margin-bottom:6px;display:flex;align-items:center;gap:6px">' +
-    '<span style="background:#2d6a4f;color:#fff;border-radius:5px;padding:1px 7px;font-size:.68rem;letter-spacing:.03em">PRO</span>' +
-    'Everything included — <em>free during launch \uD83C\uDF89</em></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:.76rem;color:#1a5c3a;line-height:1.5">' +
-    '<div>\u2705 More AI (500 a day)</div><div>\u2705 AI Resume Builder</div>' +
-    '<div>\u2705 AI Job Coach (always on)</div><div>\u2705 Pitch AI for applications</div>' +
-    '<div>\u2705 Wage Coach</div><div>\u2705 Everything in Free</div>' +
-    '</div>' +
-    '<div style="margin-top:7px;font-size:.71rem;color:#52b788;font-weight:700">\uD83D\uDCA1 Free plan: unlimited applications \u0026 10 AI requests/day</div>';
+    '<div style="font-size:.78rem;font-weight:800;color:#2d6a4f;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px">' +
+    '<span style="background:#2d6a4f;color:#fff;border-radius:5px;padding:1px 7px;font-size:.68rem;letter-spacing:.03em;white-space:nowrap">PRO</span>' +
+    '<span>Free during early access \uD83C\uDF89</span></div>' +
+    '<ul style="list-style:none;margin:0;padding:0;font-size:.78rem;color:#1a5c3a;line-height:1.6">' +
+    '<li>\u2705 More AI help (500 a day)</li><li>\u2705 AI Resume Builder</li>' +
+    '<li>\u2705 Pitch AI for applications</li><li>\u2705 Wage Coach</li><li>\u2705 Everything in Free</li>' +
+    '</ul>';
   proPrice.parentNode.insertBefore(box, proPrice.nextSibling);
 }
 setTimeout(_injectProInfo, 700);

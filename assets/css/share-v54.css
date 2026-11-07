@@ -39,3 +39,19 @@ html.dark .tw54-link input{background:#16201b;color:#eef2ef;border-color:#3a4a41
 #twm-side .twm-foot .twm-item[data-twm="share"],#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]{grid-column:1/-1;color:var(--amber,#e76f00);font-weight:700}
 #twm-side .twm-foot .twm-item[data-twm="share"]:hover,#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]:hover{background:var(--amber-pale,#fff1e0);color:#c95f00}
 #twm-side .twm-foot .twm-item[data-twm="share"],#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]{min-height:44px}
+
+/* v54b: invite a friend by email (members only) */
+.tw54-invite{margin:1rem 0 0;padding:12px;border:1.5px solid var(--border,#e2ddd4);border-radius:14px;background:var(--green-pale,#e8f5ee)}
+.tw54-invite label{display:block;margin:0 0 8px;font-size:.92rem;font-weight:700;color:var(--green,#2d6a4f)}
+.tw54-invite .tw54-link{margin:0}
+.tw54-invite .tw54-link input{background:var(--card,#fffdf7)}
+.tw54-inv-send[disabled]{opacity:.65;cursor:progress}
+.tw54-inv-msg{margin:8px 0 0;font-size:.8rem;line-height:1.45;color:var(--muted,#4b5563)}
+.tw54-inv-msg a{color:var(--green,#2d6a4f);font-weight:700}
+.tw54-inv-ok{color:var(--green,#2d6a4f);font-weight:700}
+.tw54-inv-warn{color:#8a4b00;font-weight:600}
+html.dark .tw54-invite{background:#1b2a22;border-color:#3a4a41}
+html.dark .tw54-invite label{color:#9fd8b5}
+html.dark .tw54-invite .tw54-link input{background:#16201b}
+html.dark .tw54-inv-ok,html.dark .tw54-inv-msg a{color:#9fd8b5}
+html.dark .tw54-inv-warn{color:#f5c27a}

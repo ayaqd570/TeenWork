@@ -227,26 +227,10 @@ function _v18PatchRateModalShare() {
       shareSection.id = 'v18-share-section';
       shareSection.innerHTML = `
         <div class="share-label">📣 Help spread the word!</div>
-        <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;line-height:1.4">Share TeenWork with a friend and your quote may appear on the home page.</p>
-        <button class="tw-share-btn" onclick="_twShareNative()">
-          📱 Share via phone
-        </button>
-        <button class="tw-share-btn" onclick="_twShareCopy()">
-          🔗 Copy link to share
-        </button>
-        <div id="v18-share-quote-wrap" style="margin-top:8px;display:none">
-          <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Your shareable quote (optional)</div>
-          <textarea id="v18-share-quote" placeholder="Tell friends why you love TeenWork in one sentence…"
-            style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:none;height:56px;outline:none;background:var(--bg);color:var(--text)"
-            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-          <button onclick="_twSubmitShareQuote()" style="margin-top:6px;background:var(--green);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;width:100%">
-            ✅ Save Quote for Community Page
-          </button>
-        </div>
-        <button onclick="document.getElementById('v18-share-quote-wrap').style.display=document.getElementById('v18-share-quote-wrap').style.display==='none'?'block':'none'"
-          style="background:none;border:none;color:var(--green);font-size:.8rem;font-weight:600;cursor:pointer;padding:4px 0;font-family:'DM Sans',sans-serif">
-          ✏️ Add a quote to the community page
-        </button>`;
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;line-height:1.4">Know someone who'd like TeenWork? Send them your link. It's free for them too.</p>
+        <button type="button" class="tw-share-btn" onclick="twShare({source:'rate',sheet:true})">
+          📣 Share TeenWork
+        </button>`;   /* v54: one share window (share-v54); the old "quote for the community page" only saved on this device */
       form.appendChild(shareSection);
     }
   });

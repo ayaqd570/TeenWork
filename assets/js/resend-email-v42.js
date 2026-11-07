@@ -15,6 +15,12 @@
      window.twDeliverEmail instead of straight to EmailJS.
    • Admin → 🩺 System Health gets an "Email sender" line with a
      "Send test" button (Resend only, to the address typed there).
+   • v54 (2026-11-06, Aya: "use resend for sending emails, emailjs for
+     receiving"): emails TO the TeenWork team (Help & Support, school
+     partnerships, sign-up notices) go straight through EmailJS; emails to
+     everyone else go through Resend. When someone is signed in, their own
+     sign-in token goes with the email, so send-email keeps TeenWork links
+     (it turns every link into plain text for emails sent without a sign-in).
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -30,14 +36,44 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function looksHtml(m) { var t = String(m || '').trim(); return t.charAt(0) === '<' && t.charAt(t.length - 1) === '>'; }
 
+  // TeenWork's own inboxes: emails to them are "received" mail and go through EmailJS (v54).
+  var TEAM = ['ayaquarrierdraper@gmail.com', 'aqdteenwork@gmail.com'];
+  function isTeam(to) {
+    var t = String(to || '').trim().toLowerCase();
+    if (typeof ADMIN_EMAIL !== 'undefined' && t === String(ADMIN_EMAIL).toLowerCase()) return true;
+    return TEAM.indexOf(t) >= 0;
+  }
+  window.twIsTeamInbox = isTeam;
+  // The signed-in person's Supabase token, else ''. Only when the sign-in belongs to the account on screen,
+  // or the email goes to the signed-in person themselves (the welcome email is sent just before the
+  // new account opens).
+  function userToken(to) {
+    try {
+      var u = window.currentUser;
+      if (u && (u.isDemo || u.twDemo)) return Promise.resolve('');
+      var mine = [String((u && u.email) || '').toLowerCase(), String(to || '').trim().toLowerCase()].filter(Boolean);
+      var getClient = typeof _twCloudClient === 'function' ? _twCloudClient(2000) : Promise.resolve(typeof sbClient !== 'undefined' ? sbClient : null);
+      return Promise.resolve(getClient).then(function (c) {
+        if (!c || !c.auth || typeof c.auth.getSession !== 'function') return '';
+        return c.auth.getSession().then(function (r) {
+          var s = r && r.data && r.data.session;
+          return s && s.access_token && mine.indexOf(String((s.user && s.user.email) || '').toLowerCase()) >= 0 ? s.access_token : '';
+        });
+      }).catch(function () { return ''; });
+    } catch (e) { return Promise.resolve(''); }
+  }
+
   function callFn(body) {
     var url = fnUrl(), key = sbKey();
     if (!url || !key) return Promise.resolve({ ok: false, httpStatus: 0, code: 'no_supabase', error: 'Supabase is not configured in this copy' });
+    return (body && body.ping ? Promise.resolve('') : userToken(body && body.to)).then(function (tok) { return post(url, key, tok || key, body); });
+  }
+  function post(url, key, bearer, body) {
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = ctl ? setTimeout(function () { ctl.abort(); }, TIMEOUT_MS) : null;
     return fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': 'Bearer ' + key },
+      headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': 'Bearer ' + bearer },
       body: JSON.stringify(body),
       signal: ctl ? ctl.signal : undefined
     }).then(function (res) {
@@ -82,6 +118,7 @@
     try {
       var p = params || {};
       if (!mainTemplate() || template !== mainTemplate() || !isEmail(p.to_email) || typeof p.message !== 'string') return viaEmailJS();
+      if (isTeam(p.to_email)) { remember({ at: new Date().toISOString(), to: p.to_email, subject: p.subject, via: 'emailjs', why: 'team inbox' }); return viaEmailJS(); }
       var at = new Date().toISOString();
       return window.twSendViaResend(p).then(function (r) {
         remember({ at: at, to: p.to_email, subject: p.subject, via: 'resend', id: r.id });

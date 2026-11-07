@@ -1,0 +1,57 @@
+/* v54 — Share TeenWork window, dashboard note, home page share band (share-v54.js) */
+.tw54-share{position:fixed;inset:0;z-index:100050;background:rgba(15,23,20,.55);display:flex;align-items:flex-end;justify-content:center;padding:0;font-family:'DM Sans',system-ui,sans-serif}
+@media (min-width:600px){.tw54-share{align-items:center;padding:1rem}}
+.tw54-share-card{position:relative;width:100%;max-width:440px;max-height:92vh;overflow:auto;background:var(--card,#fffdf7);color:var(--text,#1c1c1c);border-radius:20px 20px 0 0;padding:1.4rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+@media (min-width:600px){.tw54-share-card{border-radius:20px;padding:1.6rem 1.5rem 1.4rem}}
+.tw54-share-card h2{font-family:'Fraunces',Georgia,serif;font-size:1.3rem;color:var(--green,#2d6a4f);margin:0 2.4rem .35rem 0}
+.tw54-lead{font-size:.92rem;line-height:1.5;color:var(--muted,#4b5563);margin:0 0 1rem}
+.tw54-x{position:absolute;top:.55rem;right:.55rem;min-width:44px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--muted,#4b5563);font-size:1.2rem;cursor:pointer}
+.tw54-x:hover,.tw54-x:focus-visible{background:var(--green-pale,#e8f5ee);color:var(--green,#2d6a4f)}
+.tw54-link{display:flex;gap:8px;align-items:stretch;margin:0 0 1rem;min-width:0}
+.tw54-link input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--bg,#f5f0e8);color:var(--text,#1c1c1c);font-size:16px;font-family:inherit}
+.tw54-copy{flex:none;min-height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--green,#2d6a4f);color:#fff;font-family:inherit;font-size:.92rem;font-weight:700;cursor:pointer}
+.tw54-copy:hover{background:#235c40}
+.tw54-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tw54-btn{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--card,#fff);color:var(--text,#1c1c1c);font-family:inherit;font-size:.92rem;font-weight:700;text-decoration:none;cursor:pointer;min-width:0;overflow-wrap:anywhere}
+.tw54-btn span{font-size:1.15rem;line-height:1}
+.tw54-btn:hover,.tw54-btn:focus-visible{border-color:var(--green,#2d6a4f);background:var(--green-pale,#e8f5ee)}
+.tw54-count{margin:1rem 0 0;padding:10px 12px;border-radius:12px;background:var(--amber-pale,#fff1e0);color:#7a4700;font-size:.88rem;font-weight:700;line-height:1.45}
+.tw54-count:empty{display:none}
+.tw54-small{margin:.8rem 0 0;font-size:.78rem;line-height:1.45;color:var(--muted,#4b5563)}
+
+/* one-time note on the dashboard */
+.tw54-share-note{display:flex;align-items:center;gap:.5rem;min-width:0;margin:0 0 .9rem;padding:.3rem .3rem .3rem .85rem;background:var(--amber-pale,#fff1e0);border:1px solid #f6d7ae;border-left:4px solid var(--amber,#e76f00);border-radius:12px;color:var(--text,#1c1c1c);font-size:.9rem;line-height:1.4}
+.tw54-share-note p{flex:1;min-width:0;margin:0;overflow-wrap:break-word}
+.tw54-note-share{flex:none;min-height:44px;padding:0 16px;border:0;border-radius:10px;background:var(--amber,#e76f00);color:#fff;font-family:inherit;font-weight:700;cursor:pointer}
+.tw54-note-x{flex:none;min-width:44px;min-height:44px;border:0;border-radius:10px;background:transparent;color:inherit;font-size:1.4rem;line-height:1;cursor:pointer}
+
+/* home page */
+.tw54-share-band{margin:1.4rem auto 0;max-width:560px;padding:1rem 1.1rem;border:1.5px dashed var(--amber,#e76f00);border-radius:16px;background:rgba(255,241,224,.7);text-align:center}
+.tw54-share-band p{margin:0 0 .7rem;font-size:.95rem;line-height:1.5;color:var(--text,#1c1c1c)}
+.tw54-share-band button{min-height:44px;padding:0 22px;border:0;border-radius:12px;background:var(--amber,#e76f00);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;font-weight:700;cursor:pointer}
+.tw54-share-band button:hover{background:#c95f00}
+
+html.dark .tw54-share-card{background:#1f2a24;color:#eef2ef}
+html.dark .tw54-btn{background:#26332c;color:#eef2ef;border-color:#3a4a41}
+html.dark .tw54-link input{background:#16201b;color:#eef2ef;border-color:#3a4a41}
+
+/* "📣 Share TeenWork" in the dashboard menu (clean-menu-v43 FOOT): its own row, in the brand amber */
+#twm-side .twm-foot .twm-item[data-twm="share"],#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]{grid-column:1/-1;color:var(--amber,#e76f00);font-weight:700}
+#twm-side .twm-foot .twm-item[data-twm="share"]:hover,#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]:hover{background:var(--amber-pale,#fff1e0);color:#c95f00}
+#twm-side .twm-foot .twm-item[data-twm="share"],#twm-sheet .twm-sheet-foot .twm-item[data-twm="share"]{min-height:44px}
+
+/* v54b: invite a friend by email (members only) */
+.tw54-invite{margin:1rem 0 0;padding:12px;border:1.5px solid var(--border,#e2ddd4);border-radius:14px;background:var(--green-pale,#e8f5ee)}
+.tw54-invite label{display:block;margin:0 0 8px;font-size:.92rem;font-weight:700;color:var(--green,#2d6a4f)}
+.tw54-invite .tw54-link{margin:0}
+.tw54-invite .tw54-link input{background:var(--card,#fffdf7)}
+.tw54-inv-send[disabled]{opacity:.65;cursor:progress}
+.tw54-inv-msg{margin:8px 0 0;font-size:.8rem;line-height:1.45;color:var(--muted,#4b5563)}
+.tw54-inv-msg a{color:var(--green,#2d6a4f);font-weight:700}
+.tw54-inv-ok{color:var(--green,#2d6a4f);font-weight:700}
+.tw54-inv-warn{color:#8a4b00;font-weight:600}
+html.dark .tw54-invite{background:#1b2a22;border-color:#3a4a41}
+html.dark .tw54-invite label{color:#9fd8b5}
+html.dark .tw54-invite .tw54-link input{background:#16201b}
+html.dark .tw54-inv-ok,html.dark .tw54-inv-msg a{color:#9fd8b5}
+html.dark .tw54-inv-warn{color:#f5c27a}

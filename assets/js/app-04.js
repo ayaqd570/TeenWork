@@ -1272,23 +1272,8 @@ async function doSignup() {
   if (ADMIN_LOGIN_ALIASES.includes(email.toLowerCase())) { showAlert('su-alert','Please use a real email address.'); return; }
   if (_twEmailBlocked(email)) { showAlert('su-alert',"Sorry, that email address can't be used to create a TeenWork account."); return; }
 
-  // Activity tracking is required to continue
-  const trackingChecked = document.getElementById('perm-activity-signup')?.checked;
-  if (!trackingChecked) {
-    showAlert('su-alert', '⚠️ Please allow TeenWork to track your activity to continue. This is required for AI job matching and keeping your account safe.');
-    return;
-  }
-
-  // Notifications are optional but warn user what they'll miss
-  const notifChecked = document.getElementById('perm-notif-signup')?.checked;
-  if (!notifChecked) {
-    // Show a non-blocking warning — store their choice and continue
-    const confirmed = window.confirm(
-      'Without notifications, you won\'t receive:\n• Job match alerts\n• Application status updates\n• Safety alerts\n• Parent approval notifications\n\nYou can enable notifications later in Settings.\n\nContinue without notifications?'
-    );
-    if (!confirmed) return;
-    // They chose to continue — their in-app inbox will still receive notification messages
-  }
+  // v54: no separate "track my activity" box (the Terms cover how TeenWork uses account data), and
+  // turning notifications off is just a choice: they can be turned on later in Settings.
 
   if (selectedType === 'teen') {
     const tdob = document.getElementById('su-age')?.value;
@@ -2246,11 +2231,11 @@ function _twShowFreeProReviewAsk() {
       <div style="background:linear-gradient(135deg,var(--green-pale),#f0fdf4);border:1.5px solid var(--green-light);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem">
         <div style="font-size:.75rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.5rem">What's included in your free Pro:</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.8rem;color:var(--text)">
-          <div>✓ Unlimited AI requests</div>
+          <div>✓ More AI (500 a day)</div>
           <div>✓ AI Resume Builder</div>
           <div>✓ AI Job Coach</div>
           <div>✓ Pitch AI</div>
-          <div>✓ Priority matching</div>
+          <div>✓ Wage Coach</div>
           <div>✓ Unlimited applies</div>
         </div>
       </div>
@@ -3173,7 +3158,7 @@ Suggestion: [one sentence fix]`;
   renderBrowseJobs();
   showAlert('emp-post-alert', `✅ "${title}" posted! This is not a compliance certification. Teens in ${city} can now apply.`, 'success');
   // Check if new job matches any tracked teen profile
-  setTimeout(aiJobMatchForParent, 500);
+  if (typeof window.aiJobMatchForParent === 'function') setTimeout(window.aiJobMatchForParent, 500);   // v54: it was never defined, so every post ended in an error
 }
 
 function closeJob(idx) {
@@ -5177,7 +5162,7 @@ let _deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _deferredInstallPrompt = e;
-  showInstallBanner();
+  // v54: no banner here any more; featpack-js's install sheet is the one offer (window.twOfferInstall).
 });
 function showInstallBanner() {
   if (document.getElementById('pwa-install-banner')) return;
@@ -5212,7 +5197,8 @@ function checkIOSInstall() {
     }, 3000);
   }
 }
-document.addEventListener('DOMContentLoaded', checkIOSInstall);
+// v54: the iPhone tip is part of featpack-js's install sheet now (members only, at most once a month).
+// document.addEventListener('DOMContentLoaded', checkIOSInstall);
 
 // ════════════════════════════════════
 //  VIDEO INTRO (MediaRecorder + Supabase Storage)

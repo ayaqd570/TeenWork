@@ -175,15 +175,39 @@
   };
 
   /* ─── PWA INSTALL + PUSH ─── */
+  // v54: one install offer (this sheet), only for real members on their dashboard, never on the home,
+  // sign-up or demo screens, and "Not now" keeps it away for 30 days. app-04's green banner is retired.
   let deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredInstall = e;
-    if(!load(LS.installed, false)) setTimeout(()=>document.getElementById('featpack-install')?.classList.add('open'), 4000);
-  });
+  const INSTALL_LATER = 'tw54_install_later';
+  const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const standalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e) { return false; } };
+  function installSnoozed(){ try { return Date.now() - (Number(localStorage.getItem(INSTALL_LATER)) || 0) < 30*864e5; } catch(e) { return true; } }
+  function realMember(){ const u = window.currentUser; return !!(u && u.email && !u.isDemo && !window.twDemo && !window._twDemoSandbox?.active && u.type !== 'admin' && /^(teen|parent|employer)$/.test(u.type)); }
+  window.twOfferInstall = function(){
+    const sheet = document.getElementById('featpack-install');
+    if (!sheet || standalone() || installSnoozed() || load(LS.installed, false) || !realMember()) return false;
+    if (!deferredInstall && !isIOS()) return false;
+    const act = document.querySelector('.page.active');
+    if (!act || !/^page-(teen|parent|employer)$/.test(act.id)) return false;
+    const msg = sheet.querySelector('p');
+    if (msg) msg.textContent = isIOS() && !deferredInstall
+      ? 'Open TeenWork like an app: tap the Share button in Safari, then “Add to Home Screen”.'
+      : 'Add TeenWork to your home screen so it opens like an app, one tap away.';
+    const btn = sheet.querySelector('.btn-primary'); if (btn) btn.textContent = isIOS() && !deferredInstall ? 'Got it' : 'Install';
+    sheet.classList.add('open');
+    return true;
+  };
+  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredInstall = e; });
+  window.addEventListener('appinstalled', ()=>{ save(LS.installed, true); document.getElementById('featpack-install')?.classList.remove('open'); });
   window.featpackInstall = async function(){
     const sheet = document.getElementById('featpack-install');
-    save(LS.installed, true); sheet?.classList.remove('open');
-    if(deferredInstall){ deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; return; }
-    if(window.showToast) showToast('📲 To install: open your browser menu → Add to Home Screen','info');
+    sheet?.classList.remove('open');
+    if(deferredInstall){ deferredInstall.prompt(); const r = await deferredInstall.userChoice; deferredInstall = null; if (r && r.outcome === 'accepted') save(LS.installed, true); else try { localStorage.setItem(INSTALL_LATER, String(Date.now())); } catch(e) {} return; }
+    try { localStorage.setItem(INSTALL_LATER, String(Date.now())); } catch(e) {}
+  };
+  window.featpackInstallLater = function(){
+    document.getElementById('featpack-install')?.classList.remove('open');
+    try { localStorage.setItem(INSTALL_LATER, String(Date.now())); } catch(e) {}
   };
   window.enablePushNotifications = async function(){
     if(!('Notification' in window)){ showToast?.('Push notifications not supported in this browser','warn'); return; }
@@ -436,6 +460,7 @@
     return c;
   }
   window.openReferral = function(){
+    if (typeof window.twShare === 'function') { window.twShare({ source: 'refer', sheet: true }); return; }   // v54: one share window
     document.getElementById('referral-code-display').textContent = getReferralCode();
     document.getElementById('referral-count').textContent = load(LS.invites, 0);
     document.getElementById('referralModal').classList.add('active');
@@ -443,7 +468,8 @@
   window.closeReferral = ()=>document.getElementById('referralModal').classList.remove('active');
   window.copyReferralCode = function(){
     const c = getReferralCode();
-    navigator.clipboard?.writeText(`Join me on TeenWork! Use my code ${c} and we both get a free month: https://teenwork.ayaqd.com/?ref=${c}`);
+    if (typeof window.twShare === 'function') { window.twShare({ source: 'refer', sheet: true }); return; }
+    navigator.clipboard?.writeText(`Join me on TeenWork, the free app for safe local teen jobs: https://teenwork.ayaqd.com/`);
     showToast?.('📋 Code + link copied','success');
     save(LS.invites, load(LS.invites, 0) + 1);
     document.getElementById('referral-count').textContent = load(LS.invites, 0);
@@ -603,8 +629,7 @@
   };
   window.incrementEmployerPost = function(){ save(LS.freemium, load(LS.freemium, 0) + 1); };
   window.boostJobListing = function(jobId){
-    const list = load(LS.featured, []); if(!list.includes(jobId)){ list.push(jobId); save(LS.featured, list); }
-    showToast?.('🔥 Job boosted — appears at the top for 7 days ($9)','success');
+    showToast?.('Featured job boosts aren\'t available yet. Nothing was charged.','info');
   };
   window.isJobFeatured = function(jobId){ return load(LS.featured, []).includes(jobId); };
 

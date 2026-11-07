@@ -53,6 +53,16 @@ function calcCalendarStats() {
   return { totalHours, totalEarnings, weeklyHours: thisWeek.hours, weeklyEarnings: thisWeek.earnings, weekMap };
 }
 
+/* v52: the weekly number every hour check uses: the teen's own goal (not a law) or, when lower,
+   a legal school-week limit. Both come from work-rules-v52 (window.twWorkRules). */
+function _twWeekCap() {
+  try { if (window.twWorkRules) return window.twWorkRules.weekTarget(); } catch (e) {}
+  const n = Number(parentalControls['max-weekly-hours']) || 20;
+  return n < 999 ? { hours: n, kind: 'goal', name: 'weekly goal', short: 'weekly goal' } : null;
+}
+function _twEsc5(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function _twCapWords(cap) { return cap ? (cap.short || (cap.kind === 'goal' ? 'weekly goal' : 'school-week limit')) : 'weekly goal'; }
+
 /* ── Render the stats banner inside the calendar tab ────────────── */
 function renderCalEarningsBar() {
   let bar = document.getElementById('cal-earnings-bar');
@@ -67,15 +77,15 @@ function renderCalEarningsBar() {
   }
 
   const s = calcCalendarStats();
-  const maxWeekly = parentalControls['max-weekly-hours'] || 20;
-  const pct = Math.min(100, (s.weeklyHours / maxWeekly) * 100);
+  const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0, capWords = _twCapWords(cap);
+  const pct = maxWeekly ? Math.min(100, (s.weeklyHours / maxWeekly) * 100) : 0;
   const barColor = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--amber)' : 'var(--green)';
 
   bar.innerHTML = `
     <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;text-align:center">
       <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px">This Week</div>
       <div style="font-size:1.3rem;font-weight:900;color:var(--green)">${s.weeklyHours.toFixed(1)}<span style="font-size:.7rem;font-weight:600"> hrs</span></div>
-      <div style="font-size:.7rem;color:var(--muted)">of ${maxWeekly} max</div>
+      <div style="font-size:.7rem;color:var(--muted)">${maxWeekly ? 'of ' + maxWeekly + ' h ' + capWords : 'no weekly goal'}</div>
     </div>
     <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:.7rem .9rem;text-align:center">
       <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px">This Week Pay</div>
@@ -102,16 +112,17 @@ function renderCalEarningsBar() {
     hoursBar.style.marginBottom = '10px';
     bar.parentElement.insertBefore(hoursBar, bar.nextSibling);
   }
+  if (!maxWeekly) { hoursBar.innerHTML = `<div style="font-size:.75rem;color:var(--muted)">⏱ ${s.weeklyHours.toFixed(1)} h scheduled this week. No weekly goal set (add one in Work Log).</div>`; return; }
   hoursBar.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <span style="font-size:.75rem;font-weight:700;color:var(--text)">⏱ Weekly Hour Limit</span>
-      <span style="font-size:.75rem;font-weight:700;color:${barColor}">${s.weeklyHours.toFixed(1)} / ${maxWeekly} hrs ${pct>=100?'⚠️ LIMIT REACHED':''}</span>
+      <span style="font-size:.75rem;font-weight:700;color:var(--text)">⏱ ${_twEsc5(cap.label || (cap.kind === 'goal' ? 'Weekly goal (not a law)' : 'Legal school-week limit'))}</span>
+      <span style="font-size:.75rem;font-weight:700;color:${barColor}">${s.weeklyHours.toFixed(1)} / ${maxWeekly} h ${pct>=100?'⚠️ REACHED':''}</span>
     </div>
     <div style="background:#e9e9e9;border-radius:20px;height:9px;overflow:hidden">
       <div style="height:100%;border-radius:20px;background:${barColor};width:${pct}%;transition:width .4s"></div>
     </div>
-    ${pct>=80&&pct<100 ? `<div style="font-size:.72rem;color:var(--amber);font-weight:600;margin-top:3px">⚠️ Almost at your weekly limit — ${(maxWeekly - s.weeklyHours).toFixed(1)} hours remaining</div>` : ''}
-    ${pct>=100 ? `<div style="font-size:.72rem;color:var(--red);font-weight:600;margin-top:3px">🛑 Weekly hour limit reached. You cannot apply to more jobs this week.</div>` : ''}
+    ${pct>=80&&pct<100 ? `<div style="font-size:.72rem;color:var(--amber);font-weight:600;margin-top:3px">⚠️ Almost at your ${_twEsc5(capWords)}: ${(maxWeekly - s.weeklyHours).toFixed(1)} hours left</div>` : ''}
+    ${pct>=100 ? `<div style="font-size:.72rem;color:var(--red);font-weight:600;margin-top:3px">🛑 ${_twEsc5(cap.reached || 'Weekly limit reached')}. TeenWork holds new applications this week${cap.kind === 'goal' ? '; you can change your goal in Work Log' : ''}.</div>` : ''}
   `;
 }
 
@@ -131,21 +142,21 @@ window.calRender = function() {
 
 const _origTeenApply = typeof teenApply === 'function' ? teenApply : null;
 window.teenApply = function(jobId, title) {
-  const maxWeekly = parentalControls['max-weekly-hours'] || 20;
+  const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0;
   const { weeklyHours } = calcCalendarStats();
 
-  if (weeklyHours >= maxWeekly) {
+  if (maxWeekly && weeklyHours >= maxWeekly) {
     // Show hour-limit modal instead of applying
-    _showHourLimitModal(title, weeklyHours, maxWeekly);
-    // Notify parent
-    _notifyParentHourLimit(title, weeklyHours, maxWeekly);
+    _showHourLimitModal(title, weeklyHours, maxWeekly, cap);
+    // v52: no parent notice is sent from here (the old one only wrote to this device)
     return; // ← application is NOT submitted
   }
 
   if (_origTeenApply) _origTeenApply(jobId, title);
 };
 
-function _showHourLimitModal(jobTitle, currentHours, maxHours) {
+function _showHourLimitModal(jobTitle, currentHours, maxHours, cap) {
+  const isGoal = !cap || cap.kind === 'goal';
   const existing = document.getElementById('hour-limit-modal');
   if (existing) existing.remove();
 
@@ -155,14 +166,14 @@ function _showHourLimitModal(jobTitle, currentHours, maxHours) {
   modal.innerHTML = `
     <div style="background:#fff;border-radius:18px;padding:1.8rem 1.6rem;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.22);text-align:center;font-family:'DM Sans',sans-serif">
       <div style="font-size:3rem;margin-bottom:.5rem">🛑</div>
-      <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;color:var(--red);margin-bottom:.5rem">Weekly Hour Limit Reached</h3>
+      <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;color:var(--red);margin-bottom:.5rem">${_twEsc5((cap && cap.reached) || 'Weekly goal reached')}</h3>
       <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:1rem">
-        You've scheduled <strong>${currentHours.toFixed(1)} hours</strong> this week — your limit is <strong>${maxHours} hours</strong>.
-        You can't apply to "<strong>${jobTitle}</strong>" right now.
+        You've scheduled <strong>${currentHours.toFixed(1)} hours</strong> this week. Your ${_twEsc5((cap && cap.name) || 'weekly goal')} is <strong>${maxHours} hours</strong>.
+        TeenWork is holding your application to "<strong>${String(jobTitle || '').replace(/[<>&"]/g, '')}</strong>" for now.
       </p>
       <div style="background:var(--red-pale);border:1.5px solid #f5b7b1;border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--red);text-align:left">
-        <strong>⚠️ Your parent has been notified.</strong><br>
-        If you think your schedule should be updated, talk to your parent to adjust the weekly hour limit.
+        ${_twEsc5((cap && cap.why) || (isGoal ? 'This is your own weekly goal, not a law. If your family agrees, you can change it in Work Log under "Work rules for your age".'
+                 : 'Federal law limits 14- and 15-year-olds to 18 hours in a week when school is in session (40 when school is out).'))}
       </div>
       <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
         💬 You can still <strong>message the employer</strong> to ask about scheduling for a future week.
@@ -205,10 +216,10 @@ const _origSendMsgForLimit = typeof sendMsg === 'function' ? sendMsg : null;
 window.sendMsg = (function() {
   const prev = window.sendMsg;
   return async function(contactId) {
-    const maxWeekly = parentalControls['max-weekly-hours'] || 20;
+    const cap = _twWeekCap(), maxWeekly = cap ? cap.hours : 0;
     const { weeklyHours } = calcCalendarStats();
 
-    if (weeklyHours >= maxWeekly) {
+    if (maxWeekly && weeklyHours >= maxWeekly) {
       const inputEl = document.getElementById('msg-input-' + contactId);
       const msgText = inputEl ? inputEl.value.trim() : '';
 
@@ -218,8 +229,7 @@ window.sendMsg = (function() {
           inputEl.value = '';
           inputEl.style.height = 'auto';
         }
-        _showHourLimitMsgBlock(contactId);
-        _notifyParentHourLimitMsg(contactId, msgText, weeklyHours, maxWeekly);
+        _showHourLimitMsgBlock(contactId, cap);
         return; // ← message NOT sent
       }
     }
@@ -228,7 +238,8 @@ window.sendMsg = (function() {
   };
 })();
 
-function _showHourLimitMsgBlock(contactId) {
+function _showHourLimitMsgBlock(contactId, cap) {
+  const isGoal = !cap || cap.kind === 'goal';
   const chatBody = document.getElementById('msg-chat-body-' + contactId);
   if (!chatBody) return;
 
@@ -238,8 +249,8 @@ function _showHourLimitMsgBlock(contactId) {
   notice.innerHTML = `
     <span class="msg-blocked-icon">🛑</span>
     <div>
-      <span class="msg-blocked-label" style="color:var(--red)">Message Not Sent — Weekly Hour Limit Reached</span>
-      <span class="msg-blocked-detail">You've reached your ${parentalControls['max-weekly-hours'] || 20}-hour weekly limit. Messages asking for new shifts or more hours won't go through until next week or your parent adjusts your limit. Your parent has been notified.</span>
+      <span class="msg-blocked-label" style="color:var(--red)">Message not sent: ${_twEsc5(String((cap && cap.reached) || 'Weekly goal reached').toLowerCase())}</span>
+      <span class="msg-blocked-detail">You've reached ${_twEsc5((cap && cap.of) || ('your ' + (cap ? cap.hours + '-hour ' : '') + 'weekly goal'))}${isGoal ? ' (a personal target, not a law)' : cap && cap.kind === 'parent' ? ' (a family rule, not a law)' : ''}. Messages asking for new shifts or more hours are held until next week${isGoal ? ' or until you change your goal in Work Log' : ''}.</span>
     </div>`;
   chatBody.appendChild(notice);
   chatBody.scrollTop = chatBody.scrollHeight;
@@ -947,7 +958,7 @@ function adminReplyToSupport(email, name, msgId) {
 
       <div id="adm-reply-info" style="font-size:.74rem;color:#6b7280;margin-bottom:10px;padding:7px 10px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
         ${hasEmail
-          ? '📤 This will save to in-app inbox <strong>and</strong> open your email app to send to <strong>' + safeEmail + '</strong>'
+          ? '📤 TeenWork emails this reply to <strong>' + safeEmail + '</strong> and saves it here. If they answer, it comes to your email.'
           : '📥 No email on file — reply will be saved in the admin panel only. To reach this user, ask them to update their profile.'}
       </div>
 
@@ -955,7 +966,7 @@ function adminReplyToSupport(email, name, msgId) {
         <button id="adm-reply-send" style="flex:1;background:linear-gradient(135deg,#2d6a4f,#52b788);color:#fff;border:none;padding:11px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;">
           ${hasEmail ? '📨 Send Reply' : '💾 Save Reply'}
         </button>
-        ${hasEmail ? `<button id="adm-reply-email-only" style="background:#f0fdf4;color:#2d6a4f;border:1.5px solid #86efac;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">📧 Email Only</button>` : ''}
+        ${hasEmail ? `<button id="adm-reply-email-only" style="background:#f0fdf4;color:#2d6a4f;border:1.5px solid #86efac;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">✉️ Use my email app</button>` : ''}
         <button id="adm-reply-cancel" style="background:#f9fafb;color:#6b7280;border:1.5px solid #e2ddd4;padding:11px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;">Cancel</button>
       </div>
     </div>`;
@@ -982,24 +993,61 @@ function adminReplyToSupport(email, name, msgId) {
     } catch(e) {}
   }
 
+  // v54: "Send Reply" emails the reply from TeenWork itself (twSendEmail: Resend first, EmailJS as backup).
+  // It used to open the admin's own email app (Outlook) with a draft. That is now only the
+  // "Use my email app" button, or the way out when TeenWork couldn't send.
+  const REPLY_SUBJECT = 'Re: Your TeenWork Support Request';
+  const canSend = hasEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail) && typeof window.twSendEmail === 'function';
+  function _openMailApp(body) {
+    window.open('mailto:' + safeEmail + '?subject=' + encodeURIComponent(REPLY_SUBJECT) + '&body=' + encodeURIComponent(body));
+  }
+  function _replyHtml(body) {
+    return String(body).split(/\r?\n\s*\r?\n/).map(function (para) {
+      return '<p>' + para.replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }).replace(/\r?\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
   document.getElementById('adm-reply-send').onclick = function() {
     const body = document.getElementById('adm-reply-body')?.value?.trim();
     if (!body) { return; }
+    const btn = this;
+    if (btn.disabled) return;
     _saveReplyNote(body);
-    if (hasEmail) {
-      const subject = encodeURIComponent('Re: Your TeenWork Support Request');
-      window.open('mailto:' + safeEmail + '?subject=' + subject + '&body=' + encodeURIComponent(body));
+    if (!hasEmail) {
+      _close();
+      if (typeof showToast === 'function') showToast('✅ Reply saved', 'success');
+      return;
     }
-    _close();
-    if (typeof showToast === 'function') showToast('✅ Reply ' + (hasEmail ? 'sent to ' + safeName : 'saved'), 'success');
+    if (!canSend) {
+      _openMailApp(body);
+      _close();
+      if (typeof showToast === 'function') showToast('Reply saved. Your email app opened so you can send it.', 'info');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    window.twSendEmail(safeEmail, REPLY_SUBJECT, _replyHtml(body), { heading: 'A reply from TeenWork Support', icon: '💬' }).then(function (ok) {
+      if (ok) {
+        _close();
+        if (typeof showToast === 'function') showToast('✅ Reply emailed to ' + safeName, 'success');
+        return;
+      }
+      btn.disabled = false;
+      btn.textContent = '📨 Try again';
+      const info = document.getElementById('adm-reply-info');
+      if (info) {
+        info.style.background = '#fef2f2'; info.style.borderColor = '#fecaca'; info.style.color = '#991b1b';
+        info.textContent = 'TeenWork couldn’t send this email right now. Your reply is saved here. Try again, or press “Use my email app” to send it yourself.';
+      }
+    });
   };
 
   if (hasEmail) {
     const emailOnlyBtn = document.getElementById('adm-reply-email-only');
     if (emailOnlyBtn) emailOnlyBtn.onclick = function() {
       const body = document.getElementById('adm-reply-body')?.value?.trim() || '';
-      const subject = encodeURIComponent('Re: Your TeenWork Support Request');
-      window.open('mailto:' + safeEmail + '?subject=' + subject + '&body=' + encodeURIComponent(body));
+      if (body) _saveReplyNote(body);
+      _openMailApp(body);
       _close();
     };
   }
@@ -5410,7 +5458,8 @@ window.obAskQuestion   = obAskQuestion;
 
     // Labor law reminder
     var lawEl=document.getElementById('wl-law-status');
-    if(lawEl){
+    if(lawEl&&window.twWorkRules){lawEl.innerHTML=window.twWorkRules.weekStatusHTML(weekHrs);}
+    else if(lawEl){
       if(weekHrs>18)lawEl.innerHTML='<span style="color:var(--red)">⚠️ You\'ve worked '+weekHrs.toFixed(1)+'h this week — over the 18h school-year limit!</span>';
       else if(weekHrs>14)lawEl.innerHTML='<span style="color:var(--amber)">You\'ve worked '+weekHrs.toFixed(1)+'h this week — approaching the 18h limit.</span>';
       else lawEl.innerHTML='<span style="color:var(--green)">You\'re at '+weekHrs.toFixed(1)+'h this week — within limits ✓</span>';
@@ -5731,50 +5780,86 @@ window.obAskQuestion   = obAskQuestion;
 
 // ═══════════════════════════════════════════════════════
 //  FIRST JOB GUIDED CHECKLIST
+//  v53 (2026-11-03): what blocks applying is shown on its own, worked out
+//  from the account (linked parent, parent consent, a work permit only when
+//  the state or employer needs one; window.twTeenSteps in onboarding-v53.js).
+//  Teens can't tick those off. Everything else is optional help, and items
+//  link to the screen they're about. Ticks keep their old ids (fj4, the old
+//  "ask a parent to approve" tick, is now a real requirement and is ignored).
 // ═══════════════════════════════════════════════════════
 (function(){
   const CHECKLIST = [
-    { section:'📋 Before You Apply', color:'var(--blue)', items:[
-      { id:'fj1', text:'Complete your TeenWork profile (photo, bio, skills)' },
-      { id:'fj2', text:'Add at least one portfolio project' },
-      { id:'fj3', text:'Complete at least 2 lessons in the Lessons tab' },
-      { id:'fj4', text:'Ask a parent or guardian to approve your account' },
+    { section:'💡 Helpful prep (optional)', color:'var(--green)', note:'None of these are needed to apply. They help employers say yes.', items:[
+      { id:'fj1', text:'Fill in your profile: a short bio, your skills and your town (a photo is optional)', go:'profile', goLabel:'Open profile' },
+      { id:'fj3', text:'Do 2 lessons. Start with Workplace Safety Basics', go:'safety', goLabel:'Start lesson' },
+      { id:'fj2', text:'Add a portfolio project (something you made or a job you did)', go:'portfolio', goLabel:'Open portfolio' },
     ]},
     { section:'🤝 Before Your First Day', color:'var(--green)', items:[
-      { id:'fj5', text:'Confirm your job details with your employer (time, location, pay)' },
-      { id:'fj6', text:'Prepare your supplies or equipment (tools, uniform, etc.)' },
-      { id:'fj7', text:"Plan your route to the job — know how you're getting there" },
-      { id:'fj8', text:'Set an alarm and plan to arrive 5 minutes early' },
-      { id:'fj9', text:'Tell your parent/guardian the job address and employer contact' },
+      { id:'fj5', text:'Confirm the job details with your employer in Messages (time, place, pay)', go:'messages', goLabel:'Messages' },
+      { id:'fj6', text:'Get your supplies or equipment ready (tools, gloves, the right clothes)' },
+      { id:'fj7', text:"Plan your route to the job and how you're getting there", go:'map', goLabel:'Job map' },
+      { id:'fj8', text:'Add the shift to your schedule and plan to arrive 5 minutes early', go:'schedule', goLabel:'Schedule' },
+      { id:'fj9', text:'Tell your parent or guardian the job address and the employer\'s name', go:'messages', goLabel:'Messages' },
     ]},
     { section:'⭐ During the Job', color:'var(--amber)', items:[
-      { id:'fj10', text:'Introduce yourself professionally to your employer' },
-      { id:'fj11', text:"Ask questions if you're unsure about something — don't guess" },
-      { id:'fj12', text:'Stay off your phone unless asked' },
-      { id:'fj13', text:'Do the job to the best of your ability — go above and beyond' },
-      { id:'fj14', text:'Log your hours in the Work Log tab when done' },
+      { id:'fj10', text:'Introduce yourself to your employer' },
+      { id:'fj11', text:"Ask questions if you're unsure about something. Don't guess" },
+      { id:'fj12', text:'Stay off your phone unless you are asked' },
+      { id:'fj13', text:'Do the job as well as you can' },
+      { id:'fj14', text:'Log your hours in Work Log when you\'re done', go:'worklog', goLabel:'Work Log' },
     ]},
     { section:'🏆 After the Job', color:'var(--purple)', items:[
-      { id:'fj15', text:'Confirm payment with your employer and log it in Earnings' },
-      { id:'fj16', text:'Ask for a review or endorsement on TeenWork' },
-      { id:'fj17', text:'Send a thank-you message through the TeenWork chat' },
-      { id:'fj18', text:'Reflect: What did you do well? What would you do better next time?' },
+      { id:'fj15', text:'Confirm payment with your employer and log it in Earnings', go:'earnings', goLabel:'Earnings' },
+      { id:'fj16', text:'Ask for a review or reference on TeenWork', go:'references', goLabel:'References' },
+      { id:'fj17', text:'Send a thank-you message in TeenWork chat', go:'messages', goLabel:'Messages' },
+      { id:'fj18', text:'Think back: what did you do well? What would you do better next time?' },
     ]},
   ];
 
   const TOTAL = CHECKLIST.reduce((n,s)=>n+s.items.length, 0);
   const MILESTONES = [
-    [0,'Start checking things off — you\'ve got this! 🚀'],
-    [25,'Great start! Keep the momentum going 💪'],
-    [50,'Halfway there! You\'re crushing it 🔥'],
-    [75,'Almost done! A few more to go ⚡'],
-    [100,'All done! You\'re a TeenWork pro 🎉🏆'],
+    [0,'Start checking things off when you\'re ready.'],
+    [25,'Good start. Keep going!'],
+    [50,'Halfway there.'],
+    [75,'Almost done. A few more to go.'],
+    [100,'All done. Nice work!'],
   ];
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  // v44: checks are saved to the signed-in account (_DB row "first_job_checklist": device cache + cloud user_data; demo logins keep them for the session)
+  // Checks are saved to the signed-in account (_DB row "first_job_checklist": device cache + cloud user_data; demo logins keep them for the session)
   const FJ_IDS = new Set(CHECKLIST.flatMap(s=>s.items.map(i=>i.id)));
   function getChecked(){ try{ const v = window._DB ? _DB.load('first_job_checklist', []) : JSON.parse(localStorage.getItem('tw_firstjob')||'[]'); return Array.isArray(v) ? [...new Set(v)].filter(id=>FJ_IDS.has(id)) : []; }catch(e){ return []; } }
   function saveChecked(d){ try{ if(window._DB) _DB.save('first_job_checklist', d); else localStorage.setItem('tw_firstjob',JSON.stringify(d)); }catch(e){} }
+
+  // ── Required before applying (worked out, not ticked) ──
+  const MARKS = { done:'✓', na:'✓', skipped:'–', waiting:'…' };
+  function gatesHTML(){
+    const S = window.twTeenSteps, g = S && S.gates();
+    if(!g) return '';
+    const when = g.ok
+      ? (g.practice
+          ? '🧪 <b>This practice account skips the parent steps</b> so you can look around. In a real account you can apply once a parent is linked and has agreed, plus a work permit if you need one.'
+          : '✅ <b>You can apply to jobs now.</b> Each job also lists a minimum age, so you can only apply to jobs for your age.')
+      : '<b>You can apply once the steps below are done.</b> Your profile, lessons and portfolio are optional and never stop you from applying.';
+    const items = g.list.map((s,i)=>`
+      <li class="tw53-gate is-${s.state}">
+        <span class="tw53-gate-mark" aria-hidden="true">${MARKS[s.state] || (i+1)}</span>
+        <div class="tw53-gate-body"><b>${i+1}. ${esc(s.title)}</b><span class="tw53-gate-status">${esc(s.status)}</span>${s.detail && s.state!=='done' ? `<p>${esc(s.detail)}</p>` : ''}</div>
+        ${s.action && s.state!=='done' && s.state!=='na' ? `<button type="button" class="tw53-btn${s.state==='todo'?' pri':''}" data-tw53-act="${s.action}">${esc(s.actionLabel)}</button>` : ''}
+      </li>`).join('');
+    return `
+      <section class="panel tw53-gates" style="margin-bottom:1.2rem" aria-labelledby="tw53-gates-h">
+        <div class="panel-head" style="background:var(--card);border-bottom:2px solid var(--blue)">
+          <h2 id="tw53-gates-h" style="color:var(--blue)">🔒 Required before you can apply</h2>
+          <span class="badge" style="background:var(--blue);color:#fff">${g.done}/${g.total}</span>
+        </div>
+        <div class="panel-body" style="padding:.85rem 1rem">
+          <p class="tw53-when${g.ok?' ok':''}">${when}</p>
+          <ol class="tw53-gate-list">${items}</ol>
+          <p class="tw53-after">After you apply, your parent approves each application before the employer sees it.</p>
+        </div>
+      </section>`;
+  }
 
   function renderFirstJobChecklist(){
     const container = document.getElementById('firstjob-sections');
@@ -5790,11 +5875,21 @@ window.obAskQuestion   = obAskQuestion;
 
     if(bar) bar.style.width = percent + '%';
     if(pct) pct.textContent = percent + '%';
-    if(badge) badge.textContent = doneCount + ' / ' + TOTAL + ' done';
+    if(badge) badge.textContent = doneCount + ' / ' + TOTAL + ' tips done';
     if(milestone){
       const msg = [...MILESTONES].reverse().find(([p])=>percent>=p);
       milestone.textContent = msg ? msg[1] : '';
     }
+    let safetyDone = false;
+    try { safetyDone = !!(window.twTeenSteps && window.twTeenSteps.lessons().safetyDone); } catch(e) {}
+
+    // The "required" box goes above the tips progress, so it is the first thing a teen sees.
+    let gatesHost = document.getElementById('tw53-fj-gates');
+    const progressCard = container.previousElementSibling;
+    if(!gatesHost){ gatesHost = document.createElement('div'); gatesHost.id = 'tw53-fj-gates'; }
+    if(progressCard && progressCard.previousElementSibling !== gatesHost) progressCard.before(gatesHost);
+    else if(!gatesHost.isConnected) container.before(gatesHost);
+    gatesHost.innerHTML = gatesHTML();
 
     container.innerHTML = CHECKLIST.map(section=>`
       <div class="panel" style="margin-bottom:1.2rem">
@@ -5803,13 +5898,16 @@ window.obAskQuestion   = obAskQuestion;
           <span class="badge" style="background:${section.color};color:#fff">${section.items.filter(i=>checked.includes(i.id)).length}/${section.items.length}</span>
         </div>
         <div class="panel-body" style="padding:.75rem 1rem">
+          ${section.note ? `<p class="tw53-sec-note">${esc(section.note)}</p>` : ''}
           ${section.items.map(item=>{
             const done = checked.includes(item.id);
-            return `<div onclick="toggleFirstJobItem('${item.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:4px;background:${done?'var(--green-pale)':'var(--bg)'}">
-              <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${done?'var(--green)':'var(--border)'};background:${done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
-                ${done?'<span style="color:#fff;font-size:.85rem;font-weight:900">✓</span>':''}
-              </div>
-              <span style="font-size:.88rem;color:${done?'var(--green)':'var(--text)'};font-weight:${done?'600':'400'};text-decoration:${done?'line-through':'none'};line-height:1.4">${item.text}</span>
+            const go = item.go === 'safety' && safetyDone ? { go:'lessons', goLabel:'Lessons' } : item;
+            return `<div class="tw53-fj-row">
+              <button type="button" class="tw53-fj-check" role="checkbox" aria-checked="${done}" onclick="toggleFirstJobItem('${item.id}')">
+                <span class="tw53-fj-box" aria-hidden="true">${done?'✓':''}</span>
+                <span class="tw53-fj-text">${esc(item.text)}</span>
+              </button>
+              ${go.go ? `<button type="button" class="tw53-go" data-tw53-act="${go.go}">${esc(go.goLabel)} →</button>` : ''}
             </div>`;
           }).join('')}
         </div>
@@ -5818,12 +5916,14 @@ window.obAskQuestion   = obAskQuestion;
   }
 
   window.toggleFirstJobItem = function(id){
+    if(!FJ_IDS.has(id)) return;
     const checked = getChecked();
     const idx = checked.indexOf(id);
     if(idx>=0) checked.splice(idx,1); else checked.push(id);
     saveChecked(checked);
-    renderFirstJobChecklist();
-    // Award badge for completing all
+    window.renderFirstJobChecklist();
+    // keep keyboard focus on the item that was toggled (the list is redrawn)
+    try { const b = document.querySelector(`.tw53-fj-check[onclick="toggleFirstJobItem('${id}')"]`); if (b) b.focus({ preventScroll: true }); } catch(e) {}
     if(checked.length === TOTAL){
       typeof showToast==='function' && showToast('🎉 First Job Checklist complete! Amazing work!','success');
     }
@@ -5833,7 +5933,7 @@ window.obAskQuestion   = obAskQuestion;
   const _origFJ = window.switchDashTab;
   window.switchDashTab = function(btn, panelId){
     if(_origFJ) _origFJ(btn, panelId);
-    if(panelId==='ttab-firstjob') setTimeout(renderFirstJobChecklist, 80);
+    if(panelId==='ttab-firstjob') setTimeout(()=>window.renderFirstJobChecklist(), 80);
   };
 })();
 

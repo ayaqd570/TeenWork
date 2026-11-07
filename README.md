@@ -41,7 +41,8 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 4. Sign in again as the admin, so the new sign-in carries the role.
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
-`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs` and `node --experimental-strip-types tests/delete-account-auth.mjs`.
+`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/profile-photo-v55.cjs`, `node --experimental-strip-types tests/delete-account-auth.mjs`
+and `node --experimental-strip-types tests/delete-account-photos.mjs`.
 
 ## Search engines
 
@@ -58,8 +59,17 @@ A linked parent's ⏰ Weekly Hour Limit (`assets/js/parent-hours-v52.js`) is sav
 
 ## Teen onboarding, Messages and Verification (v53)
 
-`assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (photo upload isn't built; the Profile Photo box says so).
+`assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (a photo is optional; see the next section).
 Messages is a labeled dialog with a Close button and a "Something feels wrong" button inside it; focus moves in and back out, Tab stays inside, and Escape closes the top window even while typing. The Verification permit step says exactly where the teen stands (`window.twPermitStepStatus`, called from `parent-consent-v44.js`). Check with `node tests/onboarding-v53.cjs`.
+
+## Teen profile photos (v55)
+
+A teen can add a photo under Profile → Profile Photo (`assets/js/profile-photo-v55.js` + `.css`). The browser turns it into a 400×400 JPEG (which drops hidden details like GPS location) and uploads it to the private Supabase Storage bucket `profile-photos`, in a folder named after the teen's sign-in id. There are no public links: viewers get a one-hour signed link only when the rules allow it.
+The teen picks who sees it: only me, me and my parent (the default), or my parent and employers. An employer is included only after a parent approved the teen's application to that employer's job. The choice and the parent and employer emails it covers are in `public.tw_profile_photos`, a table only the teen's own sign-in can write; the teen's app refreshes the lists from the parent link and the teen's applications, and the box lists exactly who can see the photo. Parents see it on the teen card and in My Teens, employers on the Applicant Pipeline. Everyone else sees initials. Practice accounts never upload.
+Deleting or closing an account deletes its photo and takes its email off other teens' lists (`delete-account` function).
+Ship it in this order: apply `supabase/migrations/20261107_profile_photos.sql` (bucket, table, rules), deploy `supabase/functions/delete-account/`, then merge the frontend. Until the migration is applied the box says "Photo upload is still being set up".
+Who counts as a teen's parent or employer still comes from `user_data`, which anyone with the app's key can write; the photo rules only trust the teen's own row, and the teen sees the list of people.
+Checks: `node tests/profile-photo-v55.cjs` (screens, fake Supabase), `node --experimental-strip-types tests/delete-account-photos.mjs`, and the database rules on a throwaway local Postgres: `TW_PG="host=… port=… user=postgres" node tests/profile-photos-sql.mjs`.
 
 ## Source layout and secure AI deployment
 

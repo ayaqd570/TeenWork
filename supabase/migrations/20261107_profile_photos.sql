@@ -14,6 +14,7 @@
 -- The teen's app fills parent_viewers / employer_viewers from the teen's parent link and applications and keeps
 -- them up to date. A viewer is recognised by the email on their own Supabase sign-in token.
 -- Apply once in the SQL editor (or with the Supabase CLI). Running it again is safe.
+-- Applied to project qocmpwimsfcnqijtfmki on 2026-11-09 (with Aya's OK).
 
 -- 1. The bucket: private, at most 1 MB, JPEG only. The app shrinks every photo to 400×400 and saves it again as
 --    JPEG, which also drops the hidden data (like GPS location) that phone cameras add.
@@ -81,7 +82,7 @@ as $$
     or (p_audience in ('parent', 'employers') and public.tw_my_email() = any (p_parents))
     or (p_audience = 'employers' and public.tw_my_email() = any (p_employers)));
 $$;
-revoke all on function public.tw_photo_viewer_ok(uuid, text, text[], text[]) from public;
+revoke all on function public.tw_photo_viewer_ok(uuid, text, text[], text[]) from public, anon;
 grant execute on function public.tw_photo_viewer_ok(uuid, text, text[], text[]) to authenticated;
 
 -- The photos (file paths only) the signed-in person may see, for up to 100 account keys at once.

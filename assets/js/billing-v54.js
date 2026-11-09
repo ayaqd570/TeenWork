@@ -23,7 +23,9 @@
   if (window.__twBillingV54) return;
   window.__twBillingV54 = true;
 
-  var PRICE_TEXT = { teen_pro: '$4.99', employer_pro: '$49' };   // per month; keep in step with Stripe
+  // per month; keep in step with Stripe. Aya, 2026-11-09: "make employer same as teen … make pro only 3.99 a month",
+  // and "dont have pro for parents": parent accounts are always free (see the parents section below).
+  var PRICE_TEXT = { teen_pro: '$3.99', employer_pro: '$3.99' };
   var RETURN_VIEW = { teen: 'jobs', parent: 'home', employer: 'post-job' };
   var PING_TTL = 60000;
 
@@ -153,9 +155,10 @@
   var origUpgrade = window.handleUpgradeClick;
   window.handleUpgradeClick = function (asked) {
     var u = user();
+    // no Pro for parents, before or after Paid Launch (they could pick the free testing Pro before)
+    if (u && u.type === 'parent' && !u.isAdmin) { toast(PARENT_NOTE + ' Pro is for teen and employer accounts.', 'info', 6000); return; }
     if (!paidOn() || !isMember(u)) return typeof origUpgrade === 'function' ? origUpgrade.apply(this, arguments) : undefined;
     var kind = kindFor(u, asked);
-    if (u.type === 'parent') { toast('Pro is for teen and employer accounts. Your teen can upgrade from their own account, with you there to pay.', 'info', 6000); return; }
     if ((kind === 'employer_pro') !== (u.type === 'employer')) {
       toast(kind === 'employer_pro' ? 'Employer Pro is for employer accounts.' : 'Teen Pro is for teen accounts. Employers can pick Employer Pro below.', 'info', 5000);
       return;
@@ -213,7 +216,7 @@
     var empBtn = $('tw54-emp-pro-btn');
     if (empBtn) empBtn.textContent = paid ? 'Upgrade to Employer Pro →' : 'Go Pro — free during testing →';
     var faq = $('tw54-faq-try');
-    if (faq) faq.textContent = paid ? 'Pro costs ' + PRICE_TEXT.teen_pro + ' a month for teens and ' + PRICE_TEXT.employer_pro + ' a month for employers. You can cancel anytime from Manage billing, and you keep Pro until the end of the month you paid for.' : 'Yes — while TeenWork is in early access, all Pro features are available for free. You’ll get an email at least 10 days before any paid plan starts.';
+    if (faq) faq.textContent = paid ? 'Pro costs ' + PRICE_TEXT.teen_pro + ' a month for teens and employers. Parent accounts are always free. You can cancel anytime from Manage billing, and you keep Pro until the end of the month you paid for.' : 'Yes — while TeenWork is in early access, all Pro features are available for free to teens and employers. You’ll get an email at least 10 days before any paid plan starts.';
     var pro = $('tw48-pro'), p = pro && pro.querySelector('p');
     if (p) {
       var want = paid ? '<strong>⭐ TeenWork Pro is ' + PRICE_TEXT.teen_pro + ' a month.</strong> Pro adds extras like the AI resume builder. Applying to jobs is always free and unlimited.'
@@ -222,14 +225,49 @@
     }
     var info = $('v24-pro-info'); if (info) info.hidden = paid;   // app-17's "free during launch" box on the sign-up form
     var su = $('su-plan-notice-paid');
-    if (paid && su) { su.textContent = '⭐ Pro is ' + PRICE_TEXT.teen_pro + '/month for teens (' + PRICE_TEXT.employer_pro + ' for employers). Start free, then upgrade from the plans page once your account is set up.'; su.style.display = 'block'; }
+    if (paid && su) { su.textContent = '⭐ Pro is ' + PRICE_TEXT.teen_pro + ' a month for teens and employers. Start free, then upgrade from the plans page once your account is set up.'; su.style.display = 'block'; }
+    paintParents();
     paintManage();
   }
+
+  /* ── parents: no Pro (Aya, 2026-11-09) ─────────────────────────── */
+  var PARENT_NOTE = 'Parent accounts are always free.';
+  function signupType() {
+    var b = document.querySelector('.type-btn.selected');
+    var m = b && /^type-(teen|parent|employer)$/.exec(b.id || '');
+    return m ? m[1] : '';
+  }
+  function paintParents() {
+    var u = user(), parentIn = !!(u && u.type === 'parent' && !u.isAdmin);
+    // plans page: a signed-in parent sees no Upgrade buttons, just the note under "Teens & Parents"
+    ['pricing-pro-btn', 'tw54-emp-pro-btn'].forEach(function (id) { var b = $(id); if (b) b.style.display = parentIn ? 'none' : ''; });
+    var note = $('tw54-parent-free'); if (note) note.style.fontWeight = parentIn ? '700' : '';
+    // sign-up: no plan choice for a parent account, and it is saved as Free
+    var sec = $('su-plan-section'); if (!sec) return;
+    var parentSu = signupType() === 'parent';
+    sec.style.display = parentSu ? 'none' : '';
+    var free = document.querySelector('input[name="su-plan"][value="free"]');
+    if (parentSu && free && !free.checked) { free.checked = true; try { free.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {} }
+    var su = $('tw54-su-parent-free');
+    if (parentSu && !su) {
+      su = document.createElement('p'); su.id = 'tw54-su-parent-free'; su.className = 'tw54-terms-note';
+      su.style.cssText = 'margin:1rem 0 0;font-size:.85rem';
+      su.textContent = '👪 ' + PARENT_NOTE + ' There’s no Pro plan for parents.';
+      sec.parentNode.insertBefore(su, sec.nextSibling);
+    }
+    if (su) su.style.display = parentSu ? 'block' : 'none';
+  }
+  (function wrapSelectType() {
+    var o = window.selectType;
+    if (typeof o !== 'function' || o.__tw54) { if (typeof o !== 'function') setTimeout(wrapSelectType, 300); return; }
+    var w = function () { var r = o.apply(this, arguments); try { paintParents(); } catch (e) {} return r; };
+    w.__tw54 = true; window.selectType = w;
+  })();
   var manageFor = '';
   function paintManage() {
     var btn = $('pricing-pro-btn'); if (!btn) return;
     var holder = $('tw54-manage'), u = user();
-    if (!paidOn() || !isMember(u)) { if (holder) holder.hidden = true; return; }
+    if (!paidOn() || !isMember(u) || u.type === 'parent') { if (holder) holder.hidden = true; return; }
     if (!holder) {
       holder = document.createElement('div'); holder.id = 'tw54-manage'; holder.hidden = true; holder.style.cssText = 'text-align:center;margin:1.4rem auto 0;max-width:520px';
       holder.innerHTML = '<p id="tw54-manage-text" style="font-size:.88rem;color:var(--muted);margin:0 0 .6rem"></p><button type="button" class="btn-secondary" id="tw54-manage-btn" style="min-height:44px;padding:0 20px">💳 Manage billing</button>';

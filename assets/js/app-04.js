@@ -178,7 +178,7 @@ let currentUser     = null;
 // ── Account Tier System ────────────────────────────────────────────────────
 // Tiers: 'free' | 'pro'
 // Free:  3 AI calls/day, basic features
-// Pro:   unlimited AI, all premium features, $4.99/mo
+// Pro:   more AI (up to 500 a day) and the Pro tools, $3.99/mo for teens and employers; parents are always free
 const ACCOUNT_TIERS = {
   free: {
     name: 'Free',
@@ -199,7 +199,7 @@ const ACCOUNT_TIERS = {
   },
   pro: {
     name: 'Pro',
-    price: 4.99,
+    price: 3.99,
     aiCallsPerDay: Infinity,
     maxApplications: Infinity,
     canUseWageCoach: true,
@@ -259,7 +259,7 @@ function _checkAILimit() {
     if (!isPaidLaunch) {
       return { ok: false, reason: 'nopaid', msg: '🤖 AI limit reached for today. TeenWork Pro launches soon — check back tomorrow!' };
     } else if (_getUserTier() === 'free') {
-      return { ok: false, reason: 'upgrade', msg: '🤖 You\'ve used your 3 free AI requests today. Upgrade to <strong>TeenWork Pro</strong> for unlimited AI — just $4.99/mo.', cta: 'Upgrade to Pro' };
+      return { ok: false, reason: 'upgrade', msg: '🤖 You\'ve used today\'s free AI requests. Upgrade to <strong>TeenWork Pro</strong> for up to 500 a day — $3.99/mo.', cta: 'Upgrade to Pro' };
     }
   }
   return { ok: true };
@@ -813,11 +813,11 @@ window._initSignupPlan = function() {
     if (noticePaid) noticePaid.style.display = 'none';
   } else {
     // Paid launch active
-    if (proPrice) proPrice.textContent = '$4.99/mo · Unlimited AI';
+    if (proPrice) proPrice.textContent = '$3.99/mo · More AI help';
     if (notice) notice.style.display = 'none';
     if (noticePaid) {
       noticePaid.style.display = 'block';
-      noticePaid.innerHTML = '💳 Pro unlocks unlimited AI, all features. You can switch plans anytime in Settings.';
+      noticePaid.innerHTML = '💳 Pro adds more AI help (up to 500 a day) and the Pro tools. You can change plans anytime on the plans page.';
     }
   }
 

@@ -26,3 +26,6 @@ body.tw54-pricing #v17-rate-fab,body.tw54-pricing #v16-rate-fab,body.tw54-pricin
 /* The old green "Install TeenWork" banner is replaced by the one install sheet */
 #pwa-install-banner{display:none !important}
 #featpack-install .btn-primary,#featpack-install .btn-secondary{min-height:44px}
+
+/* No Pro for parents (Aya, 2026-11-09): no "Free plan · See Pro" pill or "Upgrade to Pro" badge on the parent dashboard */
+#page-parent .tw-plan-pill,#page-parent .tw-tier-badge{display:none !important}

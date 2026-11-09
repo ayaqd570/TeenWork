@@ -289,9 +289,10 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch, now: () =
   };
 }
 
-// The live prices in TeenWork's Stripe account (created 2026-11-09): Teen Pro $4.99/mo, Employer Pro $49/mo.
+// The live prices in TeenWork's Stripe account: Teen Pro and Employer Pro, both $3.99 a month (Aya, 2026-11-09:
+// "make employer same as teen … make pro only 3.99 a month"). The first $4.99 / $49 prices are archived.
 // Price ids are not secret. They are used only with a live key; a test key needs its own STRIPE_PRICE_* secrets.
-export const LIVE_PRICES = { teen_pro: "price_1UZwRFJzVYltmWpUjy6s2QfM", employer_pro: "price_1UZwRGJzVYltmWpU7oZ9ksux" };
+export const LIVE_PRICES = { teen_pro: "price_1UZx4YJzVYltmWpU7mSmK93f", employer_pro: "price_1UZx4ZJzVYltmWpUyAcY7DRc" };
 
 export function envFrom(get: (k: string) => string | undefined): Env {
   const s = (k: string) => (get(k) ?? "").trim();

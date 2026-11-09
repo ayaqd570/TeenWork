@@ -359,12 +359,14 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await paid(p, true);
         await p.evaluate(() => gotoPage('pricing'));
         await p.waitForTimeout(300);
-        assert.equal((await p.locator('#tw54-teen-pro-price').innerText()).replace(/\s+/g, ''), '$4.99/mo');
+        assert.equal((await p.locator('#tw54-teen-pro-price').innerText()).replace(/\s+/g, ''), '$3.99/mo');
+        assert.equal((await p.locator('#tw54-emp-pro-price').innerText()).replace(/\s+/g, ''), '$3.99/mo', 'Employer Pro costs the same as Teen Pro');
+        assert(!/\$4\.99|\$49\b/.test(await p.locator('#page-pricing').innerText()), 'an old price is still on the plans page');
         assert.equal(await p.locator('#tw54-testing-box').isVisible(), false, 'testing note still shown after launch');
         assert(/cancel anytime/i.test(await p.locator('#tw54-faq-try').textContent()));
         await p.evaluate(() => gotoPage('landing'));
         await p.waitForTimeout(200);
-        assert(/\$4\.99 a month/.test(await p.locator('#tw48-pro p').innerText()), 'home page Pro line has no price');
+        assert(/\$3\.99 a month/.test(await p.locator('#tw48-pro p').innerText()), 'home page Pro line has no price');
         await p.evaluate(() => gotoPage('pricing'));
         await p.waitForTimeout(200);
 
@@ -372,7 +374,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await p.click('#pricing-pro-btn');
         await p.waitForSelector('#tw54-pay');
         assert(/Ask a parent or guardian first/.test(await p.locator('#tw54-pay').innerText()));
-        assert(/\$4\.99 a month/.test(await p.locator('#tw54-pay').innerText()));
+        assert(/\$3\.99 a month/.test(await p.locator('#tw54-pay').innerText()));
         await p.click('#tw54-pay button:has-text("Not now")');
         assert.equal(await p.locator('#tw54-pay').count(), 0);
         assert.equal(calls.filter(c => c.fn === 'billing' && c.body.action === 'checkout').length, 0);
@@ -393,7 +395,13 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await member(p, 'parent', 'mom@example.com');
         await p.evaluate(() => handleUpgradeClick('teen_pro'));
         await p.waitForTimeout(200);
-        assert(/Pro is for teen and employer accounts/.test(await p.locator('#global-toast').innerText()));
+        assert(/Parent accounts are always free. Pro is for teen and employer accounts/.test(await p.locator('#global-toast').innerText()));
+        // a signed-in parent sees no Upgrade buttons on the plans page
+        await p.evaluate(() => { gotoPage('pricing'); });
+        await p.waitForTimeout(250);
+        assert(await p.locator('#tw54-parent-free').isVisible(), 'no "parents are always free" note');
+        assert.equal(await p.locator('#pricing-pro-btn').isVisible(), false, 'a parent still sees Upgrade to Pro');
+        assert.equal(await p.locator('#tw54-emp-pro-btn').isVisible(), false, 'a parent still sees Employer Pro');
         await member(p, 'employer', 'boss@example.com');
         await p.evaluate(() => handleUpgradeClick('teen_pro'));
         await p.waitForTimeout(200);
@@ -404,6 +412,42 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await p.click('#tw54-emp-pro-btn');
         await p.waitForURL(/checkout\.stripe\.com/);
         assert.equal(calls.find(c => c.body && c.body.action === 'checkout').body.plan, 'employer_pro');
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+      {
+        // No Pro for parents, also before Paid Launch: no free switch to Pro, no plan choice at sign-up,
+        // a stored "pro" counts as free, and no Pro pill on the parent dashboard
+        const { context, p, errors } = await open(browser, viewport);
+        await member(p, 'parent', 'mom@example.com');
+        await p.evaluate(() => handleUpgradeClick('teen_pro'));
+        await p.waitForTimeout(200);
+        assert(/Parent accounts are always free/.test(await p.locator('#global-toast').innerText()));
+        assert.notEqual(await p.evaluate(() => twPlan.storedPlanOf(window.currentUser)), 'pro', 'a parent switched to Pro');
+        const parentPlan = await p.evaluate(() => {
+          const s = twPlan.settings(); if (!s.enabled) return 'limits off';
+          localStorage.setItem('tw_mom_example_com_plan', JSON.stringify('pro'));
+          return twPlan.planOf(window.currentUser);
+        });
+        assert.equal(parentPlan, 'free', 'a parent with a stored Pro still counts as Pro');
+        await p.evaluate(() => { try { currentUser = null; } catch (e) {} window.currentUser = null; gotoPage('signup'); });
+        await p.waitForTimeout(300);
+        await p.evaluate(() => selectType('teen'));
+        assert(await p.locator('#su-plan-section').isVisible(), 'teens lost the plan choice');
+        await p.evaluate(() => { document.querySelector('input[name="su-plan"][value="pro"]').checked = true; selectType('parent'); });
+        assert.equal(await p.locator('#su-plan-section').isVisible(), false, 'a parent still gets the plan choice');
+        assert(/Parent accounts are always free/.test(await p.locator('#tw54-su-parent-free').innerText()));
+        assert.equal(await p.evaluate(() => document.querySelector('input[name="su-plan"]:checked').value), 'free');
+        await p.evaluate(() => selectType('employer'));
+        assert(await p.locator('#su-plan-section').isVisible(), 'employers lost the plan choice');
+        assert.equal(await p.locator('#tw54-su-parent-free').isVisible(), false);
+        // parent dashboard: the plan pill and tier badge are hidden by CSS
+        const hidden = await p.evaluate(() => {
+          const h = document.querySelector('#page-parent .dash-header'); if (!h) return 'no header';
+          const pill = document.createElement('div'); pill.className = 'tw-plan-pill'; pill.textContent = 'Free plan · See Pro'; h.appendChild(pill);
+          const r = getComputedStyle(pill).display; pill.remove(); return r;
+        });
+        assert.equal(hidden, 'none', 'the parent dashboard still shows the Pro pill');
         assert.deepEqual(errors, []);
         await context.close();
       }
@@ -444,7 +488,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.deepEqual(errors, []);
         await context.close();
       }
-      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, email invites (Resend only, 5 a day, members only, email-app fallback), polish (home bar, centered buttons, plans page claims, sign-up boxes, AI labels, one install offer), admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch (prices, ask a parent, checkout, employer, parent note, not set up), return from Stripe + Manage billing');
+      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, email invites (Resend only, 5 a day, members only, email-app fallback), polish (home bar, centered buttons, plans page claims, sign-up boxes, AI labels, one install offer), admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch ($3.99 for teens and employers, ask a parent, checkout, employer, no Pro for parents, not set up), return from Stripe + Manage billing');
     }
   } finally {
     await browser.close();

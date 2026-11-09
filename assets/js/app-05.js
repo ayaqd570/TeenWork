@@ -5743,50 +5743,86 @@ window.obAskQuestion   = obAskQuestion;
 
 // ═══════════════════════════════════════════════════════
 //  FIRST JOB GUIDED CHECKLIST
+//  v53 (2026-11-03): what blocks applying is shown on its own, worked out
+//  from the account (linked parent, parent consent, a work permit only when
+//  the state or employer needs one; window.twTeenSteps in onboarding-v53.js).
+//  Teens can't tick those off. Everything else is optional help, and items
+//  link to the screen they're about. Ticks keep their old ids (fj4, the old
+//  "ask a parent to approve" tick, is now a real requirement and is ignored).
 // ═══════════════════════════════════════════════════════
 (function(){
   const CHECKLIST = [
-    { section:'📋 Before You Apply', color:'var(--blue)', items:[
-      { id:'fj1', text:'Complete your TeenWork profile (photo, bio, skills)' },
-      { id:'fj2', text:'Add at least one portfolio project' },
-      { id:'fj3', text:'Complete at least 2 lessons in the Lessons tab' },
-      { id:'fj4', text:'Ask a parent or guardian to approve your account' },
+    { section:'💡 Helpful prep (optional)', color:'var(--green)', note:'None of these are needed to apply. They help employers say yes.', items:[
+      { id:'fj1', text:'Fill in your profile: a short bio, your skills and your town (a photo is optional)', go:'profile', goLabel:'Open profile' },
+      { id:'fj3', text:'Do 2 lessons. Start with Workplace Safety Basics', go:'safety', goLabel:'Start lesson' },
+      { id:'fj2', text:'Add a portfolio project (something you made or a job you did)', go:'portfolio', goLabel:'Open portfolio' },
     ]},
     { section:'🤝 Before Your First Day', color:'var(--green)', items:[
-      { id:'fj5', text:'Confirm your job details with your employer (time, location, pay)' },
-      { id:'fj6', text:'Prepare your supplies or equipment (tools, uniform, etc.)' },
-      { id:'fj7', text:"Plan your route to the job — know how you're getting there" },
-      { id:'fj8', text:'Set an alarm and plan to arrive 5 minutes early' },
-      { id:'fj9', text:'Tell your parent/guardian the job address and employer contact' },
+      { id:'fj5', text:'Confirm the job details with your employer in Messages (time, place, pay)', go:'messages', goLabel:'Messages' },
+      { id:'fj6', text:'Get your supplies or equipment ready (tools, gloves, the right clothes)' },
+      { id:'fj7', text:"Plan your route to the job and how you're getting there", go:'map', goLabel:'Job map' },
+      { id:'fj8', text:'Add the shift to your schedule and plan to arrive 5 minutes early', go:'schedule', goLabel:'Schedule' },
+      { id:'fj9', text:'Tell your parent or guardian the job address and the employer\'s name', go:'messages', goLabel:'Messages' },
     ]},
     { section:'⭐ During the Job', color:'var(--amber)', items:[
-      { id:'fj10', text:'Introduce yourself professionally to your employer' },
-      { id:'fj11', text:"Ask questions if you're unsure about something — don't guess" },
-      { id:'fj12', text:'Stay off your phone unless asked' },
-      { id:'fj13', text:'Do the job to the best of your ability — go above and beyond' },
-      { id:'fj14', text:'Log your hours in the Work Log tab when done' },
+      { id:'fj10', text:'Introduce yourself to your employer' },
+      { id:'fj11', text:"Ask questions if you're unsure about something. Don't guess" },
+      { id:'fj12', text:'Stay off your phone unless you are asked' },
+      { id:'fj13', text:'Do the job as well as you can' },
+      { id:'fj14', text:'Log your hours in Work Log when you\'re done', go:'worklog', goLabel:'Work Log' },
     ]},
     { section:'🏆 After the Job', color:'var(--purple)', items:[
-      { id:'fj15', text:'Confirm payment with your employer and log it in Earnings' },
-      { id:'fj16', text:'Ask for a review or endorsement on TeenWork' },
-      { id:'fj17', text:'Send a thank-you message through the TeenWork chat' },
-      { id:'fj18', text:'Reflect: What did you do well? What would you do better next time?' },
+      { id:'fj15', text:'Confirm payment with your employer and log it in Earnings', go:'earnings', goLabel:'Earnings' },
+      { id:'fj16', text:'Ask for a review or reference on TeenWork', go:'references', goLabel:'References' },
+      { id:'fj17', text:'Send a thank-you message in TeenWork chat', go:'messages', goLabel:'Messages' },
+      { id:'fj18', text:'Think back: what did you do well? What would you do better next time?' },
     ]},
   ];
 
   const TOTAL = CHECKLIST.reduce((n,s)=>n+s.items.length, 0);
   const MILESTONES = [
-    [0,'Start checking things off — you\'ve got this! 🚀'],
-    [25,'Great start! Keep the momentum going 💪'],
-    [50,'Halfway there! You\'re crushing it 🔥'],
-    [75,'Almost done! A few more to go ⚡'],
-    [100,'All done! You\'re a TeenWork pro 🎉🏆'],
+    [0,'Start checking things off when you\'re ready.'],
+    [25,'Good start. Keep going!'],
+    [50,'Halfway there.'],
+    [75,'Almost done. A few more to go.'],
+    [100,'All done. Nice work!'],
   ];
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  // v44: checks are saved to the signed-in account (_DB row "first_job_checklist": device cache + cloud user_data; demo logins keep them for the session)
+  // Checks are saved to the signed-in account (_DB row "first_job_checklist": device cache + cloud user_data; demo logins keep them for the session)
   const FJ_IDS = new Set(CHECKLIST.flatMap(s=>s.items.map(i=>i.id)));
   function getChecked(){ try{ const v = window._DB ? _DB.load('first_job_checklist', []) : JSON.parse(localStorage.getItem('tw_firstjob')||'[]'); return Array.isArray(v) ? [...new Set(v)].filter(id=>FJ_IDS.has(id)) : []; }catch(e){ return []; } }
   function saveChecked(d){ try{ if(window._DB) _DB.save('first_job_checklist', d); else localStorage.setItem('tw_firstjob',JSON.stringify(d)); }catch(e){} }
+
+  // ── Required before applying (worked out, not ticked) ──
+  const MARKS = { done:'✓', na:'✓', skipped:'–', waiting:'…' };
+  function gatesHTML(){
+    const S = window.twTeenSteps, g = S && S.gates();
+    if(!g) return '';
+    const when = g.ok
+      ? (g.practice
+          ? '🧪 <b>This practice account skips the parent steps</b> so you can look around. In a real account you can apply once a parent is linked and has agreed, plus a work permit if you need one.'
+          : '✅ <b>You can apply to jobs now.</b> Each job also lists a minimum age, so you can only apply to jobs for your age.')
+      : '<b>You can apply once the steps below are done.</b> Your profile, lessons and portfolio are optional and never stop you from applying.';
+    const items = g.list.map((s,i)=>`
+      <li class="tw53-gate is-${s.state}">
+        <span class="tw53-gate-mark" aria-hidden="true">${MARKS[s.state] || (i+1)}</span>
+        <div class="tw53-gate-body"><b>${i+1}. ${esc(s.title)}</b><span class="tw53-gate-status">${esc(s.status)}</span>${s.detail && s.state!=='done' ? `<p>${esc(s.detail)}</p>` : ''}</div>
+        ${s.action && s.state!=='done' && s.state!=='na' ? `<button type="button" class="tw53-btn${s.state==='todo'?' pri':''}" data-tw53-act="${s.action}">${esc(s.actionLabel)}</button>` : ''}
+      </li>`).join('');
+    return `
+      <section class="panel tw53-gates" style="margin-bottom:1.2rem" aria-labelledby="tw53-gates-h">
+        <div class="panel-head" style="background:var(--card);border-bottom:2px solid var(--blue)">
+          <h2 id="tw53-gates-h" style="color:var(--blue)">🔒 Required before you can apply</h2>
+          <span class="badge" style="background:var(--blue);color:#fff">${g.done}/${g.total}</span>
+        </div>
+        <div class="panel-body" style="padding:.85rem 1rem">
+          <p class="tw53-when${g.ok?' ok':''}">${when}</p>
+          <ol class="tw53-gate-list">${items}</ol>
+          <p class="tw53-after">After you apply, your parent approves each application before the employer sees it.</p>
+        </div>
+      </section>`;
+  }
 
   function renderFirstJobChecklist(){
     const container = document.getElementById('firstjob-sections');
@@ -5802,11 +5838,21 @@ window.obAskQuestion   = obAskQuestion;
 
     if(bar) bar.style.width = percent + '%';
     if(pct) pct.textContent = percent + '%';
-    if(badge) badge.textContent = doneCount + ' / ' + TOTAL + ' done';
+    if(badge) badge.textContent = doneCount + ' / ' + TOTAL + ' tips done';
     if(milestone){
       const msg = [...MILESTONES].reverse().find(([p])=>percent>=p);
       milestone.textContent = msg ? msg[1] : '';
     }
+    let safetyDone = false;
+    try { safetyDone = !!(window.twTeenSteps && window.twTeenSteps.lessons().safetyDone); } catch(e) {}
+
+    // The "required" box goes above the tips progress, so it is the first thing a teen sees.
+    let gatesHost = document.getElementById('tw53-fj-gates');
+    const progressCard = container.previousElementSibling;
+    if(!gatesHost){ gatesHost = document.createElement('div'); gatesHost.id = 'tw53-fj-gates'; }
+    if(progressCard && progressCard.previousElementSibling !== gatesHost) progressCard.before(gatesHost);
+    else if(!gatesHost.isConnected) container.before(gatesHost);
+    gatesHost.innerHTML = gatesHTML();
 
     container.innerHTML = CHECKLIST.map(section=>`
       <div class="panel" style="margin-bottom:1.2rem">
@@ -5815,13 +5861,16 @@ window.obAskQuestion   = obAskQuestion;
           <span class="badge" style="background:${section.color};color:#fff">${section.items.filter(i=>checked.includes(i.id)).length}/${section.items.length}</span>
         </div>
         <div class="panel-body" style="padding:.75rem 1rem">
+          ${section.note ? `<p class="tw53-sec-note">${esc(section.note)}</p>` : ''}
           ${section.items.map(item=>{
             const done = checked.includes(item.id);
-            return `<div onclick="toggleFirstJobItem('${item.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:4px;background:${done?'var(--green-pale)':'var(--bg)'}">
-              <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${done?'var(--green)':'var(--border)'};background:${done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
-                ${done?'<span style="color:#fff;font-size:.85rem;font-weight:900">✓</span>':''}
-              </div>
-              <span style="font-size:.88rem;color:${done?'var(--green)':'var(--text)'};font-weight:${done?'600':'400'};text-decoration:${done?'line-through':'none'};line-height:1.4">${item.text}</span>
+            const go = item.go === 'safety' && safetyDone ? { go:'lessons', goLabel:'Lessons' } : item;
+            return `<div class="tw53-fj-row">
+              <button type="button" class="tw53-fj-check" role="checkbox" aria-checked="${done}" onclick="toggleFirstJobItem('${item.id}')">
+                <span class="tw53-fj-box" aria-hidden="true">${done?'✓':''}</span>
+                <span class="tw53-fj-text">${esc(item.text)}</span>
+              </button>
+              ${go.go ? `<button type="button" class="tw53-go" data-tw53-act="${go.go}">${esc(go.goLabel)} →</button>` : ''}
             </div>`;
           }).join('')}
         </div>
@@ -5830,12 +5879,14 @@ window.obAskQuestion   = obAskQuestion;
   }
 
   window.toggleFirstJobItem = function(id){
+    if(!FJ_IDS.has(id)) return;
     const checked = getChecked();
     const idx = checked.indexOf(id);
     if(idx>=0) checked.splice(idx,1); else checked.push(id);
     saveChecked(checked);
-    renderFirstJobChecklist();
-    // Award badge for completing all
+    window.renderFirstJobChecklist();
+    // keep keyboard focus on the item that was toggled (the list is redrawn)
+    try { const b = document.querySelector(`.tw53-fj-check[onclick="toggleFirstJobItem('${id}')"]`); if (b) b.focus({ preventScroll: true }); } catch(e) {}
     if(checked.length === TOTAL){
       typeof showToast==='function' && showToast('🎉 First Job Checklist complete! Amazing work!','success');
     }
@@ -5845,7 +5896,7 @@ window.obAskQuestion   = obAskQuestion;
   const _origFJ = window.switchDashTab;
   window.switchDashTab = function(btn, panelId){
     if(_origFJ) _origFJ(btn, panelId);
-    if(panelId==='ttab-firstjob') setTimeout(renderFirstJobChecklist, 80);
+    if(panelId==='ttab-firstjob') setTimeout(()=>window.renderFirstJobChecklist(), 80);
   };
 })();
 

@@ -209,3 +209,15 @@ assert.equal(mail.linkAllowed('https://teenwork.ayaqd.com:8443/', 'https://teenw
 assert.equal(mail.linkAllowed('https://user@teenwork.ayaqd.com/', 'https://teenwork.ayaqd.com', true), false);
 assert.equal(mail.linkAllowed('http://teenwork.ayaqd.com/', 'https://teenwork.ayaqd.com', true), false);
 console.log('send-email function checks passed');
+
+// ── billing: the live prices are the default only with a live key ──
+{
+  const e = (o) => billing.envFrom((k) => o[k]);
+  assert.deepEqual(e({ STRIPE_SECRET_KEY: 'sk_live_x' }).prices, billing.LIVE_PRICES);
+  assert.deepEqual(e({ STRIPE_SECRET_KEY: 'rk_live_x' }).prices, billing.LIVE_PRICES);
+  assert.deepEqual(e({ STRIPE_SECRET_KEY: 'sk_test_x' }).prices, { teen_pro: '', employer_pro: '' });
+  assert.deepEqual(e({}).prices, { teen_pro: '', employer_pro: '' });
+  assert.equal(e({ STRIPE_SECRET_KEY: 'sk_live_x', STRIPE_PRICE_TEEN_PRO: 'price_other' }).prices.teen_pro, 'price_other');
+  assert.match(billing.LIVE_PRICES.teen_pro, /^price_/); assert.match(billing.LIVE_PRICES.employer_pro, /^price_/);
+  console.log('billing price defaults passed');
+}

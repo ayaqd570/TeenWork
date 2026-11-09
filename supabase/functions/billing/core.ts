@@ -22,8 +22,8 @@
 // Secrets (Supabase dashboard → Edge Functions → Secrets):
 //   STRIPE_SECRET_KEY            sk_test_… while testing, sk_live_… for real payments (or a restricted rk_ key)
 //   STRIPE_WEBHOOK_SECRET        whsec_… from the webhook endpoint in Stripe
-//   STRIPE_PRICE_TEEN_PRO        price_… of the Teen Pro monthly price
-//   STRIPE_PRICE_EMPLOYER_PRO    price_… of the Employer Pro monthly price
+//   STRIPE_PRICE_TEEN_PRO        price_… of the Teen Pro monthly price (optional with a live key: LIVE_PRICES below)
+//   STRIPE_PRICE_EMPLOYER_PRO    price_… of the Employer Pro monthly price (same)
 //   SITE_URL (optional)          default https://teenwork.ayaqd.com
 //   ALLOWED_ORIGIN (optional)    default *
 
@@ -289,12 +289,21 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch, now: () =
   };
 }
 
+// The live prices in TeenWork's Stripe account (created 2026-11-09): Teen Pro $4.99/mo, Employer Pro $49/mo.
+// Price ids are not secret. They are used only with a live key; a test key needs its own STRIPE_PRICE_* secrets.
+export const LIVE_PRICES = { teen_pro: "price_1UZwRFJzVYltmWpUjy6s2QfM", employer_pro: "price_1UZwRGJzVYltmWpU7oZ9ksux" };
+
 export function envFrom(get: (k: string) => string | undefined): Env {
   const s = (k: string) => (get(k) ?? "").trim();
+  const stripeKey = s("STRIPE_SECRET_KEY");
+  const live = /^(sk|rk)_live_/.test(stripeKey);
   return {
     url: s("SUPABASE_URL"), serviceKey: s("SUPABASE_SERVICE_ROLE_KEY"), anonKey: s("SUPABASE_ANON_KEY"),
     origin: s("ALLOWED_ORIGIN") || "*", site: s("SITE_URL") || "https://teenwork.ayaqd.com",
-    stripeKey: s("STRIPE_SECRET_KEY"), webhookSecret: s("STRIPE_WEBHOOK_SECRET"),
-    prices: { teen_pro: s("STRIPE_PRICE_TEEN_PRO"), employer_pro: s("STRIPE_PRICE_EMPLOYER_PRO") },
+    stripeKey, webhookSecret: s("STRIPE_WEBHOOK_SECRET"),
+    prices: {
+      teen_pro: s("STRIPE_PRICE_TEEN_PRO") || (live ? LIVE_PRICES.teen_pro : ""),
+      employer_pro: s("STRIPE_PRICE_EMPLOYER_PRO") || (live ? LIVE_PRICES.employer_pro : ""),
+    },
   };
 }

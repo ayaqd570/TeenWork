@@ -87,14 +87,17 @@ A few buttons open the person's own email app (Outlook, Gmail, Mail) on purpose 
 
 **Pro payments.** Until the admin turns on Paid Launch (Admin → Launch Controls), Pro stays free and works as before. Once it's on, "Upgrade" opens Stripe Checkout through the `billing` function ($4.99 a month for Teen Pro, $49 a month for Employer Pro). A teen is first asked to get a parent or guardian. Stripe tells the `billing` function when a payment starts, renews or stops; the function then sets `app_metadata.tw_plan` and `tw_ai_plan` (so the AI's Pro key follows the payment) and the account's `plan` row. "Manage billing" on the plans page opens Stripe's own page to change the card or cancel. Once Paid Launch is on, the database refuses a `plan` of "pro" written by anyone but the admin or the `billing` function.
 
-Set up, in this order:
+What is already set up (2026-11-09):
 
-1. Stripe (test mode first): create two monthly prices, Teen Pro $4.99 and Employer Pro $49. Turn on the customer portal (Settings → Billing → Customer portal).
-2. Supabase → Edge Functions → Secrets: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_TEEN_PRO`, `STRIPE_PRICE_EMPLOYER_PRO`.
-3. Apply `supabase/migrations/20261106_billing_and_sharing.sql`, then deploy `billing` and `send-email` with Verify JWT off.
-4. Stripe → Developers → Webhooks: add `https://qocmpwimsfcnqijtfmki.supabase.co/functions/v1/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Save its signing secret as `STRIPE_WEBHOOK_SECRET`.
-5. Admin → System Health shows "Payments (Stripe)". Test with Stripe's test card 4242 4242 4242 4242, then switch every key and price to live mode.
-6. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
+- Stripe (live mode, account "TeenWork"): products "TeenWork Teen Pro" (`price_1UZwRFJzVYltmWpUjy6s2QfM`, $4.99 a month) and "TeenWork Employer Pro" (`price_1UZwRGJzVYltmWpU7oZ9ksux`, $49 a month), the customer portal (card, invoices, cancel at the end of the month) and the webhook `https://qocmpwimsfcnqijtfmki.supabase.co/functions/v1/billing/webhook` with `checkout.session.completed` and `customer.subscription.created/updated/deleted`. `billing` uses these two live prices by itself when `STRIPE_SECRET_KEY` is a live key, so the `STRIPE_PRICE_*` secrets are only needed for a test-mode key or new prices.
+- Supabase: `billing` and the new `send-email` are deployed with Verify JWT off.
+
+Still to do, in this order:
+
+1. Apply `supabase/migrations/20261106_billing_and_sharing.sql` (the billing tables, the Paid Launch rule and the share-link count).
+2. Supabase → Edge Functions → Secrets: `STRIPE_SECRET_KEY` (Stripe → Developers → API keys, the secret key) and `STRIPE_WEBHOOK_SECRET` (Stripe → Developers → Webhooks → the TeenWork endpoint → Signing secret).
+3. Admin → System Health shows "Payments (Stripe)". Stripe is in live mode, so a test payment is a real $4.99 charge: refund it in Stripe afterwards. For a free practice run, use a Stripe sandbox with its own test key and test prices in the `STRIPE_PRICE_*` secrets, and the card 4242 4242 4242 4242.
+4. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
 
 ## Source layout and secure AI deployment
 

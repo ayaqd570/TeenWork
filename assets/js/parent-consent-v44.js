@@ -320,17 +320,20 @@
       const by = tState.by, tester = isTester(u), parents = teenParents(u), l = isDemoUser(u) ? { parentName: DEMO_PARENT.name } : (teenLink(u) || {});
       const who = l.parentName || l.parentEmail || 'your parent';
       d = 'Your linked parent agrees from their own account. Unlocks Tier 2 jobs.';
-      const note = tester && !by ? '<div class="tw44c-note">🧪 Tester account: you can keep going without this. The badge still needs a linked parent to agree.</div>' : '';
+      const practice = !!(u.twDemo || u.isDemo);   // v53: practice (demo) accounts aren't "tester" accounts to the teen
+      const note = tester && !by ? (practice
+        ? '<div class="tw44c-note">🧪 Practice account: parent steps are skipped so you can try everything. A real account needs a linked parent to agree before applying.</div>'
+        : '<div class="tw44c-note">🧪 Tester account: you can keep going without this. The badge still needs a linked parent to agree.</div>') : '';
       if (by) {
         kind = 'done'; label = '✓ Complete';
         html = `<div class="tw44c-ok">✅ <b>${esc(by.name)}</b>${by.relationship ? ' (' + esc(by.relationship) + ')' : ''} gave consent from their parent account${by.at ? ' on ' + esc(fmtDate(by.at)) : ''}. You have the 👪 Parent Approved badge.</div>`;
       } else if (parents.length) {
-        kind = 'active'; label = tester ? 'Optional (tester)' : 'Waiting for your parent';
+        kind = 'active'; label = tester ? (practice ? 'Skipped in practice' : 'Optional (tester)') : 'Waiting for your parent';
         html = note + `<p class="tw44c-p">Only your parent or guardian can give this, from their own TeenWork account. Ask <b>${esc(who)}</b> to sign in, open <b>My Teens</b> and tap <b>Review &amp; agree</b>.</p>
           <p class="tw44c-p">You get the 👪 Parent Approved badge as soon as they agree.</p>
           <button type="button" class="tw-ver-btn primary" onclick="twConsentCheck()">🔄 Check again</button>`;
       } else {
-        kind = tester ? 'active' : 'locked'; label = tester ? 'Optional (tester)' : 'Link a parent first';
+        kind = tester ? 'active' : 'locked'; label = tester ? (practice ? 'Skipped in practice' : 'Optional (tester)') : 'Link a parent first';
         html = note + `<p class="tw44c-p">Link a parent or guardian to your account first. Then they give consent from their own TeenWork account. You can't give it yourself.</p>
           <button type="button" class="tw-ver-btn primary" onclick="if(typeof twOpenLinkModal==='function')twOpenLinkModal();else{gotoPage('teen');switchDashTab(null,'ttab-resume');}">🔗 Link a parent</button>`;
       }
@@ -374,13 +377,18 @@
     if (body._tw44c !== html) { body.innerHTML = html; body._tw44c = html; }
     if (open3 !== null) {
       const s3 = $('tw-ver-step-3'), st3 = s3 && s3.querySelector('.tw-ver-step-status');
-      if (s3 && !badges().includes('workPermit')) setStatus(s3, st3, open3 ? 'active' : 'locked', open3 ? 'Ready' : '🔒 Locked');
+      if (s3 && !badges().includes('workPermit')) {
+        // v53: say exactly where the teen stands (onboarding-v53.js) instead of "Ready".
+        let st = null; try { st = typeof window.twPermitStepStatus === 'function' ? window.twPermitStepStatus(open3, u) : null; } catch (e) {}
+        if (st) setStatus(s3, st3, st.kind, st.label); else setStatus(s3, st3, open3 ? 'active' : 'locked', open3 ? 'Ready' : '🔒 Locked');
+      }
     }
     drawBadges();
-    const prog = $('tw-ver-role-progress'), steps = { teen: 5, parent: 3, employer: 4 }[u.type];
+    // v53: every role has 3 real steps (the screening card below them isn't a step).
+    const prog = $('tw-ver-role-progress'), steps = { teen: 3, parent: 3, employer: 3 }[u.type];
     if (prog && steps) {
-      const done = document.querySelectorAll('#page-verify .tw-ver-step.done').length;
-      const txt = `Step ${Math.min(done + 1, steps)} of ${steps} — ${Math.min(100, Math.round((done / steps) * 100))}% complete`;
+      const done = Math.min(steps, document.querySelectorAll('#page-verify .tw-ver-step.done').length);
+      const txt = `${done} of ${steps} steps done`;
       if (prog.textContent !== txt) prog.textContent = txt;
     }
   }

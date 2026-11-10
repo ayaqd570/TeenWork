@@ -1,0 +1,31 @@
+/* v54 polish pass (2026-11-07, Aya: "make it ready for production … make it nice"). polish-v54.js sets the body classes. */
+
+/* Home page: the empty bottom tab bar showed as a thin green line along the bottom of the phone screen */
+body.tw48-landing #mobileNav,body.tw48-auth #mobileNav,body.tw54-pricing #mobileNav{display:none !important}
+
+/* Home page, last section: Sign Up / Sign In centered under the heading on phones */
+@media (max-width:700px){
+  .landing-final{flex-direction:column;align-items:center}
+  .landing-final > .landing-cta,.landing-final > .tw54-share-band{width:100%}
+  .landing-final .landing-cta{flex-direction:column;align-items:center !important}
+  .landing-final .landing-cta .btn-primary,.landing-final .landing-cta .btn-secondary{width:100%;max-width:340px}
+}
+
+/* Plans page: the floating Help and Rate buttons covered the plan lists on phones; help is in the menu and footer */
+body.tw54-pricing [data-tw-fab="1"],body.tw54-pricing #v17-support-fab,body.tw54-pricing #v16-support-fab,
+body.tw54-pricing #v17-rate-fab,body.tw54-pricing #v16-rate-fab,body.tw54-pricing #featpack-install{display:none !important}
+
+/* Sign-up: plan choices stacked on phones instead of two squeezed columns */
+@media (max-width:560px){
+  #su-plan-cards{grid-template-columns:1fr !important}
+  #su-plan-cards > label{min-width:0}
+}
+#su-plan-cards > label{overflow-wrap:anywhere}
+.tw54-terms-note{display:block;margin-top:4px;font-size:.78em;color:var(--muted,#4b5563);line-height:1.45}
+
+/* The old green "Install TeenWork" banner is replaced by the one install sheet */
+#pwa-install-banner{display:none !important}
+#featpack-install .btn-primary,#featpack-install .btn-secondary{min-height:44px}
+
+/* No Pro for parents (Aya, 2026-11-09): no "Free plan · See Pro" pill or "Upgrade to Pro" badge on the parent dashboard */
+#page-parent .tw-plan-pill,#page-parent .tw-tier-badge{display:none !important}

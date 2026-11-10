@@ -309,7 +309,7 @@
 <script id="demo-guard-v49" src="assets/js/demo-guard-v49.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" async></script>
-<!-- manifest removed: data: URIs are blocked in file: origins -->
+<link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TeenWork">
@@ -399,9 +399,9 @@
           <div id="tw48-demo" style="background:rgba(255,253,247,.9);border:1.5px solid var(--border);border-radius:14px;padding:.9rem 1rem;max-width:480px;margin:0 auto">
             <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.6rem">Try a demo, no signup needed</div>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button onclick="_directDemo('teen')" style="background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Teen Demo</button>
-              <button onclick="_directDemo('parent')" style="background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Parent Demo</button>
-              <button onclick="_directDemo('employer')" style="background:var(--amber);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Employer Demo</button>
+              <button type="button" aria-label="Teen demo" onclick="_directDemo('teen')" style="background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Teen<span class="tw53-long"> Demo</span></button>
+              <button type="button" aria-label="Parent demo" onclick="_directDemo('parent')" style="background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Parent<span class="tw53-long"> Demo</span></button>
+              <button type="button" aria-label="Employer demo" onclick="_directDemo('employer')" style="background:var(--amber);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Employer<span class="tw53-long"> Demo</span></button>
             </div>
             <p class="tw48-demo-note">Each demo is an empty practice account, just like a new one. Nothing you do there is saved or sent.</p>
           </div>
@@ -526,6 +526,10 @@
           <button class="btn-primary" onclick="gotoPage('signup')" style="font-size:1rem;padding:14px 32px;">Sign Up — It's Free</button>
           <button class="btn-secondary" onclick="gotoPage('login')" style="font-size:1rem;padding:14px 28px;">Sign In</button>
         </div>
+        <div class="tw54-share-band" id="tw54-share-band">
+          <p>Know a teen, a parent or a local business who’d like TeenWork? Send it to them. It’s free.</p>
+          <button type="button" onclick="twShare({source:'home'})">📣 Share TeenWork</button>
+        </div>
       </section>
 
       <div class="landing-footer">
@@ -534,6 +538,7 @@
         &nbsp;·&nbsp; <button class="terms-link" onclick="twOpenHelp()">Help &amp; Support</button>
         &nbsp;·&nbsp; <button class="terms-link" onclick="twGoEmployers()">For employers</button>
         &nbsp;·&nbsp; <button class="terms-link" onclick="gotoPage('school')">For schools</button>
+        &nbsp;·&nbsp; <button class="terms-link" onclick="twShare({source:'footer'})">Share TeenWork</button>
         <span id="tw51-pro-show-wrap" hidden>&nbsp;·&nbsp; <button class="terms-link" id="tw51-pro-show" onclick="twShowProInfo()">Show Pro info</button></span>
         &nbsp;·&nbsp; TeenWork 2026 &nbsp;·&nbsp; Built by a teen, for teens
       </div>
@@ -691,15 +696,11 @@
 
       <div class="terms-check">
         <input type="checkbox" id="terms-agree">
-        <label for="terms-agree">I agree to the <button class="terms-link" onclick="openTerms()">Terms of Use & Privacy Policy</button> and confirm I am providing accurate information.</label>
+        <label for="terms-agree">I agree to the <button class="terms-link" onclick="openTerms()">Terms of Use & Privacy Policy</button> and confirm my information is accurate. <span class="tw54-terms-note">TeenWork uses your profile, jobs and messages to run your account, suggest jobs and check chats for safety.</span></label>
       </div>
       <div class="terms-check" style="margin-top:4px">
         <input type="checkbox" id="perm-notif-signup" checked>
-        <label for="perm-notif-signup">Allow <strong>push &amp; email notifications</strong> for job matches, application updates, and safety alerts. <span style="color:var(--muted);font-size:.78em">(Recommended — you can still create an account without this, but important updates will only appear in your in-app inbox)</span></label>
-      </div>
-      <div class="terms-check" style="margin-top:4px">
-        <input type="checkbox" id="perm-activity-signup" checked>
-        <label for="perm-activity-signup">Allow TeenWork to <strong>track my activity</strong> (bio, jobs, messages) to improve AI job matching. <span style="color:var(--red);font-size:.78em;font-weight:600">(Required to continue)</span></label>
+        <label for="perm-notif-signup">Send me notifications in the app and by email about job matches, application updates and safety alerts. <span style="color:var(--muted);font-size:.78em">(Recommended)</span></label>
       </div>
       <!-- Plan selection — rendered dynamically based on launchPaid setting -->
       <div id="su-plan-section" style="margin:1rem 0 0">
@@ -708,12 +709,12 @@
           <label id="su-plan-free-card" style="display:block;border:2px solid var(--border);border-radius:14px;padding:16px 14px;cursor:pointer;transition:border-color .15s;background:var(--card)">
             <input type="radio" name="su-plan" value="free" checked style="margin-right:6px">
             <strong style="font-size:1rem">Free</strong>
-            <div style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.5">✓ Browse &amp; apply to jobs<br>✓ Unlimited applications<br>✓ AI (limited by API quota)<br>✓ Earnings tracker<br>✓ Badges &amp; portfolio</div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.5">✓ Browse &amp; apply to jobs<br>✓ Unlimited applications<br>✓ AI help: 10 a day<br>✓ Earnings tracker<br>✓ Badges &amp; portfolio</div>
           </label>
           <label id="su-plan-pro-card" style="display:block;border:2px solid var(--amber);border-radius:14px;padding:16px 14px;cursor:pointer;transition:border-color .15s;background:var(--amber-pale)">
             <input type="radio" name="su-plan" value="pro" style="margin-right:6px">
             <strong style="color:var(--amber);font-size:1rem">⭐ Pro</strong>
-            <div id="su-plan-pro-price" style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.6">✓ Unlimited AI requests<br>✓ AI Resume Builder<br>✓ AI Job Coach (always on)<br>✓ Pitch AI for applications<br>✓ Priority job matching<br>✓ Early access to new features</div>
+            <div id="su-plan-pro-price" style="font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.6">✓ More AI (up to 500 a day)<br>✓ AI Resume Builder<br>✓ Pitch AI for applications<br>✓ Wage Coach</div>
           </label>
         </div>
         <div id="su-plan-notice" style="display:none;margin-top:8px;padding:8px 12px;background:var(--green-pale);border:1.5px solid var(--green-light);border-radius:8px;font-size:.78rem;color:var(--green);font-weight:600"></div>
@@ -847,7 +848,7 @@
           </div>
         </div>
         <div class="panel">
-          <div class="panel-head"><h2>Quick AI Advisor</h2><span class="badge badge-blue">Gemini AI</span></div>
+          <div class="panel-head"><h2>Quick AI Advisor</h2><span class="badge badge-blue">AI</span></div>
           <div class="panel-body">
             <div id="p-ai-chat" class="ai-chat-box"><p>Ask me anything about your teen's job safety, labor laws, or how to evaluate a job posting.</p></div>
             <div class="ai-input-row">
@@ -1521,7 +1522,7 @@
           </div>
         </div>
         <div class="panel">
-          <div class="panel-head"><h2>AI Résumé Builder</h2><span class="badge badge-blue">Gemini AI</span></div>
+          <div class="panel-head"><h2>AI Résumé Builder</h2><span class="badge badge-blue">AI</span></div>
           <div class="panel-body">
             <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Tell the AI about yourself and it will write a professional bio for your profile — then hit <strong>Use This Bio</strong> to save it!</p>
             <div id="teen-resume-ai" class="ai-chat-box"><p>Hi! I'll help you write a great profile bio. Tell me about your skills, any past jobs or chores, and why you're a hard worker!</p></div>
@@ -1570,11 +1571,13 @@
             </div>
           </div>
           <div class="panel" style="margin-top:1rem">
-            <div class="panel-head"><h2>📷 Profile Photo</h2></div>
-            <div class="panel-body" style="text-align:center">
-              <div style="width:80px;height:80px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 10px">🧑</div>
-              <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Upload a professional photo for your profile</p>
-              <button class="btn-sm btn-ai" onclick="showToast('Photo upload would open file picker in production','info')">📷 Upload Photo</button>
+            <div class="panel-head"><h2>📷 Profile Photo</h2><span class="badge badge-green">Optional</span></div>
+            <div class="panel-body tw53-photo">
+              <div class="tw53-avatar" id="tw53-avatar" aria-hidden="true">🙂</div>
+              <p class="tw53-avatar-cap">Default avatar (your initials)</p>
+              <p><b>You don't need a photo.</b> You can apply for jobs and use every part of TeenWork without one.</p>
+              <p><b>Who can see it:</b> photo upload isn't turned on yet, so nobody sees a photo of you. Your profile shows this default avatar instead.</p>
+              <p class="tw53-hint">If photo upload is added later, pick a friendly picture that doesn't show your school name, your house or street, or a team jersey.</p>
             </div>
           </div>
           <div class="panel" style="margin-top:1rem">
@@ -1584,13 +1587,6 @@
                 <div class="toggle-info"><h4>🌙 Dark Mode</h4><p>Easier on the eyes at night</p></div>
                 <label class="toggle"><input type="checkbox" id="settings-dark-toggle" onchange="toggleDarkMode()"><span class="slider"></span></label>
               </div>
-            </div>
-          </div>
-          <div class="panel" style="margin-top:1rem">
-            <div class="panel-head"><h2>🗑️ Account Actions</h2></div>
-            <div class="panel-body">
-              <button class="btn-secondary" style="width:100%;margin-bottom:8px;color:var(--amber);border-color:var(--amber)" onclick="showToast('Account deactivation would require email confirmation in production','info')">⏸ Deactivate Account</button>
-              <p style="font-size:.72rem;color:var(--muted)">Deactivating hides your profile from employers. You can reactivate anytime by signing back in.</p>
             </div>
           </div>
         </div>
@@ -1702,7 +1698,7 @@
       <!-- Lessons live in their own section (#ttab-lessons) since v44 -->
       <div class="section-grid">
         <div class="panel">
-          <div class="panel-head"><h2>🤖 AI Job Coach</h2><span class="badge badge-blue">Gemini AI</span></div>
+          <div class="panel-head"><h2>🤖 AI Job Coach</h2><span class="badge badge-blue">AI</span></div>
           <div class="panel-body">
             <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Ask me anything about jobs, interviews, pay, or your rights as a teen worker!</p>
             <div id="teen-coach-ai" class="ai-chat-box"><p>Hey! I'm your AI Job Coach. I can help you prepare for interviews, understand your rights, figure out fair pay, or decide if a job is right for you. What's on your mind?</p></div>
@@ -2002,14 +1998,14 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
         <div>
           <h2 style="font-family:'Fraunces',serif;font-size:1.4rem;color:var(--purple);margin-bottom:3px">🎯 First Job Checklist</h2>
-          <p style="font-size:.85rem;color:var(--muted)">Everything you need to do before, during, and after your first job. Check them off as you go!</p>
+          <p style="font-size:.85rem;color:var(--muted)">The first box shows what has to happen before you can apply. Everything else is optional tips for before, during and after your first job.</p>
         </div>
-        <span class="badge badge-purple" id="firstjob-progress-badge">0 / 18 done</span>
+        <span class="badge badge-purple" id="firstjob-progress-badge">0 / 17 tips done</span>
       </div>
       <!-- Progress bar -->
       <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;box-shadow:var(--shadow)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-family:'Fraunces',serif;font-size:.95rem;font-weight:700;color:var(--text)">Overall Progress</div>
+          <div style="font-family:'Fraunces',serif;font-size:.95rem;font-weight:700;color:var(--text)">Tips progress</div>
           <div id="firstjob-pct" style="font-size:.85rem;font-weight:700;color:var(--purple)">0%</div>
         </div>
         <div style="background:#e9e9e9;border-radius:20px;height:12px;overflow:hidden">
@@ -2172,13 +2168,14 @@
         </div>
       </div>
 
-      <!-- Goal: teen labor law hours reminder -->
-      <div style="background:var(--amber-pale);border:1.5px solid #f0b66a;border-radius:12px;padding:.85rem 1rem;margin-bottom:1.2rem;display:flex;gap:12px;align-items:flex-start">
-        <span style="font-size:1.4rem;flex-shrink:0">⚖️</span>
-        <div>
-          <div style="font-weight:700;font-size:.85rem;color:#7a4700;margin-bottom:2px">Teen Labor Law Reminder</div>
-          <div style="font-size:.78rem;color:#7a4700;line-height:1.5">During the school year: max <strong>18 hrs/week</strong> and no work before 7am or after 7pm on school nights. Summer: up to <strong>40 hrs/week</strong> allowed. <span id="wl-law-status" style="font-weight:700"></span></div>
-          <button class="btn-sm" onclick="switchTab&&switchTab('teen','ttab-ai');setTimeout(()=>explainLaborLaw&&explainLaborLaw('max hours per week for teens'),200)" style="margin-top:6px;font-size:.72rem;background:var(--amber);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">Learn more →</button>
+      <!-- Work rules for this teen's age and state (filled by work-rules-v52.js) and the teen's own weekly goal -->
+      <div id="tw52-wl-rules" style="background:var(--amber-pale);border:1.5px solid #f0b66a;border-radius:12px;padding:.85rem 1rem;margin-bottom:1.2rem;display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:1.4rem;flex-shrink:0" aria-hidden="true">⚖️</span>
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:700;font-size:.85rem;color:#7a4700;margin-bottom:2px">Work rules for your age</div>
+          <div id="tw52-wl-rules-text" style="font-size:.78rem;color:#7a4700;line-height:1.5">Your work rules depend on your age and state.</div>
+          <div style="font-size:.78rem;color:#7a4700;line-height:1.5;margin-top:4px"><span id="wl-law-status" style="font-weight:700"></span></div>
+          <button class="btn-sm" onclick="switchTab&&switchTab('teen','ttab-ai');setTimeout(()=>explainLaborLaw&&explainLaborLaw('max hours per week for teens'),200)" style="margin-top:6px;font-size:.72rem;background:var(--amber);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">Ask the AI coach →</button>
         </div>
       </div>
 
@@ -2243,12 +2240,6 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
           <div class="form-group"><label>Date Completed</label><input type="date" id="proj-date"></div>
           <div class="form-group"><label>Skills Used (comma separated)</label><input type="text" id="proj-skills" placeholder="e.g. mowing, trimming"></div>
-        </div>
-        <div class="form-group"><label>📷 Photo (optional)</label>
-          <div style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:var(--bg)" onclick="showToast('Photo upload would open file picker in production','info')">
-            <div style="font-size:1.5rem">📷</div>
-            <div style="font-size:.8rem;color:var(--muted);margin-top:4px">Click to upload a photo of your work</div>
-          </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:1rem">
           <button class="btn-primary" style="flex:1" onclick="savePortfolioProject()">💾 Save Project</button>
@@ -2744,7 +2735,7 @@
     <div id="etab-ai" class="tab-panel">
       <div class="section-grid">
         <div class="panel">
-          <div class="panel-head"><h2>AI Compliance Advisor</h2><span class="badge badge-blue">Gemini AI</span></div>
+          <div class="panel-head"><h2>AI Compliance Advisor</h2><span class="badge badge-blue">AI</span></div>
           <div class="panel-body">
             <div id="emp-ai-chat" class="ai-chat-box"><p>Ask me about child labor laws, work permits, safe job descriptions, or how to write a compliant teen job posting.</p></div>
             <div class="ai-input-row">
@@ -3173,8 +3164,6 @@
         <div class="tw-ver-tier-step"><div class="tw-ver-tier-circle active" id="tw-ver-t2">2</div><div class="tw-ver-tier-name">Parent consent</div></div>
         <div class="tw-ver-tier-line" id="tw-ver-line-2"></div>
         <div class="tw-ver-tier-step"><div class="tw-ver-tier-circle" id="tw-ver-t3">3</div><div class="tw-ver-tier-name">Permit status</div></div>
-        <div class="tw-ver-tier-line" id="tw-ver-line-3"></div>
-        <div class="tw-ver-tier-step"><div class="tw-ver-tier-circle paid" id="tw-ver-t4">★</div><div class="tw-ver-tier-name">Unavailable</div></div>
       </div>
     </div>
     <div class="tw-ver-tier-bar" style="margin-bottom:1.8rem">
@@ -3262,11 +3251,8 @@
         </div>
       </div>
 
-      <!-- STEP 4 -->
-      <div id="tw-ver-step-4" class="tw-ver-step"><div class="panel-body"><h3>Screening is not available</h3><p>TeenWork does not verify identity documents or run criminal background checks. No screening badge, safety score or payment is offered.</p><button type="button" class="btn-secondary" onclick="twOpenSafetyDetails()">How safety works</button></div></div>
-
-      <!-- STEP 5 -->
-      <div id="tw-ver-step-5" class="tw-ver-step"><div class="panel-body"><h3>Screening is not available</h3><p>TeenWork does not verify identity documents or run criminal background checks. No screening badge, safety score or payment is offered.</p><button type="button" class="btn-secondary" onclick="twOpenSafetyDetails()">How safety works</button></div></div>
+      <!-- Not a step: what TeenWork does not check (shown once) -->
+      <div id="tw-ver-step-4" class="tw-ver-step"><div class="panel-body"><h3>ID and background checks are not offered</h3><p>TeenWork does not check ID documents or run criminal background checks on anyone: teens, parents or employers. Names, ages and businesses are what each person typed in. The checks above are only a linked parent's consent and work permit status. No screening badge, safety score or payment is offered.</p><button type="button" class="btn-secondary" onclick="twOpenSafetyDetails()">How safety works</button></div></div>
 
     </div>
     <div style="text-align:center;margin-top:1rem">
@@ -3414,12 +3400,12 @@
 </div>
 
 
-<script src="assets/js/app-04.js?v=51"></script>
+<script src="assets/js/app-04.js?v=54"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/js/app-05.js"></script>
+<script src="assets/js/app-05.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3449,10 +3435,10 @@
     <div style="font-size:1.8rem">📲</div>
     <div style="flex:1">
       <strong style="display:block;font-family:'Fraunces',serif;font-size:1.05rem;color:var(--green)">Install TeenWork</strong>
-      <p style="font-size:.82rem;color:var(--muted);margin:4px 0 10px">Add to your home screen for offline access and push notifications when new jobs match your skills.</p>
+      <p style="font-size:.82rem;color:var(--muted);margin:4px 0 10px">Add TeenWork to your home screen so it opens like an app, one tap away.</p>
       <div style="display:flex;gap:8px">
         <button class="btn-primary" style="padding:8px 18px;font-size:.85rem" onclick="featpackInstall()">Install</button>
-        <button class="btn-secondary" style="padding:8px 18px;font-size:.85rem" onclick="document.getElementById('featpack-install').classList.remove('open')">Not now</button>
+        <button class="btn-secondary" style="padding:8px 18px;font-size:.85rem" onclick="featpackInstallLater()">Not now</button>
       </div>
     </div>
   </div>
@@ -3500,8 +3486,8 @@
 
 <div class="modal-overlay" id="referralModal" onclick="if(event.target===this)closeReferral()">
   <div class="modal" style="max-width:460px">
-    <h3>🎁 Refer a Friend</h3>
-    <p style="font-size:.86rem;color:var(--muted);margin:6px 0 1rem">Share your code — when a friend signs up, you both get a Premium month free.</p>
+    <h3>📣 Share TeenWork</h3>
+    <p style="font-size:.86rem;color:var(--muted);margin:6px 0 1rem">Share your link with a friend. It’s free for them too.</p>
     <div style="display:flex;gap:8px;align-items:center;background:var(--green-pale);padding:14px;border-radius:12px;margin-bottom:1rem">
       <div style="flex:1">
         <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Your code</div>
@@ -3509,7 +3495,7 @@
       </div>
       <button class="btn-primary" onclick="copyReferralCode()">📋 Copy</button>
     </div>
-    <div style="font-size:.82rem">Invites sent: <strong id="referral-count">0</strong></div>
+    <div style="font-size:.82rem" hidden>Invites sent: <strong id="referral-count">0</strong></div>
     <button class="btn-secondary" style="width:100%;margin-top:1rem" onclick="closeReferral()">Close</button>
   </div>
 </div>
@@ -3527,7 +3513,8 @@
     <p style="text-align:center;color:var(--muted);margin-bottom:.5rem;font-size:1rem">Start free. Upgrade when you're ready to unlock the full experience.</p>
     <div id="pricing-launch-notice" style="display:none;text-align:center;margin-bottom:1.5rem;padding:10px 18px;background:var(--green-pale);border:1.5px solid var(--green-light);border-radius:12px;font-size:.85rem;color:var(--green);font-weight:600">🚀 TeenWork is in early access — all features are free until we launch paid plans!</div>
 
-    <h2 style="font-family:'Fraunces',serif;color:var(--text);font-size:1.2rem;margin:2rem 0 1rem;text-align:center">Teens &amp; Parents</h2>
+    <h2 style="font-family:'Fraunces',serif;color:var(--text);font-size:1.2rem;margin:2rem 0 .4rem;text-align:center">Teens &amp; Parents</h2>
+    <p id="tw54-parent-free" style="text-align:center;color:var(--muted);font-size:.9rem;margin:0 0 1rem">👪 Parent accounts are always free. There’s no Pro for parents.</p>
     <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-bottom:2.5rem">
       <div class="pricing-card" style="position:relative">
         <div style="font-weight:700;color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Free Plan</div>
@@ -3535,30 +3522,27 @@
         <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Forever free. Get started in minutes.</div>
         <div class="pricing-li">✓ Browse &amp; apply to local jobs</div>
         <div class="pricing-li">✓ Unlimited job applications, always free</div>
-        <div class="pricing-li" style="color:var(--muted)">✓ AI (limited by API daily quota)</div>
+        <div class="pricing-li">✓ AI help: 10 requests a day</div>
         <div class="pricing-li">✓ Earnings tracker &amp; savings goals</div>
         <div class="pricing-li">✓ Badge collection &amp; portfolio</div>
         <div class="pricing-li">✓ Parent dashboard &amp; safety tools</div>
         <div class="pricing-li" style="color:#bbb">✗ AI Resume Builder</div>
-        <div class="pricing-li" style="color:#bbb">✗ AI Job Coach (unlimited)</div>
         <div class="pricing-li" style="color:#bbb">✗ Pitch AI for applications</div>
-        <div class="pricing-li" style="color:#bbb">✗ Priority job matching</div>
         <button class="btn-secondary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Get started free</button>
       </div>
       <div class="pricing-card featured" style="position:relative;border-color:var(--amber);box-shadow:0 4px 24px rgba(217,158,50,.18)">
         <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--amber);color:#fff;font-size:.72rem;font-weight:800;padding:4px 16px;border-radius:20px;white-space:nowrap">⭐ Most Popular</div>
         <div style="font-weight:700;color:var(--amber);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Pro Plan</div>
-        <div class="pricing-price" style="font-size:2.4rem;color:var(--amber)">Free<span style="font-size:.9rem;font-weight:600;color:var(--muted)"> right now</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:.4rem">App is still in testing — Pro is free.</div>
-        <div style="background:var(--amber-pale);border:1.5px solid var(--amber);border-radius:10px;padding:8px 12px;font-size:.79rem;color:#7a4700;font-weight:600;margin-bottom:1rem">🧪 Currently in testing. You'll get a <strong>10-day email notice</strong> before any paid plan is added — no surprise charges.</div>
-        <div class="pricing-li">✓ <strong>Unlimited AI requests</strong></div>
+        <div class="pricing-price" id="tw54-teen-pro-price" style="font-size:2.4rem;color:var(--amber)">Free<span style="font-size:.9rem;font-weight:600;color:var(--muted)"> right now</span></div>
+        <div id="tw54-teen-pro-note" style="font-size:.83rem;color:var(--muted);margin-bottom:.4rem">App is still in testing — Pro is free.</div>
+        <div id="tw54-testing-box" style="background:var(--amber-pale);border:1.5px solid var(--amber);border-radius:10px;padding:8px 12px;font-size:.79rem;color:#7a4700;font-weight:600;margin-bottom:1rem">🧪 Currently in testing. You'll get a <strong>10-day email notice</strong> before any paid plan is added — no surprise charges.</div>
+        <div class="pricing-li">✓ <strong>More AI: up to 500 requests a day</strong></div>
         <div class="pricing-li">✓ AI Resume Builder</div>
-        <div class="pricing-li">✓ AI Job Coach (always on)</div>
+        <div class="pricing-li">✓ AI Job Coach with more requests</div>
         <div class="pricing-li">✓ Pitch AI — stand-out applications</div>
-        <div class="pricing-li">✓ Priority job matching</div>
         <div class="pricing-li">✓ Wage Coach &amp; negotiation tips</div>
         <div class="pricing-li">✓ All Free features included</div>
-        <button class="btn-primary" id="pricing-pro-btn" onclick="handleUpgradeClick()" style="width:100%;margin-top:1.2rem;background:var(--amber)">Upgrade to Pro →</button>
+        <button class="btn-primary" id="pricing-pro-btn" onclick="handleUpgradeClick('teen_pro')" style="width:100%;margin-top:1.2rem;background:var(--amber)">Upgrade to Pro →</button>
       </div>
     </div>
 
@@ -3566,32 +3550,31 @@
     <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
       <div class="pricing-card">
         <div style="font-weight:700;color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Starter</div>
-        <div class="pricing-price">Free<span style="font-size:.85rem;color:var(--muted)"> / 2 posts</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Then $19 per extra post</div>
-        <div class="pricing-li">✓ 2 free job posts</div>
+        <div class="pricing-price">Free</div>
+        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Always free to start</div>
+        <div class="pricing-li">✓ 2 job posts a month</div>
         <div class="pricing-li">✓ View up to 3 applicants per job</div>
         <div class="pricing-li">✓ Applicant pipeline board</div>
         <button class="btn-secondary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Post a job free</button>
       </div>
       <div class="pricing-card featured">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;color:var(--green);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Employer Pro</span><span class="feat-ribbon">Popular</span></div>
-        <div class="pricing-price">$49<span style="font-size:.9rem;font-weight:600;color:var(--muted)">/mo</span></div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Unlimited posts + analytics</div>
-        <div class="pricing-li">✓ Unlimited job postings (20 active)</div>
-        <div class="pricing-li">✓ See all applicants</div>
-        <div class="pricing-li">✓ 2 featured listing boosts/mo</div>
-        <div class="pricing-li">✓ Bulk messaging &amp; saved teens</div>
-        <div class="pricing-li">✓ Full analytics + interview scheduler</div>
-        <button class="btn-primary" onclick="gotoPage('signup')" style="width:100%;margin-top:1.2rem">Go Pro →</button>
+        <div class="pricing-price" id="tw54-emp-pro-price">$3.99<span style="font-size:.9rem;font-weight:600;color:var(--muted)">/mo</span></div>
+        <div id="tw54-emp-pro-note" style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Free while TeenWork is in testing</div>
+        <div class="pricing-li">✓ Unlimited job posts</div>
+        <div class="pricing-li">✓ See every applicant</div>
+        <div class="pricing-li">✓ Bulk messaging</div>
+        <div class="pricing-li">✓ More AI: up to 500 requests a day</div>
+        <div class="pricing-li">✓ Everything in Starter</div>
+        <button class="btn-primary" id="tw54-emp-pro-btn" onclick="handleUpgradeClick('employer_pro')" style="width:100%;margin-top:1.2rem">Go Pro — free during testing →</button>
       </div>
       <div class="pricing-card">
         <div style="font-weight:700;color:var(--purple);font-size:.82rem;text-transform:uppercase;letter-spacing:.6px">Schools / Orgs</div>
         <div class="pricing-price">Custom</div>
-        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">Bulk signup for classes or youth groups</div>
-        <div class="pricing-li">✓ Bulk student onboarding</div>
-        <div class="pricing-li">✓ Admin / teacher seat</div>
-        <div class="pricing-li">✓ Cohort progress reports</div>
-        <div class="pricing-li">Privacy information available in the terms</div>
+        <div style="font-size:.83rem;color:var(--muted);margin-bottom:1.2rem">For classes, clubs and youth programs</div>
+        <div class="pricing-li">✓ Help getting students and parents started</div>
+        <div class="pricing-li">✓ The same parent approval and safety rules</div>
+        <div class="pricing-li">✓ A person at TeenWork to talk to</div>
         <button class="btn-primary" style="background:var(--purple);width:100%;margin-top:1.2rem" onclick="gotoPage('school')">Contact us</button>
       </div>
     </div>
@@ -3600,15 +3583,19 @@
       <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;margin-bottom:1rem;color:var(--text)">Common questions</h3>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">Can I try Pro before paying?</summary>
-        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Yes — while TeenWork is in early access, all Pro features are available for free. You'll be notified before any billing starts.</p>
+        <p id="tw54-faq-try" style="margin-top:8px;font-size:.88rem;color:var(--muted)">Yes — while TeenWork is in early access, all Pro features are available for free. You’ll get an email at least 10 days before any paid plan starts.</p>
       </details>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">What counts as an "AI request"?</summary>
-        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Each time the AI writes or suggests something — resume bullet, cover letter, coaching tip — counts as one request. Free and Pro accounts share the same AI service (Groq), but use separate API quotas so Pro usage never limits Free users and vice versa. During testing, both plans get generous access.</p>
+        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Each time the AI writes or suggests something — resume bullet, cover letter, coaching tip — counts as one request. Free accounts get a smaller daily allowance; Pro accounts get up to 500 a day. Safety checks on messages and job posts never count.</p>
       </details>
       <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
         <summary style="font-weight:700;cursor:pointer;list-style:none">Is it really free for teens and parents?</summary>
-        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">The Free plan is free forever. Pro unlocks more AI and advanced features. We never take a cut of what teens earn.</p>
+        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">The Free plan is free forever, and parent accounts are always free: there’s no Pro for parents. Pro adds more AI and extra tools for teens and employers. We never take a cut of what teens earn.</p>
+      </details>
+      <details style="margin-bottom:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px">
+        <summary style="font-weight:700;cursor:pointer;list-style:none">How do payments and canceling work?</summary>
+        <p style="margin-top:8px;font-size:.88rem;color:var(--muted)">Payments go through Stripe, so TeenWork never sees or stores card numbers. Teens should ask a parent or guardian before paying. Cancel anytime with <strong>Manage billing</strong> on this page; Pro stays on until the end of the month you paid for.</p>
       </details>
     </div>
   </div>
@@ -3623,7 +3610,7 @@
   </nav>
   <div style="max-width:700px;margin:0 auto;padding:2rem 1.2rem">
     <h1 style="font-family:'Fraunces',serif;font-size:2rem;color:var(--green);margin-bottom:.4rem">🏫 Sign up your school</h1>
-    <p style="color:var(--muted);margin-bottom:1.6rem">Give every student in your school or youth program a safe, parent-supervised path to their first job. Bulk signup, cohort tracking, and teacher admin seats.</p>
+    <p style="color:var(--muted);margin-bottom:1.6rem">Give the students in your school or youth program a safe, parent-supervised way to find their first job. Tell us about your group and we’ll get back to you about getting started.</p>
     <div class="panel">
       <div class="panel-body" style="display:grid;gap:12px">
         <div class="form-group"><label>School / Organization Name</label><input id="school-name" type="text" placeholder="Lincoln High School"></div>
@@ -3661,7 +3648,7 @@
   </div>
 </div>
 
-<script id="featpack-js" src="assets/js/featpack-js.js"></script>
+<script id="featpack-js" src="assets/js/featpack-js.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3715,7 +3702,7 @@
   </div>
 </div>
 
-<script id="featpack-v25-js" src="assets/js/featpack-v25-js.js"></script>
+<script id="featpack-v25-js" src="assets/js/featpack-v25-js.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FINAL FIX SCRIPT — runs last, overrides all previous
@@ -3745,7 +3732,7 @@
      ═══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-07.css">
 
-<script src="assets/js/app-12.js?v=51"></script>
+<script src="assets/js/app-12.js?v=54"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v16 PATCH
@@ -3791,7 +3778,7 @@
 ══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-10.css">
 
-<script src="assets/js/app-15.js"></script>
+<script src="assets/js/app-15.js?v=54"></script>
 
 <!-- ══════════════════════════════════════════════════════
      TEENWORK v18b LANDING PAGE PATCH
@@ -3806,8 +3793,8 @@
 ══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-11.css">
 
-<script src="assets/js/app-16.js"></script>
-<script src="assets/js/app-17.js?v=51"></script>
+<script src="assets/js/app-16.js?v=54"></script>
+<script src="assets/js/app-17.js?v=54"></script>
 
 <script src="assets/js/app-18.js"></script>
 
@@ -3824,17 +3811,17 @@
 
 <script id="featpack-v39-nodemo-js" src="assets/js/featpack-v39-nodemo-js.js"></script>
 
-<script id="plan-limits-v40" src="assets/js/plan-limits-v40.js?v=51"></script>
+<script id="plan-limits-v40" src="assets/js/plan-limits-v40.js?v=54"></script>
 
-<script id="branded-email-v41" src="assets/js/branded-email-v41.js"></script>
+<script id="branded-email-v41" src="assets/js/branded-email-v41.js?v=54"></script>
 
 <script id="support-reply-email-v42" src="assets/js/support-reply-email-v42.js"></script>
 
-<script id="resend-email-v42" src="assets/js/resend-email-v42.js"></script>
+<script id="resend-email-v42" src="assets/js/resend-email-v42.js?v=54"></script>
 
 <script id="address-autocomplete-v42" src="assets/js/address-autocomplete-v42.js"></script>
 
-<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js"></script>
+<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=54"></script>
 
 <script id="real-data-v43" src="assets/js/real-data-v43.js"></script>
 
@@ -3850,14 +3837,14 @@
 
 <script id="tab-refresh-v44" src="assets/js/tab-refresh-v44.js"></script>
 
-<script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=51"></script>
-<script id="money-hours-v44" src="assets/js/money-hours-v44.js"></script>
+<script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=52"></script>
+<script id="money-hours-v44" src="assets/js/money-hours-v44.js?v=52"></script>
 
 <script id="ai-shift-finder-v44" src="assets/js/ai-shift-finder-v44.js"></script>
 
 <script id="message-safety-v45" src="assets/js/message-safety-v45.js"></script>
 <script id="gemini-safety-v45" src="assets/js/gemini-safety-v45.js"></script>
-<script id="parent-consent-v44" src="assets/js/parent-consent-v44.js"></script>
+<script id="parent-consent-v44" src="assets/js/parent-consent-v44.js?v=53"></script>
 
 <script id="permit-check-v45" src="assets/js/permit-check-v45.js"></script>
 
@@ -3880,9 +3867,20 @@
 <link rel="stylesheet" href="assets/css/phone-fit-v51.css">
 <script id="phone-fit-v51" src="assets/js/phone-fit-v51.js?v=51"></script>
 <script src="assets/js/trust-usability.js"></script>
+<link rel="stylesheet" href="assets/css/practice-v52.css?v=52">
+<script id="work-rules-v52" src="assets/js/work-rules-v52.js?v=52"></script>
+<script id="parent-hours-v52" src="assets/js/parent-hours-v52.js?v=52"></script>
+<script id="practice-v52" src="assets/js/practice-v52.js?v=52"></script>
+<link rel="stylesheet" href="assets/css/onboarding-v53.css?v=53">
+<script id="onboarding-v53" src="assets/js/onboarding-v53.js?v=53"></script>
 <script id="dob-start-v50" src="assets/js/dob-start-v50.js"></script>
 <link rel="stylesheet" href="assets/css/home-v51.css?v=51">
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>
 <script id="app-fixes-v51" src="assets/js/app-fixes-v51.js?v=51"></script>
+<link rel="stylesheet" href="assets/css/share-v54.css?v=54">
+<script id="share-v54" src="assets/js/share-v54.js?v=54"></script>
+<script id="billing-v54" src="assets/js/billing-v54.js?v=54"></script>
+<link rel="stylesheet" href="assets/css/polish-v54.css?v=54">
+<script id="polish-v54" src="assets/js/polish-v54.js?v=54"></script>
 </body>
 </html>

@@ -92,7 +92,7 @@
       bar: [['etab-post', 'Post'], ['etab-applicants', 'Hiring'], ['chat', 'Chat'], ['etab-active', 'Jobs']]
     }
   };
-  var FOOT = [['help', '❓', 'Help'], ['rate', '⭐', 'Rate app'], ['tour', '🗺️', 'Tour'], ['out', '↩', 'Sign out']];
+  var FOOT = [['share', '📣', 'Share TeenWork', 'share'], ['help', '❓', 'Help'], ['rate', '⭐', 'Rate app'], ['tour', '🗺️', 'Tour'], ['out', '↩', 'Sign out']];   // v54: Share
   // The map, Q&A and stories tabs draw their content when opened (the old grouped tabs did this too).
   var DRAW = {
     'ttab-map': function () { window.renderJobMap && window.renderJobMap('job-map-container'); },
@@ -308,6 +308,7 @@
     closeSheet(true);
     if (id === 'chat') { if (typeof window.openMsgModal === 'function') window.openMsgModal(); return; }
     if (id === 'verify') { if (typeof window.showVerifyPage === 'function') window.showVerifyPage(); return; }
+    if (id === 'share') { if (typeof window.twShare === 'function') window.twShare({ source: 'menu' }); return; }
     if (id === 'help') {
       if (typeof window.openSupportModal === 'function') window.openSupportModal('General Support', '');
       else if (typeof window._twOpenSupport === 'function') window._twOpenSupport();

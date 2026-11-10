@@ -146,6 +146,7 @@
     if (!u) return 'free';
     if (u.isDemo || u.twDemo || isAdminUser(u)) return 'pro';
     if (!settings().enabled) return 'pro';
+    if (u.type === 'parent') return 'free';   // no Pro for parent accounts (Aya, 2026-11-09); parents are always free
     return storedPlanOf(u);
   }
   function isPro(u) { return planOf(u) === 'pro'; }

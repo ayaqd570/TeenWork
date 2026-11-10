@@ -123,12 +123,12 @@
     const msg    = parts[1] || 'AI limit reached.';
     const cta    = parts[2];
     const cfg    = typeof _adminGetConfig === 'function' ? _adminGetConfig() : {};
-    if (reason === 'upgrade' && cfg.launchPaid) {
+    if (reason === 'upgrade' && cfg.launchPaid && (window.currentUser || {}).type !== 'parent') {   // parents have no Pro (2026-11-09)
       el.innerHTML = `<div style="padding:14px;background:var(--amber-pale);border:1.5px solid var(--amber);border-radius:12px;text-align:center">
         <div style="font-size:1.4rem;margin-bottom:6px">⭐</div>
         <div style="font-weight:700;color:var(--amber);margin-bottom:4px">Daily AI Limit Reached</div>
-        <div style="font-size:.85rem;color:var(--text);margin-bottom:10px">You've used your 3 free AI requests today.</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Upgrade to <strong>TeenWork Pro</strong> for unlimited AI — just $4.99/mo.</div>
+        <div style="font-size:.85rem;color:var(--text);margin-bottom:10px">You've used today's free AI requests.</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Upgrade to <strong>TeenWork Pro</strong> for up to 500 a day — $3.99/mo.</div>
         <button onclick="gotoPage('pricing')" style="background:var(--amber);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif">Upgrade to Pro →</button>
       </div>`;
     } else {

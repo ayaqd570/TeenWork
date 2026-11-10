@@ -87,17 +87,15 @@ A few buttons open the person's own email app (Outlook, Gmail, Mail) on purpose 
 
 **Pro payments.** Until the admin turns on Paid Launch (Admin → Launch Controls), Pro stays free and works as before. Once it's on, "Upgrade" opens Stripe Checkout through the `billing` function ($3.99 a month for Teen Pro and for Employer Pro). Parent accounts are always free and have no Pro: no plan choice at sign-up, no Upgrade buttons, and a stored Pro counts as Free. A teen is first asked to get a parent or guardian. Stripe tells the `billing` function when a payment starts, renews or stops; the function then sets `app_metadata.tw_plan` and `tw_ai_plan` (so the AI's Pro key follows the payment) and the account's `plan` row. "Manage billing" on the plans page opens Stripe's own page to change the card or cancel. Once Paid Launch is on, the database refuses a `plan` of "pro" written by anyone but the admin or the `billing` function.
 
-What is already set up (2026-11-09):
+What is already set up (2026-11-10):
 
 - Stripe (live mode, account "TeenWork"): products "TeenWork Teen Pro" (`price_1UZx4YJzVYltmWpU7mSmK93f`) and "TeenWork Employer Pro" (`price_1UZx4ZJzVYltmWpUyAcY7DRc`), both $3.99 a month (the first $4.99 and $49 prices are archived), the customer portal (card, invoices, cancel at the end of the month) and the webhook `https://qocmpwimsfcnqijtfmki.supabase.co/functions/v1/billing/webhook` with `checkout.session.completed` and `customer.subscription.created/updated/deleted`. `billing` uses these two live prices by itself when `STRIPE_SECRET_KEY` is a live key, so the `STRIPE_PRICE_*` secrets are only needed for a test-mode key or new prices.
-- Supabase: `billing` and the new `send-email` are deployed with Verify JWT off.
+- Supabase: `billing` and the new `send-email` are deployed with Verify JWT off. `supabase/migrations/20261106_billing_and_sharing.sql` is applied (the billing tables, the Paid Launch rule and the share-link count). The secrets `STRIPE_SECRET_KEY` (a "Full access—except sensitive operations" key, which can't move money out) and `STRIPE_WEBHOOK_SECRET` are set: `billing`'s ping answers configured, live mode, both prices, webhook secret.
 
-Still to do, in this order:
+Still to do:
 
-1. Apply `supabase/migrations/20261106_billing_and_sharing.sql` (the billing tables, the Paid Launch rule and the share-link count).
-2. Supabase → Edge Functions → Secrets: `STRIPE_SECRET_KEY` (Stripe → Developers → API keys, the secret key) and `STRIPE_WEBHOOK_SECRET` (Stripe → Developers → Webhooks → the TeenWork endpoint → Signing secret).
-3. Admin → System Health shows "Payments (Stripe)". Stripe is in live mode, so a test payment is a real $3.99 charge: refund it in Stripe afterwards. For a free practice run, use a Stripe sandbox with its own test key and test prices in the `STRIPE_PRICE_*` secrets, and the card 4242 4242 4242 4242.
-4. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
+1. A real payment has not been tried yet. Admin → System Health shows "Payments (Stripe)". Stripe is in live mode, so a test payment is a real $3.99 charge: refund it in Stripe afterwards. For a free practice run, use a Stripe sandbox with its own test key and test prices in the `STRIPE_PRICE_*` secrets, and the card 4242 4242 4242 4242.
+2. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
 
 ## Source layout and secure AI deployment
 

@@ -1,10 +1,10 @@
 
 /* ═══════════════════════════════════════════════════════
    clean-menu-v43 — one clean menu for every dashboard
-   • Computers (wider than 768px): a side menu on the left with every section in a few
-     labelled groups, and Help, Rate, Tour and Sign out at the bottom.
+   • Computers (wider than 768px): a side menu on the left with the role's main places, then a
+     few groups that open with one click (v57), and Download the app, Share and Sign out at the bottom.
    • Phones (768px and narrower): a bottom bar with the four main places plus "Menu",
-     which slides up the same full list.
+     which slides up the same list.
    • Admin: the two rows of admin tabs become a grouped side menu (one scrolling row on phones).
    • The dashboard header keeps only the title and the role's own buttons; Tour, Sign out,
      and the floating Help / Rate buttons live in the menu instead.
@@ -18,31 +18,36 @@
   window.__twCleanMenuV43 = true;
 
   var ROLES = ['teen', 'parent', 'employer'];
-  // [section id, icon, label, words the app tour looks for]. 'chat' and 'verify' are not tabs.
+  // v57 (2026-11-13, Aya: "make it so side bar doesn't have tons of buttons"): each role shows only
+  // its main places; everything else sits in a few named groups that open with one click (closed at
+  // first, the choice is remembered on this device, and a group opens by itself when you land on a
+  // section inside it). Help, Tour and Rate app moved into "Help & feedback"; the footer keeps
+  // Download the app (window.twGetApp, from the get-app thread), Share TeenWork and Sign out.
+  // Items: [section id, icon, label, words the app tour looks for]. 'chat' and 'verify' are not tabs.
   var MENU = {
     teen: {
       name: 'Teen',
+      main: [
+        ['ttab-browse', '🔍', 'Find Jobs', 'jobs'],
+        ['ttab-applications', '📋', 'Applied'],
+        ['chat', '💬', 'Messages', 'chat'],
+        ['ttab-worklog', '⏱️', 'Work Log', 'work'],
+        ['ttab-earnings', '💰', 'Earnings'],
+        ['ttab-resume', '👤', 'Profile & Settings', 'account']],
       groups: [
-        { title: 'Jobs', items: [
-          ['ttab-browse', '🔍', 'Find Jobs', 'jobs'],
+        { id: 'jobs', title: 'Jobs & money', items: [
           ['ttab-map', '🗺️', 'Job Map'],
-          ['ttab-applications', '📋', 'Applied'],
           ['ttab-tracker', '📈', 'Tracker'],
-          ['chat', '💬', 'Messages', 'chat']] },
-        { title: 'Work & Money', items: [
-          ['ttab-worklog', '⏱️', 'Work Log', 'work'],
           ['ttab-calendar', '📅', 'Schedule'],
-          ['ttab-earnings', '💰', 'Earnings'],
           ['ttab-savings', '🎯', 'Savings']] },
-        { title: 'My Profile', items: [
-          ['ttab-resume', '👤', 'Profile & Settings', 'account'],
+        { id: 'profile', title: 'My profile', items: [
+          ['verify', '🛡️', 'Verification'],
           ['ttab-portfolio', '🗂️', 'Portfolio'],
           ['ttab-references', '🤝', 'References'],
           ['ttab-letters', '📜', 'Rec Letters'],
           ['ttab-badges', '🏅', 'Badges'],
-          ['ttab-leaderboard', '🏆', 'Leaderboard'],
-          ['verify', '🛡️', 'Verification']] },
-        { title: 'Learn & Grow', items: [
+          ['ttab-leaderboard', '🏆', 'Leaderboard']] },
+        { id: 'learn', title: 'Learn & grow', items: [
           ['ttab-ai', '🤖', 'AI Coach', 'grow'],
           ['ttab-lessons', '📚', 'Lessons'],
           ['ttab-firstjob', '🚀', 'First Job Guide'],
@@ -53,46 +58,51 @@
     },
     parent: {
       name: 'Parent',
+      main: [
+        ['ptab-overview', '🏠', 'Overview', 'home'],
+        ['ptab-approvals', '✅', 'Approvals', 'approve'],
+        ['chat', '💬', 'Messages', 'chat'],
+        ['ptab-teens', '👨‍👩‍👧', 'My Teens'],
+        ['ptab-controls', '🛡️', 'Controls', 'safety']],
       groups: [
-        { title: 'Home', items: [
-          ['ptab-overview', '🏠', 'Overview', 'home'],
-          ['ptab-approvals', '✅', 'Approvals', 'approve'],
-          ['chat', '💬', 'Messages', 'chat']] },
-        { title: 'Safety', items: [
-          ['ptab-controls', '🛡️', 'Controls', 'safety'],
+        { id: 'safety', title: 'Safety & alerts', items: [
           ['ptab-notifications', '🔔', 'Alerts'],
           ['ptab-trusted', '🤝', 'Employers saved by you']] },
-        { title: 'Family', items: [
-          ['ptab-teens', '👨‍👩‍👧', 'My Teens'],
-          ['ptab-ratings', '⭐', 'Ratings'],
+        { id: 'family', title: 'Family', items: [
           ['ptab-weekly', '📬', 'Weekly Summary', 'updates'],
+          ['ptab-ratings', '⭐', 'Ratings'],
           ['ptab-savings', '🎯', 'Savings Goals']] }
       ],
       bar: [['ptab-overview', 'Home'], ['ptab-approvals', 'Approve'], ['chat', 'Chat'], ['ptab-controls', 'Safety']]
     },
     employer: {
       name: 'Employer',
+      main: [
+        ['etab-post', '📝', 'Post a Job', 'post'],
+        ['etab-applicants', '👥', 'Applicants', 'hiring'],
+        ['etab-active', '📂', 'Active Jobs'],
+        ['chat', '💬', 'Messages', 'chat'],
+        ['etab-profile', '🏢', 'Company Profile']],
       groups: [
-        { title: 'Hiring', items: [
-          ['etab-post', '📝', 'Post a Job', 'post'],
-          ['etab-applicants', '👥', 'Applicants', 'hiring'],
-          ['etab-active', '📂', 'Active Jobs'],
-          ['etab-schedule', '📅', 'Schedule']] },
-        { title: 'Messages', items: [
-          ['chat', '💬', 'Messages', 'chat'],
+        { id: 'tools', title: 'Hiring tools', items: [
+          ['etab-schedule', '📅', 'Schedule'],
           ['etab-bulkmsg', '📣', 'Bulk Message'],
           ['etab-ai', '🤖', 'AI Tools']] },
-        { title: 'Your Business', items: [
+        { id: 'business', title: 'Your business', items: [
           ['etab-analytics', '📊', 'Analytics', 'grow'],
           ['etab-reviews', '⭐', 'Reviews'],
           ['etab-letters', '📜', 'Rec Letters'],
-          ['etab-bgcheck', '🛡️', 'Verification'],
-          ['etab-profile', '🏢', 'Company Profile']] }
+          ['etab-bgcheck', '🛡️', 'Verification']] }
       ],
       bar: [['etab-post', 'Post'], ['etab-applicants', 'Hiring'], ['chat', 'Chat'], ['etab-active', 'Jobs']]
     }
   };
-  var FOOT = [['share', '📣', 'Share TeenWork', 'share'], ['help', '❓', 'Help'], ['rate', '⭐', 'Rate app'], ['tour', '🗺️', 'Tour'], ['out', '↩', 'Sign out']];   // v54: Share
+  // The same last group for every role.
+  var HELP = { id: 'help', title: 'Help & feedback', items: [['help', '❓', 'Get help'], ['tour', '🗺️', 'App tour'], ['rate', '⭐', 'Rate the app']] };
+  // Always at the bottom. 'app' shows only once window.twGetApp exists and TeenWork isn't installed yet.
+  var FOOT = [['app', '📲', 'Download the app'], ['share', '📣', 'Share TeenWork', 'share'], ['out', '↩', 'Sign out']];
+  var TAB = /^[pte]tab-/;
+  function groupsOf(role) { return MENU[role].groups.concat([HELP]); }
   // The map, Q&A and stories tabs draw their content when opened (the old grouped tabs did this too).
   var DRAW = {
     'ttab-map': function () { window.renderJobMap && window.renderJobMap('job-map-container'); },
@@ -122,12 +132,27 @@
     '.twm-sec{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 10px 5px}',
     '.twm-item{position:relative;display:flex;align-items:center;gap:10px;width:100%;margin:1px 0;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--text);font:600 .88rem/1.25 "DM Sans",system-ui,sans-serif;text-align:left;cursor:pointer;transition:background .15s,color .15s}',
     '.twm-item:hover{background:var(--bg)}',
-    '.twm-item:focus-visible,.twm-tab:focus-visible,.twm-x:focus-visible{outline:2px solid var(--green);outline-offset:1px}',
+    '.twm-item:focus-visible,.twm-tab:focus-visible,.twm-x:focus-visible,.twm-gtog:focus-visible{outline:2px solid var(--green);outline-offset:1px}',
     '.twm-item.on{background:var(--green-pale);color:var(--green);font-weight:700}',
     '.twm-item[hidden]{display:none}',
+    // v57: main places on top, then a line, then the groups that open with one click
+    '.twm-main{padding-top:4px}',
+    '.twm-groups{margin-top:10px;padding-top:8px;border-top:1.5px solid var(--border)}',
+    '.twm-group[hidden],.twm-gbody[hidden]{display:none!important}',
+    '.twm-gtog{display:flex;align-items:center;gap:10px;width:100%;margin:1px 0;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--muted);font:700 .86rem/1.25 "DM Sans",system-ui,sans-serif;text-align:left;cursor:pointer;transition:background .15s,color .15s}',
+    '.twm-gtog:hover,.twm-gtog[aria-expanded="true"]{color:var(--text)}',
+    '.twm-gtog:hover{background:var(--bg)}',
+    '.twm-chev{display:inline-flex;align-items:center;justify-content:center}',
+    '.twm-chev::before{content:"";display:block;width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateX(-2px) rotate(-45deg);transition:transform .15s}',
+    '.twm-gtog[aria-expanded="true"] .twm-chev::before{transform:translateY(-2px) rotate(45deg)}',
+    '.twm-count{margin-left:auto;min-width:22px;padding:2px 7px;border-radius:999px;background:var(--bg);color:var(--muted);font-size:.7rem;font-weight:700;line-height:1.2;text-align:center}',
+    '.twm-gtog.has-on .twm-count{background:var(--green-pale);color:var(--green)}',
+    '.twm-gtog[aria-expanded="true"] .twm-count{visibility:hidden}',
+    '#twm-side .twm-gbody{padding:0 0 6px 12px}',
+    '#twm-side .twm-gbody .twm-item{font-size:.85rem;padding:7px 10px}',
     '.twm-ic{flex:0 0 22px;text-align:center;font-size:1rem;line-height:1}',
     '.twm-lb{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.twm-foot{display:grid;grid-template-columns:1fr 1fr;gap:2px 4px;border-top:1.5px solid var(--border);padding:8px 12px 14px}',
+    '.twm-foot{display:grid;grid-template-columns:1fr;gap:2px;border-top:1.5px solid var(--border);padding:8px 12px 14px}',
     '.twm-foot .twm-item,.twm-sheet-foot .twm-item{gap:7px;padding:8px;font-size:.82rem;color:var(--muted)}',
     '.twm-foot .twm-ic,.twm-sheet-foot .twm-ic{flex-basis:18px;font-size:.92rem}',
     '.twm-foot .twm-item:hover{color:var(--green)}',
@@ -150,10 +175,15 @@
     '.twm-sheet-title{font-family:"Fraunces",Georgia,serif;font-weight:800;font-size:1.15rem;color:var(--green)}',
     '.twm-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:50%;background:var(--bg);color:var(--muted);font-size:1rem;cursor:pointer}',
     '.twm-sheet-body{overflow-y:auto;padding:0 12px 10px;overscroll-behavior:contain}',
-    '.twm-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px}',
+    '.twm-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 6px}',
+    '.twm-grid .twm-item{min-width:0}.twm-grid .twm-lb{white-space:normal;overflow-wrap:anywhere}',   // long names wrap instead of pushing past the screen
     '.twm-grid .twm-item{padding:10px;font-size:.87rem;background:var(--bg)}',
     '.twm-grid .twm-item.on{background:var(--green-pale)}',
-    '.twm-sheet-foot{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;padding:8px 12px calc(12px + env(safe-area-inset-bottom));border-top:1.5px solid var(--border)}',
+    '.twm-sheet-body .twm-main{padding-top:10px}',
+    '.twm-sheet-body .twm-groups{margin-top:12px}',
+    '.twm-sheet-body .twm-gtog{min-height:46px;padding:10px;font-size:.92rem}',
+    '.twm-sheet-body .twm-gbody{padding:2px 0 10px}',
+    '.twm-sheet-foot{display:grid;grid-template-columns:1fr;gap:2px;padding:8px 12px calc(12px + env(safe-area-inset-bottom));border-top:1.5px solid var(--border)}',
     '@media (min-width:769px){#twm-sheet,#twm-scrim{display:none}}',
     // admin: grouped side menu instead of two rows of tabs
     '#tw-admin-panel.twm-adm .adm-nav{background:var(--green);background:linear-gradient(135deg,var(--green) 0%,color-mix(in srgb,var(--green) 60%,black) 100%)}',
@@ -202,14 +232,22 @@
     for (var i = 0; i < ids.length; i++) { var p = $(ids[i]); if (p && p.classList.contains('active') && pg.contains(p)) return ids[i]; }
     return null;
   }
-  function allIds(role) {
-    var out = [];
-    MENU[role].groups.forEach(function (g) { g.items.forEach(function (it) { if (it[0] !== 'chat' && it[0] !== 'verify') out.push(it[0]); }); });
+  function allItems(role) {
+    var out = MENU[role].main.slice();
+    groupsOf(role).forEach(function (g) { out = out.concat(g.items); });
     return out;
+  }
+  function allIds(role) {
+    return allItems(role).map(function (it) { return it[0]; }).filter(function (id) { return TAB.test(id); });
   }
   function findItem(role, id) {
     var hit = null;
-    MENU[role].groups.forEach(function (g) { g.items.forEach(function (it) { if (it[0] === id) hit = it; }); });
+    allItems(role).forEach(function (it) { if (it[0] === id) hit = it; });
+    return hit;
+  }
+  function groupOf(role, id) {
+    var hit = null;
+    groupsOf(role).forEach(function (g) { g.items.forEach(function (it) { if (it[0] === id) hit = g.id; }); });
     return hit;
   }
 
@@ -217,11 +255,50 @@
     return '<button type="button" class="twm-item" data-twm="' + esc(it[0]) + '" data-tour-key="' + esc(it[3] || '') + '">' +
       '<span class="twm-ic" aria-hidden="true">' + it[1] + '</span><span class="twm-lb">' + esc(it[2]) + '</span></button>';
   }
+  // The main places, then each group as a button that shows or hides its items.
   function groupsHTML(role, grid) {
-    return MENU[role].groups.map(function (g) {
-      return '<div class="twm-sec">' + esc(g.title) + '</div>' +
-        (grid ? '<div class="twm-grid">' : '') + g.items.map(itemHTML).join('') + (grid ? '</div>' : '');
-    }).join('');
+    var where = grid ? 'sheet' : 'side';
+    return '<div class="twm-main' + (grid ? ' twm-grid' : '') + '">' + MENU[role].main.map(itemHTML).join('') + '</div>' +
+      '<div class="twm-groups">' + groupsOf(role).map(function (g) {
+        var body = 'twm-' + where + '-' + g.id;
+        var keys = g.items.map(function (it) { return it[3] || ''; }).filter(Boolean).join(' ');
+        return '<div class="twm-group" data-twm-group="' + esc(g.id) + '">' +
+          '<button type="button" class="twm-gtog" data-twm-tog="' + esc(g.id) + '" aria-expanded="false" aria-controls="' + body + '" data-tour-key="' + esc(keys) + '">' +
+          '<span class="twm-ic twm-chev" aria-hidden="true"></span><span class="twm-lb">' + esc(g.title) + '</span>' +
+          '<span class="twm-count" aria-hidden="true">' + g.items.length + '</span></button>' +
+          '<div class="twm-gbody' + (grid ? ' twm-grid' : '') + '" id="' + body + '" role="group" aria-label="' + esc(g.title) + '" hidden>' + g.items.map(itemHTML).join('') + '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+  }
+
+  // ── Which groups are open: closed at first, remembered per role on this device ──
+  var openG = {}, lastAuto = null;
+  function opened(role) {
+    if (openG[role]) return openG[role];
+    var o = {};
+    try { (JSON.parse(localStorage.getItem('twm_open_' + role) || '[]') || []).forEach(function (g) { if (typeof g === 'string') o[g] = true; }); } catch (e) {}
+    return (openG[role] = o);
+  }
+  function setOpen(role, gid, on) {
+    var o = opened(role);
+    if (on) o[gid] = true; else delete o[gid];
+    try { localStorage.setItem('twm_open_' + role, JSON.stringify(Object.keys(o))); } catch (e) {}
+  }
+  function toggleGroup(role, gid, btn) {
+    setOpen(role, gid, !opened(role)[gid]);
+    paint(role);
+    // keep the opened group in view at the bottom of a short screen
+    if (opened(role)[gid] && btn && btn.parentElement) {
+      var body = btn.parentElement.querySelector('.twm-gbody');
+      if (body && body.scrollIntoView) try { body.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }
+  }
+  function installed() {
+    try {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+      if (navigator.standalone === true) return true;
+      return !!(window.twGetApp && typeof window.twGetApp.installed === 'function' && window.twGetApp.installed());
+    } catch (e) { return false; }
   }
   function footHTML() { return FOOT.map(itemHTML).join(''); }
 
@@ -229,6 +306,7 @@
   function build(role) {
     ['twm-side', 'twm-bottom'].forEach(function (id) { var el = $(id); if (el) el.remove(); });
     closeSheet(true);
+    lastAuto = null;
     var side = document.createElement('div');   // not <nav>: the app's dark mode repaints every <nav>
     side.id = 'twm-side';
     side.setAttribute('role', 'navigation');
@@ -309,6 +387,7 @@
     if (id === 'chat') { if (typeof window.openMsgModal === 'function') window.openMsgModal(); return; }
     if (id === 'verify') { if (typeof window.showVerifyPage === 'function') window.showVerifyPage(); return; }
     if (id === 'share') { if (typeof window.twShare === 'function') window.twShare({ source: 'menu' }); return; }
+    if (id === 'app') { if (typeof window.twGetApp === 'function') window.twGetApp({ source: 'menu' }); return; }
     if (id === 'help') {
       if (typeof window.openSupportModal === 'function') window.openSupportModal('General Support', '');
       else if (typeof window._twOpenSupport === 'function') window._twOpenSupport();
@@ -348,6 +427,8 @@
     sync();
   }
   function onClick(e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-twm-tog]') : null;
+    if (t && built) { e.preventDefault(); toggleGroup(built, t.getAttribute('data-twm-tog'), t); return; }
     var b = e.target && e.target.closest ? e.target.closest('[data-twm]') : null;
     if (!b || !built) return;
     e.preventDefault();
@@ -371,6 +452,7 @@
   function paint(role) {
     var id = activeId(role), barIds = MENU[role].bar.map(function (b) { return b[0]; });
     var sheetOpen = !!$('twm-sheet');
+    var appOk = typeof window.twGetApp === 'function' && !installed();
     document.querySelectorAll('#twm-side [data-twm], #twm-sheet [data-twm], #twm-bottom [data-twm]').forEach(function (b) {
       var k = b.getAttribute('data-twm');
       // "Menu" lights up while the sheet is open, or when the open section isn't one of the four bar buttons
@@ -378,7 +460,28 @@
       b.classList.toggle('on', on);
       if (on && k !== 'menu') b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       // Hide sections whose screen doesn't exist on this account (map, Q&A and stories come and go).
-      if (/^[pte]tab-/.test(k)) b.hidden = !$(k);
+      if (TAB.test(k)) b.hidden = !$(k);
+      else if (k === 'app') b.hidden = !appOk;
+    });
+    // Landing on a section inside a closed group (a link, the address, a step card) opens that group.
+    if (id !== lastAuto) {
+      lastAuto = id;
+      var gid = id && groupOf(role, id);
+      if (gid && !opened(role)[gid]) setOpen(role, gid, true);
+    }
+    var o = opened(role);
+    document.querySelectorAll('#twm-side [data-twm-group], #twm-sheet [data-twm-group]').forEach(function (g) {
+      var gid = g.getAttribute('data-twm-group'), open = !!o[gid], n = 0, here = false;
+      g.querySelectorAll('.twm-gbody [data-twm]').forEach(function (b) { if (!b.hidden) n++; if (b.classList.contains('on')) here = true; });
+      g.hidden = n === 0;
+      g.classList.toggle('open', open);
+      var t = g.querySelector('.twm-gtog'), body = g.querySelector('.twm-gbody'), c = g.querySelector('.twm-count');
+      if (t) {
+        if (t.getAttribute('aria-expanded') !== String(open)) t.setAttribute('aria-expanded', String(open));
+        t.classList.toggle('has-on', here && !open);   // the open section is inside this closed group
+      }
+      if (body && body.hidden === open) body.hidden = !open;
+      if (c && c.textContent !== String(n)) c.textContent = String(n);
     });
   }
 

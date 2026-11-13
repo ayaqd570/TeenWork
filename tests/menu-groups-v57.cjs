@@ -84,6 +84,8 @@ async function desktop(browser, role) {
   assert.deepEqual(missing, [], role + ': tour words with no visible menu button');
 
   // Download the app: only once the get-app script is there, first in the footer, and not when installed.
+  // (the get-app script defines twGetApp on every page, so take it away for this one check)
+  await p.evaluate(() => { window.__realGetApp = window.twGetApp; delete window.twGetApp; window.twCleanMenu.sync(); });
   assert.equal(await p.locator('#twm-side [data-twm="app"]').isVisible(), false, 'Download shows without window.twGetApp');
   await p.evaluate(() => { window.__got = []; window.twGetApp = o => window.__got.push(o); window.twCleanMenu.sync(); });
   assert(await p.locator('#twm-side [data-twm="app"]').isVisible(), 'Download the app is not showing');
@@ -92,6 +94,7 @@ async function desktop(browser, role) {
   assert.deepEqual(await p.evaluate(() => window.__got), [{ source: 'menu' }]);
   await p.evaluate(() => { window.twGetApp.installed = () => true; window.twCleanMenu.sync(); });
   assert.equal(await p.locator('#twm-side [data-twm="app"]').isVisible(), false, 'Download shows when the app is installed');
+  await p.evaluate(() => { if (window.__realGetApp) window.twGetApp = window.__realGetApp; else delete window.twGetApp; window.twCleanMenu.sync(); });
 
   // The choice is remembered on this device.
   await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(300);

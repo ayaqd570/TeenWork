@@ -33,19 +33,22 @@
 //   APP_EMAILS_MAX_PER_PERSON (a cap on reminders per person; unset = no cap, keep going until they unsubscribe),
 //   APP_EMAILS_OFF=1 (sends nothing), APP_EMAILS_SECRET (when set, "run" needs header x-tw-cron with it),
 //   MAIL_POSTAL_ADDRESS (a mailing address shown in the footer; US law (CAN-SPAM) asks for one in
-//   promotional email: a P.O. box is fine).
+//   promotional email: a P.O. box is fine),
+//   MAIL_CONTACT (the address people can write or reply to; default aqdteenwork@gmail.com, the team inbox.
+//   Aya, 2026-11-13: "use aqdteenwork@gmail.com". An email address is not the postal address above).
 // Deploy with Verify JWT off (pg_cron calls it without a sign-in). SUPABASE_URL and
 // SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 
 export type Env = {
   url: string; serviceKey: string; resendKey: string; resendFrom: string; site: string;
   perRun: number; dayCap: number; minAgeDays: number; gapDays: number; maxPerUser: number;   // maxPerUser 0 = no cap
-  off: boolean; secret: string; postal: string; pauseMs: number;
+  off: boolean; secret: string; postal: string; contact: string; pauseMs: number;
 };
 export type Person = { user_id: string; email: string; first_name: string | null; account_type: string | null; step: number; unsub_token: string; prev_last_at: string | null };
 
 const RESEND_URL = "https://api.resend.com/emails";
 const TEST_SENDER = "onboarding@resend.dev";
+export const DEFAULT_CONTACT = "aqdteenwork@gmail.com";   // the TeenWork team inbox
 const EMAIL_RE = /^[^\s@<>,;:"()\[\]\\]+@[^\s@<>,;:"()\[\]\\]+\.[A-Za-z]{2,}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function isEmail(s: unknown): s is string { return typeof s === "string" && s.length <= 254 && EMAIL_RE.test(s); }
@@ -63,7 +66,8 @@ export function cleanName(s: unknown): string {
   return m ? m[0].slice(0, 30) : "";
 }
 
-export function buildEmail(p: { first_name?: string | null; account_type?: string | null; step: number; unsub_token: string }, env: Pick<Env, "site" | "postal">) {
+export function buildEmail(p: { first_name?: string | null; account_type?: string | null; step: number; unsub_token: string }, env: Pick<Env, "site" | "postal"> & { contact?: string }) {
+  const contact = isEmail(env.contact) ? env.contact : "";
   const site = env.site.replace(/\/+$/, "");
   const name = cleanName(p.first_name);
   const hi = `Hi ${esc(name || "there")},`;
@@ -124,6 +128,7 @@ export function buildEmail(p: { first_name?: string | null; account_type?: strin
         `<div style="font-family:${DISPLAY};font-size:15px;font-weight:900;color:${C.green};margin-bottom:4px;">&#127795; Built by a teen, for teens.</div>` +
         `You&rsquo;re getting this because you have a TeenWork account. We send a reminder like this every few weeks until you add the app or unsubscribe.<br>` +
         `<a href="${unsubLink}" style="color:${C.green};text-decoration:underline;">Unsubscribe from reminders like this</a>. You&rsquo;ll still get the emails you need, like sign-in codes and parent approvals.` +
+        (contact ? `<br>Questions? Reply to this email or write to ${esc(contact)}.` : "") +
         (env.postal ? `<br>TeenWork &middot; ${esc(env.postal)}` : "") +
       `</td></tr>` +
     `</table></td></tr></table>`;
@@ -142,8 +147,9 @@ export function buildEmail(p: { first_name?: string | null; account_type?: strin
     "--",
     "You're getting this because you have a TeenWork account. We send a reminder like this every few weeks until you add the app or unsubscribe.",
     `Unsubscribe: ${unsubLink}`,
+    contact ? `Questions? Reply to this email or write to ${contact}.` : "",
     env.postal ? `TeenWork · ${env.postal}` : "",
-  ].join("\n").trim();
+  ].filter((l, i, a) => l !== "" || a[i - 1] !== "").join("\n").trim();
   return { subject, html, text, preheader };
 }
 
@@ -207,6 +213,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
           body: JSON.stringify({
             from: `TeenWork <${fromAddr}>`,
             to: [p.email],
+            ...(isEmail(env.contact) ? { reply_to: env.contact } : {}),
             subject: mail.subject,
             html: mail.html,
             text: mail.text,
@@ -248,7 +255,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
     if (req.method !== "POST") return fail(405, "bad_request", "POST only");
     let body: any;
     try { body = await req.json(); } catch { return fail(400, "bad_request", "Bad JSON"); }
-    if (body?.ping) return json({ ok: true, configured, off: env.off, per_run: env.perRun, day_cap: env.dayCap, from_domain: (fromAddr.split("@")[1] || "") });
+    if (body?.ping) return json({ ok: true, configured, off: env.off, per_run: env.perRun, day_cap: env.dayCap, max_per_person: env.maxPerUser, contact: env.contact, postal: !!env.postal, from_domain: (fromAddr.split("@")[1] || "") });
     if (body?.action === "preview") {
       const step = Math.min(Math.max(Math.floor(Number(body.step)) || 1, 1), 999);
       const mail = buildEmail({ first_name: body.name ?? "Sam", account_type: String(body.role || "teen"), step, unsub_token: "00000000-0000-4000-8000-000000000000" }, env);
@@ -272,6 +279,7 @@ export function envFrom(get: (k: string) => string | undefined): Env {
     perRun: n("APP_EMAILS_PER_RUN", 20, 60), dayCap: n("APP_EMAILS_DAY_CAP", 60, 90),
     minAgeDays: 2, gapDays: 21, maxPerUser: n("APP_EMAILS_MAX_PER_PERSON", 0, 1000),   // 0 = no cap
     off: /^(1|true|yes|on)$/i.test(s("APP_EMAILS_OFF")), secret: s("APP_EMAILS_SECRET"), postal: s("MAIL_POSTAL_ADDRESS").slice(0, 200),
+    contact: isEmail(s("MAIL_CONTACT")) ? s("MAIL_CONTACT") : DEFAULT_CONTACT,
     pauseMs: 600,
   };
 }

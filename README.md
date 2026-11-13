@@ -19,7 +19,8 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 - `supabase/migrations/20261106_billing_and_sharing.sql` – the `tw_billing` and `tw_stripe_events` tables, the rule that only payments can switch someone to Pro once Paid Launch is on, and `tw_referral_count()` for the share window.
 - `manifest.json`, `sw.js`, `icon-512.png`, `icon-maskable-512.png` – lets phones add TeenWork to the home screen. `sw.js` always asks the network first and only falls back to its copy when offline.
 - `robots.txt`, `sitemap.xml` – tell search engines they may read the site and where its one page is.
-- `favicon.ico`, `icon-192.png`, `apple-touch-icon.png`, `logo.png`, `og-image.png` – site icon, logo and the picture shown when a link is shared.
+- `favicon.ico`, `icon-192.png`, `apple-touch-icon.png`, `logo.png`, `og-image.png`, `email-logo.png` – site icon, logo, the picture shown when a link is shared, and the logo in the email header.
+- **The logo is the tree, everywhere** (Aya, 2026-11-13: never the 🌱 leaf). `logo.png` is the tree; page headers, the dashboard menu and the weekly digest show it with `class="tw-tree-mark"` (`assets/css/tree-logo-v56.css`). All the icons (and `email-logo.png`) are made from the tree by `make-icons.py` in the project's `tree-logo` folder. Keep the `?v=` on icon links when they change, so browsers drop the old ones. The 🌿 next to "Yard Work" is a job type, not the logo.
 
 ## Keys
 

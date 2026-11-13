@@ -1874,9 +1874,9 @@ function requestPushPermission() {
       userActivity.notifPermission = permission === 'granted';
       if (permission === 'granted') {
         // Show a welcome notification
-        new Notification('TeenWork 🌿', {
+        new Notification('TeenWork', {
           body: 'Notifications enabled! We\'ll let you know about new job matches and updates.',
-          icon: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ctext%20y%3D%2228%22%20font-size%3D%2228%22%3E%F0%9F%8C%BF%3C%2Ftext%3E%3C%2Fsvg%3E'
+          icon: '/icon-192.png?v=56'   // v56: the tree logo (was a 🌿 picture)
         });
       }
     } catch(e) {
@@ -1894,7 +1894,7 @@ function sendPushNotif(title, body, tag = 'tw-notif') {
     new Notification(title, {
       body,
       tag,
-      icon: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ctext%20y%3D%2228%22%20font-size%3D%2228%22%3E%F0%9F%8C%BF%3C%2Ftext%3E%3C%2Fsvg%3E'
+      icon: '/icon-192.png?v=56'   // v56: the tree logo (was a 🌿 picture)
     });
   } catch(e) { /* silent */ }
 }
@@ -5679,7 +5679,7 @@ const TOUR_STEPS = {
       title: '👋 Welcome, future worker!',
       body: "This 60-second tour shows you exactly what TeenWork can do for you. You can tap Skip anytime and restart from Profile → Settings.",
       target: null, pos: 'center',
-      emoji: '🌱',
+      emoji: '🌳',
     },
     {
       title: '🔍 Browse & swipe jobs',

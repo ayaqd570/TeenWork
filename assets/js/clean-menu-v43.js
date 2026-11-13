@@ -234,7 +234,7 @@
     side.setAttribute('role', 'navigation');
     side.setAttribute('aria-label', 'Main menu');
     side.innerHTML =
-      '<div class="twm-brand"><span class="twm-logo">🌱 TeenWork</span><span class="twm-role">' + esc(MENU[role].name) + '</span></div>' +
+      '<div class="twm-brand"><span class="twm-logo"><img class="tw-tree-mark" src="logo.png" alt="" width="30" height="30">TeenWork</span><span class="twm-role">' + esc(MENU[role].name) + '</span></div>' +
       '<div class="twm-scroll">' + groupsHTML(role, false) + '</div>' +
       '<div class="twm-foot">' + footHTML() + '</div>';
     var bar = document.createElement('div');

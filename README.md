@@ -5,7 +5,7 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 
 ## What's here
 
-- `index.html` – app markup (currently TeenWork v54: Share TeenWork, Stripe payments for Pro, Resend for sending email and EmailJS for the team inbox).
+- `index.html` – app markup (currently TeenWork v54: Share TeenWork, Stripe payments for Pro; since v57 every email goes through Resend, and EmailJS is gone).
 - `assets/img/hero-*.avif`, `hero-*.webp` – the home page picture in three sizes (it used to be inside `index.html`).
 - `assets/js/`, `assets/css/` – ordered application scripts and styles.
 - `supabase/functions/groq-chat/index.ts` – the Supabase Edge Function that forwards AI requests to Groq. It runs on Supabase.
@@ -23,9 +23,9 @@ The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serve
 
 ## Keys
 
-Only public keys belong in this repo (the Supabase publishable key and the EmailJS public key inside `index.html`).
+Only public keys belong in this repo (the Supabase publishable key inside `index.html`). Since v57 there is no EmailJS key in the page.
 The Groq keys live in Supabase as the secrets `GROQ_KEY_FREE` and `GROQ_KEY_PRO`. The Stripe and Resend keys live there too (see "Payments and email (v54)").
-Never commit Groq, Stripe or Resend keys, the Supabase service-role key, or the EmailJS private key.
+Never commit Groq, Stripe or Resend keys or the Supabase service-role key.
 
 ## Deploying
 
@@ -72,7 +72,7 @@ Messages is a labeled dialog with a Close button and a "Something feels wrong" b
 
 `assets/js/share-v54.js` (+ `assets/css/share-v54.css`) holds `window.twShare()`, the "📣 Share TeenWork" window: the link with a Copy button, Text, Email, WhatsApp, Facebook and "More…" (the phone's own share sheet). Visitors on a phone get the phone's share sheet straight away; members always get the window, because it also has their joined count and the email invite. It is reached from the menu, the home page band and footer, the old referral window, the rate window and a one-time note on the 3rd dashboard visit.
 A real member's link carries their 8-letter code (`?ref=CODE`, saved as `ref_code` in `user_data`). Whoever signs up within 60 days of opening that link gets `referred_by` saved, and the window shows how many people joined with the code (`tw_referral_count()`, counts only). Practice accounts, the admin and visitors share the plain address. There are no rewards for sharing, so the app promises none.
-Welcome, parent-link, consent and recommendation emails end with a small "Know someone who'd use TeenWork?" box (`window.twEmailShareBlock`, used by `branded-email-v41.js`). Emails to the team inbox never get it. **Invite by email:** a member can type a friend's address in the window and TeenWork emails them a short invite with the member's first name and link (`sendInvite` in `share-v54.js`). Invites only go through Resend, with the member's sign-in, at most 5 a day per account and once a month per address, never to the member's own address or the team inbox. If Resend isn't set up or refuses, the window offers "Send it from your email app instead". Invites never use EmailJS, so they can't use up the EmailJS allowance that sign-up codes and parent emails need.
+Welcome, parent-link, consent and recommendation emails end with a small "Know someone who'd use TeenWork?" box (`window.twEmailShareBlock`, used by `branded-email-v41.js`). Emails to the team inbox never get it. **Invite by email:** a member can type a friend's address in the window and TeenWork emails them a short invite with the member's first name and link (`sendInvite` in `share-v54.js`). Invites only go through Resend, with the member's sign-in, at most 5 a day per account and once a month per address, never to the member's own address or the team inbox. If Resend isn't set up or refuses, the window offers "Send it from your email app instead".
 
 ## Polish pass (v54)
 
@@ -80,8 +80,7 @@ Welcome, parent-link, consent and recommendation emails end with a small "Know s
 
 ## Payments and email (v54)
 
-**Who sends what.** Emails to people (welcome, parent links, alerts, the admin's support replies) go through Resend from the `send-email` function. Emails to the TeenWork team (contact form, support, admin alerts) go through EmailJS straight to the team inbox. If Resend isn't set up or fails, people's emails fall back to EmailJS.
-EmailJS has no mail server of its own: it sends from the mailbox connected to the `TeenWork` service in the EmailJS dashboard (an Outlook account, Aya said on 2026-11-06), so EmailJS emails arrive from that Outlook address. Until `RESEND_API_KEY` is set (the live `send-email` answered `configured: false` on 2026-11-06), every app email goes that way.
+**Who sends what (v57, 2026-11-13).** Every email the app sends goes through Resend from the `send-email` function, from `hello@teenwork.ayaqd.com` (the `RESEND_FROM` secret; teenwork.ayaqd.com is verified for sending in Resend, key `teenwork-send-email`, sending access only). That covers emails to people (welcome, parent links and consent, letters, SOS and safety alerts, the admin's support replies, invites) and emails to the TeenWork team inboxes (Help & Support with reply-to set to the sender, school partnerships, new sign-up notices). EmailJS is gone: `assets/js/resend-mailer-v57.js` takes the place of its library, so older code that still calls `emailjs.send()` lands in `twDeliverEmail` (`resend-email-v42.js`), and `branded-email-v41.js` still puts each email in the TeenWork design first. There is no backup sender: when Resend can't take an email the send fails, the caller shows its own message, and a sign-up code is shown on screen instead. After a "not set up" answer the page stops trying until it is reloaded. Demos send nothing. Test: `node tests/resend-only-v57.cjs`.
 A few buttons open the person's own email app (Outlook, Gmail, Mail) on purpose instead of sending: Share → Email, the admin's "Use my email app" on a support reply, and the backup draft the "Something feels wrong" alert opens next to its automatic emails. Before v54, the admin's "Send Reply" also only opened the email app; it now sends from TeenWork.
 `send-email` only keeps links to the TeenWork site (and `mailto:`) and only when a signed-in member sends; everything else is turned into plain text, so the function can't be used to send phishing links. Limits: 20 an hour per member, 15 an hour per visitor address, 8 an hour per recipient (60 for team inboxes) and 95 a day in all.
 
@@ -95,7 +94,7 @@ What is already set up (2026-11-10):
 Still to do:
 
 1. A real payment has not been tried yet. Admin → System Health shows "Payments (Stripe)". Stripe is in live mode, so a test payment is a real $3.99 charge: refund it in Stripe afterwards. For a free practice run, use a Stripe sandbox with its own test key and test prices in the `STRIPE_PRICE_*` secrets, and the card 4242 4242 4242 4242.
-2. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
+2. Resend is set up (2026-11-12): `RESEND_API_KEY` and `RESEND_FROM` = `hello@teenwork.ayaqd.com` (a bare address; the function adds "TeenWork"). Admin → System Health → "Email sender" shows whether it answers. teenwork.ayaqd.com has no MX record for receiving, so replies to hello@ go nowhere; support emails set reply-to to the person who wrote. The Resend free plan sends 100 emails a day; `send-email` stops at 95 (`EMAIL_MAX_PER_DAY`). The EmailJS account is no longer used and can be closed.
 
 ## Source layout and secure AI deployment
 

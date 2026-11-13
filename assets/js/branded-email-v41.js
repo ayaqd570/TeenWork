@@ -15,9 +15,8 @@
      exist ('teenwork_service' / 'safety_alert'), so it never arrived; it
      now goes through the main template as a red safety alert.
 
-   NEEDS ONE EMAILJS DASHBOARD CHANGE: the template's content must be
-   {{{message}}} (three braces) instead of {{message}}. With two braces
-   EmailJS escapes the HTML, which is why tags showed up as text.
+   v57: EmailJS is gone. emailjs.send is now TeenWork's own Resend mailer
+   (resend-mailer-v57.js); this file still wraps it to add the design.
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -253,7 +252,7 @@
     w.send = function (service, template, params, key) {
       var a = [service, template, params];
       try { a = brand(service, template, params); } catch (e) { console.warn('TeenWork branded email failed, sending plain:', e); }
-      var pr = typeof window.twDeliverEmail === 'function'   // resend-email-v42: Resend first, EmailJS as backup
+      var pr = typeof window.twDeliverEmail === 'function'   // resend-email-v42: every email through Resend (v57: no EmailJS)
         ? window.twDeliverEmail(a[0], a[1], a[2], key, function () { return origSend.call(ej, a[0], a[1], a[2], key); })
         : origSend.call(ej, a[0], a[1], a[2], key);
       if (pr && typeof pr.catch === 'function' && a[0] !== service) pr.catch(function (e) { console.warn('TeenWork SOS email failed:', e); });

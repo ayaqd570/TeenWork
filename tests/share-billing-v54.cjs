@@ -1,5 +1,5 @@
 /* Offline checks for v54: the Share TeenWork window, share links and the "joined" count, the share box in
-   emails, team emails through EmailJS, and Pro checkout with Stripe (before and after Paid Launch).
+   emails, team emails through Resend (v57), and Pro checkout with Stripe (before and after Paid Launch).
    Nothing real is called: Supabase, the billing / send-email functions and Stripe's pages are faked, and
    every other outside request is blocked. Run: node tests/share-billing-v54.cjs */
 const { chromium } = require('playwright');
@@ -187,20 +187,17 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         for (const k of ['code', 'sos', 'team', 'off']) assert(!mail[k].includes('Know someone who'), k + ' email has a share box');
         assert(!/Vermont/.test(mail.welcome), 'email header still says Vermont');
 
-        // team inboxes go through EmailJS, people through Resend (with the person's sign-in)
+        // v57: team inboxes and people both go through Resend (with the person's sign-in); EmailJS is gone
         const route = await p.evaluate(async () => {
           const out = [];
           const ejs = (to) => () => { out.push('emailjs:' + to); return Promise.resolve({ status: 200 }); };
           const send = to => window.twDeliverEmail(EMAILJS_SERVICE, EMAILJS_TEMPLATE, { to_email: to, subject: 'x', message: '<p>x</p>' }, '', ejs(to));
-          await send('aqdteenwork@gmail.com');
-          await send(ADMIN_EMAIL);
-          const r = await send('friend@example.com');
-          out.push('via:' + r.via);
+          for (const to of ['aqdteenwork@gmail.com', ADMIN_EMAIL, 'friend@example.com']) out.push('via:' + (await send(to)).via);
           return out;
         });
-        assert.deepEqual(route, ['emailjs:aqdteenwork@gmail.com', 'emailjs:' + 'ayaquarrierdraper@gmail.com', 'via:resend']);
+        assert.deepEqual(route, ['via:resend', 'via:resend', 'via:resend']);
         const sendCalls = calls.filter(c => c.fn === 'send-email' && c.body && !c.body.ping);
-        assert.deepEqual(sendCalls.map(c => c.body.to), ['friend@example.com'], 'a team email went to Resend');
+        assert.deepEqual(sendCalls.map(c => c.body.to), ['aqdteenwork@gmail.com', 'ayaquarrierdraper@gmail.com', 'friend@example.com'], 'not every email went to Resend');
         assert.equal(sendCalls[0].auth, 'Bearer tok.en.teen', 'the sign-in token was not sent');
         assert.deepEqual(errors, []);
         await context.close();
@@ -305,7 +302,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         await context.close();
       }
       {
-        // Admin support replies are emailed by TeenWork (Resend / EmailJS), not opened in the admin's email app
+        // Admin support replies are emailed by TeenWork (Resend), not opened in the admin's email app
         const { context, p, errors } = await open(browser, viewport);
         const reply = async (ok) => {
           await p.evaluate((ok) => {
@@ -488,7 +485,7 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.deepEqual(errors, []);
         await context.close();
       }
-      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email → EmailJS / people → Resend with sign-in, email invites (Resend only, 5 a day, members only, email-app fallback), polish (home bar, centered buttons, plans page claims, sign-up boxes, AI labels, one install offer), admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch ($3.99 for teens and employers, ask a parent, checkout, employer, no Pro for parents, not set up), return from Stripe + Manage billing');
+      console.log('PASS ' + tag + ': share band/footer/window (copy, text, email, WhatsApp, Facebook, Escape, focus), ?ref and ?share arrivals, practice accounts plain link, member code + joined count + referral at sign-up (60-day limit), email share box rules, team email + people → Resend with sign-in, email invites (Resend only, 5 a day, members only, email-app fallback), polish (home bar, centered buttons, plans page claims, sign-up boxes, AI labels, one install offer), admin replies emailed by TeenWork (not the email app), Pro before/after Paid Launch ($3.99 for teens and employers, ask a parent, checkout, employer, no Pro for parents, not set up), return from Stripe + Manage billing');
     }
   } finally {
     await browser.close();

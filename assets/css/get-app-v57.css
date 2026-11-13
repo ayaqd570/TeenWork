@@ -1,0 +1,65 @@
+/* v57 — Get the TeenWork app: the window / pop-up, the menu button, home page spots (get-app-v57.js) */
+.tw57-app{position:fixed;inset:0;z-index:100060;background:rgba(15,23,20,.55);display:flex;align-items:flex-end;justify-content:center;font-family:'DM Sans',system-ui,sans-serif}
+@media (min-width:600px){.tw57-app{align-items:center;padding:1rem}}
+.tw57-card{position:relative;width:100%;max-width:460px;max-height:92vh;max-height:92dvh;overflow:auto;background:var(--card,#fffdf7);color:var(--text,#1c1c1c);border-radius:20px 20px 0 0;padding:1.3rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 40px rgba(0,0,0,.25);animation:tw57-up .22s cubic-bezier(.2,.8,.2,1)}
+@media (min-width:600px){.tw57-card{border-radius:20px;padding:1.5rem 1.5rem 1.35rem;animation-name:tw57-in}}
+@keyframes tw57-up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tw57-in{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.tw57-card{animation:none}}
+.tw57-x{position:absolute;top:.5rem;right:.5rem;min-width:44px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--muted,#4b5563);font-size:1.2rem;cursor:pointer}
+.tw57-x:hover,.tw57-x:focus-visible{background:var(--green-pale,#e8f5ee);color:var(--green,#2d6a4f)}
+.tw57-head{display:flex;align-items:center;gap:12px;margin:0 2.6rem .9rem 0}
+.tw57-logo{flex:none;width:52px;height:52px;object-fit:contain;padding:3px;background:#fffdf7;border:2px solid #24553f;border-radius:14px;box-sizing:border-box}
+.tw57-head h2{font-family:'Fraunces',Georgia,serif;font-size:1.3rem;line-height:1.2;color:var(--green,#2d6a4f);margin:0}
+.tw57-lead{margin:.2rem 0 0;font-size:.9rem;line-height:1.45;color:var(--muted,#4b5563)}
+.tw57-pills{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0 0 1rem;padding:0}
+.tw57-pills li{padding:4px 10px;border-radius:999px;background:var(--green-pale,#e8f5ee);color:var(--green,#2d6a4f);font-size:.78rem;font-weight:700}
+.tw57-pills li::before{content:'✓ '}
+.tw57-go{display:block;width:100%;min-height:52px;margin:0 0 .5rem;border:0;border-radius:14px;background:var(--green,#2d6a4f);color:#fff;font-family:inherit;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(45,106,79,.3)}
+.tw57-go:hover{background:#235c40}
+.tw57-go:focus-visible,.tw57-alt:focus-visible,.tw57-later:focus-visible,.tw57-never:focus-visible{outline:3px solid var(--amber,#e76f00);outline-offset:2px}
+.tw57-h{margin:.2rem 0 .45rem;font-size:.95rem;font-weight:800;color:var(--text,#1c1c1c)}
+.tw57-steps{margin:0 0 .6rem;padding:0;list-style:none;counter-reset:tw57}
+.tw57-steps li{position:relative;counter-increment:tw57;padding:.5rem .6rem .5rem 2.6rem;margin:0 0 6px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--bg,#f5f0e8);font-size:.92rem;line-height:1.45}
+.tw57-steps li::before{content:counter(tw57);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--green,#2d6a4f);color:#fff;font-size:.8rem;font-weight:800;line-height:1.5rem;text-align:center}
+.tw57-ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;color:#0a84ff}
+.tw57-key{display:inline-block;min-width:1.2em;padding:0 .25em;border:1px solid var(--border,#e2ddd4);border-radius:6px;background:var(--card,#fff);font-weight:800;text-align:center;line-height:1.3}
+.tw57-warn{margin:0 0 .8rem;padding:.6rem .75rem;border-radius:12px;background:var(--amber-pale,#fff1e0);color:#7a4700;font-size:.9rem;font-weight:700;line-height:1.45}
+.tw57-alt{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:.2rem 0 .3rem;padding:0 14px;border:1.5px solid var(--green,#2d6a4f);border-radius:12px;background:transparent;color:var(--green,#2d6a4f);font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer}
+.tw57-alt:hover{background:var(--green-pale,#e8f5ee)}
+.tw57-alt:disabled{opacity:.6;cursor:wait}
+.tw57-small{margin:.5rem 0 0;font-size:.8rem;line-height:1.45;color:var(--muted,#4b5563)}
+.tw57-small:empty{display:none}
+.tw57-phone{display:flex;gap:14px;align-items:flex-start;margin:.9rem 0 .2rem;padding:.9rem;border:1.5px dashed var(--green,#2d6a4f);border-radius:14px;background:var(--green-pale,#eef8f1)}
+.tw57-phone p{margin:0 0 .3rem;font-size:.88rem;line-height:1.45}
+.tw57-qr{flex:none;width:132px;height:132px;border-radius:10px;background:#fff;border:1px solid var(--border,#e2ddd4)}
+.tw57-done{padding:.4rem 0 .2rem}
+.tw57-big{margin:0 0 .4rem;font-size:1.05rem;font-weight:800;color:var(--green,#2d6a4f);line-height:1.4}
+.tw57-done p:not(.tw57-big){margin:0;font-size:.92rem;line-height:1.5}
+.tw57-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:1rem;padding-top:.8rem;border-top:1.5px solid var(--border,#e2ddd4)}
+.tw57-later{min-height:44px;padding:0 20px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--card,#fff);color:var(--text,#1c1c1c);font-family:inherit;font-size:.92rem;font-weight:700;cursor:pointer}
+.tw57-never{min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted,#4b5563);font-family:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer}
+html.dark .tw57-card{background:#1f2a24;color:#eef2ef}
+html.dark .tw57-steps li{background:#26332c;border-color:#3a4a41}
+html.dark .tw57-phone{background:#1a2a21}
+html.dark .tw57-later,html.dark .tw57-key{background:#26332c;color:#eef2ef;border-color:#3a4a41}
+html.dark .tw57-h{color:#eef2ef}
+/* the old install sheet is retired: this window replaces it */
+#featpack-install{display:none!important}
+
+/* "📲 Download the app" in the dashboard menu footer (clean-menu-v43's [data-twm="app"] item, or ours until it has one) */
+#twm-side .twm-foot [data-twm="app"],#twm-sheet .twm-sheet-foot [data-twm="app"],.tw57-menu-app{grid-column:1/-1;min-height:40px;justify-content:flex-start;color:var(--green,#2d6a4f)!important;font-weight:800!important;background:var(--green-pale,#e8f5ee);border:1.5px solid rgba(45,106,79,.25)!important}
+#twm-side .twm-foot [data-twm="app"]:hover,#twm-sheet .twm-sheet-foot [data-twm="app"]:hover,.tw57-menu-app:hover{background:#d8f3dc!important;color:#1b4332!important}
+#twm-side .twm-foot [data-twm="app"][hidden],#twm-sheet .twm-sheet-foot [data-twm="app"][hidden],.tw57-menu-app[hidden]{display:none!important}
+
+/* home page: top bar on computers, a band above "Share TeenWork", the footer link */
+.tw57-nav-app{display:none;order:-1;align-items:center;gap:6px;background:none;border:0;color:var(--green,#2d6a4f);padding:8px 12px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.tw57-nav-app:hover,.tw57-nav-app:focus-visible{background:var(--green-pale,#e8f5ee)}
+@media (min-width:760px){.tw57-nav-app{display:inline-flex}}
+.tw57-nav-app[hidden]{display:none!important}
+.tw57-app-band{margin:1.4rem auto 0;max-width:560px;padding:1rem 1.1rem;border:1.5px solid rgba(45,106,79,.35);border-radius:16px;background:rgba(216,243,220,.55);text-align:center}
+.tw57-app-band p{margin:0 0 .7rem;font-size:.95rem;line-height:1.5;color:var(--text,#1c1c1c)}
+.tw57-app-band button{min-height:44px;padding:0 22px;border:0;border-radius:12px;background:var(--green,#2d6a4f);color:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:.95rem;font-weight:700;cursor:pointer}
+.tw57-app-band button:hover{background:#235c40}
+.tw57-app-band[hidden],#tw57-foot-app[hidden]{display:none!important}
+html.dark .tw57-app-band{background:rgba(45,106,79,.18)}

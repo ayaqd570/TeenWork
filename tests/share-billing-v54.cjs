@@ -295,11 +295,14 @@ const paid = (p, on) => p.evaluate(on => { const s = JSON.parse(localStorage.get
         assert.equal(await p.locator('#pwa-install-banner:visible').count(), 0, 'the old install banner is showing');
         await member(p, 'teen', 'sam@example.com');
         await p.evaluate(() => { document.querySelectorAll('.page').forEach(x => x.classList.remove('active')); document.getElementById('page-teen').classList.add('active'); });
+        // v57: the offer is get-app-v57's "Get the TeenWork app" pop-up (tests/get-app-v57.cjs has the details)
+        await p.evaluate(() => { twGetApp._t.first = 50; });
         assert.equal(await p.evaluate(() => twOfferInstall()), true, 'no install offer for a member on their dashboard');
-        assert(/opens like an app/.test(await p.locator('#featpack-install').innerText()));
-        assert(!/push notifications|offline access/i.test(await p.locator('#featpack-install').innerText()));
-        await p.locator('#featpack-install .btn-secondary').click();
-        assert.equal(await p.evaluate(() => document.getElementById('featpack-install').classList.contains('open')), false);
+        await p.waitForSelector('#tw57-app.tw57-is-nudge');
+        assert(/Get the TeenWork app/.test(await p.locator('#tw57-app').innerText()));
+        assert(!/push notifications|offline access/i.test(await p.locator('#tw57-app').innerText()));
+        await p.locator('#tw57-app .tw57-later').click();
+        assert.equal(await p.locator('#tw57-app').count(), 0);
         assert.equal(await p.evaluate(() => twOfferInstall()), false, '"Not now" did not wait');
         assert.deepEqual(errors, []);
         await context.close();

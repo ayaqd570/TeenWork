@@ -1279,10 +1279,7 @@ async function adminRunHealthCheck() {
   try { localStorage.setItem('tw_health_test', '1'); localStorage.removeItem('tw_health_test'); checks.push({ label: 'LocalStorage', note: 'Read/write OK', status: 'ok' }); }
   catch(e) { checks.push({ label: 'LocalStorage', note: 'Failed: ' + e.message, status: 'error' }); }
 
-  // EmailJS
-  checks.push(typeof emailjs !== 'undefined'
-    ? { label: 'EmailJS SDK', note: 'Loaded', status: 'ok' }
-    : { label: 'EmailJS SDK', note: 'Not loaded', status: 'warn' });
+  // (v57: email is checked by the "Email sender" line from resend-email-v42.js; EmailJS is gone)
 
   // Supabase
   checks.push(sbClient
@@ -2418,7 +2415,7 @@ function empSaveLetter() {
   document.getElementById('emp-letter-preview-wrap').style.display='none';
   showToast('✅ Letter saved and sent to Alex\'s account!','success');
 
-  // Send email notification to teen via EmailJS
+  // Send email notification to teen (Resend, v57)
   if (typeof emailjs !== 'undefined' && EMAILJS_SERVICE !== 'YOUR_EMAILJS_SERVICE_ID') {
     const teenEmail = currentUser?.email || pendingEmail || '';
     if (teenEmail) {

@@ -41,10 +41,13 @@ const SUPABASE_KEY  = 'sb_publishable_wleBRg_z-KSBxjc5vDovWg_7IEBbXO8';
 //     signInWithOtp() send a code instead of a click-to-confirm link.
 // AI: uses Groq (llama-3.3-70b-versatile) with separate Free-plan and Pro-plan keys.
 //     Settings live in TW_GROQ inside <script id="featpack-v25-js"> (search for TW_GROQ).
-// EmailJS: go to emailjs.com → create account → Email Services → get Service ID, Template ID, and Public Key
+// Email (v57, 2026-11-13, Aya: "use resend not emailJS"): every email goes through Resend, via the
+//     Supabase function send-email (resend-email-v42.js + resend-mailer-v57.js). EmailJS is gone.
+//     The EMAILJS_* names are kept only because older code still passes them to emailjs.send(),
+//     which is now TeenWork's own Resend mailer; they are labels, not EmailJS settings.
 const EMAILJS_SERVICE  = 'TeenWork';
-const EMAILJS_TEMPLATE = 'template_t4l4tz9';
-const EMAILJS_PUBKEY   = '4ac7YlFuqZILXmSnV';
+const EMAILJS_TEMPLATE = 'teenwork-main';
+const EMAILJS_PUBKEY   = '';
 const ADMIN_EMAIL      = 'ayaquarrierdraper@gmail.com';
 // ── Admin sign-in (v51, Build Brief T2) ─────────────────────────────
 //  The admin is a real Supabase sign-in: ADMIN_EMAIL's own Supabase account
@@ -57,11 +60,7 @@ const ADMIN_EMAIL      = 'ayaquarrierdraper@gmail.com';
 const ADMIN_LOGIN_ALIASES = ['admin', 'admin@teenwork.com', 'admin@teenwork.app'];
 const TW_ADMIN_ROLE = 'admin';
 
-// Init EmailJS
-(function() {
-  try { if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBKEY); }
-  catch(e) { console.warn('EmailJS not ready:', e); }
-})();
+// (v57: no EmailJS to start any more; emails go through Resend, see resend-mailer-v57.js)
 
 // Use a different variable name to avoid collision with supabase SDK global
 let sbClient = null;
@@ -2013,8 +2012,8 @@ function demoLogin(type) {
 // ════════════════════════════════════
 //  SECTION 8: EMAIL VERIFICATION SYSTEM
 //  generateVerifyCode() — creates a random 6-digit OTP.
-//  sendVerificationEmailJS() — sends the code via EmailJS;
-//    falls back to on-screen display if quota is hit.
+//  sendVerificationEmailJS() — sends the code by email (Resend since v57;
+//    the old name stays); falls back to on-screen display if email can't go out.
 //  verifyCodeInput() — handles digit-by-digit entry + auto-advance.
 //  submitVerifyCode() — checks code against Supabase OTP
 //    (live) or _pendingVerifyCode (demo), then calls launchDashboard().
@@ -2253,33 +2252,32 @@ function _twShowFreeProReviewAsk() {
   modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
 }
 
-// EmailJS quota tracking — stops retrying after repeated failures in the same session
+// Email limit tracking (Resend since v57; the old name stays) — stops retrying after a limit in the same session
 let _emailjsQuotaExceeded = false;
+// Resend answers that mean "email can't go out right now" (not set up, limit reached…): show the code on screen instead.
+const _TW_MAIL_DOWN = ['off', 'not_configured', 'not_deployed', 'bad_key', 'limits_unavailable', 'no_supabase', 'limit', 'resend_limit', 'not_ready'];
 
 async function sendVerificationEmailJS(toEmail, toName) {
   // If we already know quota is exceeded this session, skip gracefully
   if (_emailjsQuotaExceeded) {
-    console.warn('EmailJS quota exceeded — skipping send.');
+    console.warn('Email limit reached — skipping send.');
     showToast('📬 Email quota reached for now. Your code is shown below — enter it to continue.', 'info');
     _showInAppCode();
     return false;
   }
-  // Sends a real email via EmailJS to the user AND notifies admin
-  // Check if EmailJS is loaded and configured
+  // Sends a real email (Resend) to the user AND notifies admin
   if (typeof emailjs === 'undefined') {
-    console.error('EmailJS library not loaded. Check script tag in HTML head.');
+    console.error('TeenWork mailer (resend-mailer-v57.js) not loaded.');
     showToast('Email service unavailable — please contact support.', 'error');
     return false;
   }
   if (EMAILJS_SERVICE === 'YOUR_EMAILJS_SERVICE_ID' || EMAILJS_TEMPLATE === 'YOUR_EMAILJS_TEMPLATE_ID' || EMAILJS_PUBKEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
-    console.error('EmailJS not configured. Set EMAILJS_SERVICE, EMAILJS_TEMPLATE, and EMAILJS_PUBKEY in the CONFIG section.');
-    showToast('Email not configured — running in demo mode. In production, configure EmailJS credentials.', 'error');
+    console.error('Email not configured.');
+    showToast('Email not configured — running in demo mode.', 'error');
     // In demo mode, simulate success so users can continue testing
     return true;
   }
   try {
-    // Re-initialize EmailJS in case it failed at startup
-    emailjs.init(EMAILJS_PUBKEY);
     const code = _pendingVerifyCode || generateVerifyCode();
     await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
       to_email:   toEmail,
@@ -2305,12 +2303,14 @@ async function sendVerificationEmailJS(toEmail, toName) {
     }
     return true;
   } catch(e) {
-    console.error('EmailJS send failed:', e, 'Service:', EMAILJS_SERVICE, 'Template:', EMAILJS_TEMPLATE);
-    // Detect quota / rate limit errors (EmailJS returns status 429 or message about quota)
+    console.error('Verification email failed:', e);
+    // A limit (status 429), or Resend not set up / not reachable: show the code on screen instead
     const msg = (e?.text || e?.message || String(e)).toLowerCase();
-    if (e?.status === 429 || msg.includes('quota') || msg.includes('limit') || msg.includes('exceeded') || msg.includes('too many')) {
-      _emailjsQuotaExceeded = true;
-      showToast('📬 Monthly email limit reached. Your code is displayed below — enter it to finish signing up.', 'info');
+    const limited = e?.status === 429 || msg.includes('quota') || msg.includes('limit') || msg.includes('exceeded') || msg.includes('too many');
+    if (limited || _TW_MAIL_DOWN.includes(e?.code)) {
+      if (limited) _emailjsQuotaExceeded = true;
+      showToast(limited ? '📬 TeenWork has sent a lot of emails today. Your code is displayed below — enter it to finish signing up.'
+                        : '📬 We couldn’t email your code right now. It’s displayed below — enter it to finish signing up.', 'info');
       _showInAppCode();
     } else {
       showToast('📬 Email delivery failed — check your spam folder, or tap Support to contact us', 'error');
@@ -2326,7 +2326,7 @@ function _showInAppCode() {
   const alertEl = document.getElementById('verify-code-alert') || document.getElementById('resend-alert');
   if (alertEl) {
     alertEl.className = 'alert alert-success show';
-    alertEl.innerHTML = `<strong>Your verification code:</strong> <span style="font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--green);font-family:monospace">${code}</span><br><span style="font-size:.8rem">Enter this code in the boxes above. (Email quota reached — code shown here instead.)</span>`;
+    alertEl.innerHTML = `<strong>Your verification code:</strong> <span style="font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--green);font-family:monospace">${code}</span><br><span style="font-size:.8rem">Enter this code in the boxes above. (We couldn’t email it, so it’s shown here instead.)</span>`;
   }
   // Also auto-fill the boxes
   for (let i = 0; i < 6; i++) {
@@ -2354,7 +2354,7 @@ async function doResendEmail() {
     if (!error) _pendingVerifyExpiry = Date.now() + (10 * 60 * 1000); // reset expiry on resend
     if (error) console.warn('Supabase OTP resend error:', error.message);
   } else {
-    // Demo mode — resend via EmailJS
+    // Demo mode — resend by email (Resend)
     generateVerifyCode();
     ok = await sendVerificationEmailJS(emailToSend, nameToSend);
   }
@@ -3676,7 +3676,7 @@ const TW_Verify = (() => {
       if(!name||!email){_sa('tw-ver-parent-alert','Please enter the parent\'s full name and email address to continue.','error');return;}
       if(!c1||!c2||!c3){_sa('tw-ver-parent-alert','Please check all three consent boxes — each one is required to protect your teen.','error');return;}
 
-      // Send real consent email via EmailJS
+      // Send real consent email (Resend, v57)
       const teenName = currentUser?.name || 'your teen';
       _sa('tw-ver-parent-alert','Sending consent email…','info');
       try {

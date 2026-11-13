@@ -1,8 +1,8 @@
 // send-email: the logic, kept apart from Deno.serve so the tests can run it in Node too.
 // Sends TeenWork's emails to people (welcome, parent link, consent, letters…) through Resend
 // (resend.com) with a server-side key, so the key is never in the page.
-// Emails TO the TeenWork team (Help & Support, school partnerships, sign-up notices) go through
-// EmailJS in the app instead (Aya, 2026-11-06: "use resend for sending, emailjs for receiving").
+// Since v57 (Aya, 2026-11-13: "use resend not emailJS") emails TO the TeenWork team (Help & Support,
+// school partnerships, sign-up notices) come through here too; EmailJS is gone from the app.
 //
 // The page sends { to, subject, html, reply_to?, from_name? } (one recipient).
 // { ping: true } only reports whether the function is set up; it sends nothing.

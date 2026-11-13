@@ -47,8 +47,8 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 4. Sign in again as the admin, so the new sign-in carries the role.
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
-`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing),
-`node --experimental-strip-types tests/delete-account-auth.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
+`node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing), `node tests/profile-photo-v55.cjs`,
+`node --experimental-strip-types tests/delete-account-auth.mjs`, `node --experimental-strip-types tests/delete-account-photos.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
 
 ## Search engines
 
@@ -65,7 +65,7 @@ A linked parent's ⏰ Weekly Hour Limit (`assets/js/parent-hours-v52.js`) is sav
 
 ## Teen onboarding, Messages and Verification (v53)
 
-`assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (photo upload isn't built; the Profile Photo box says so).
+`assets/js/onboarding-v53.js` (+ `assets/css/onboarding-v53.css`) holds `window.twTeenSteps`, the one place that says what a teen still needs before applying: a linked parent, that parent's consent from their own account, and a work permit only when the teen's state (from `PERMITS` in `job-tiers-v45.js`) or the employer needs one. The First Job Checklist (`assets/js/app-05.js`) shows those as "Required before you can apply", worked out from the account and not tickable; everything else is optional tips that link to their screens. The empty Find Jobs list shows "While you wait for jobs" next steps (profile, Workplace Safety Basics, link a parent, job-match alert settings). Profile completion counts name, birthday, town, a bio and 2+ skills, never a photo (a photo is optional; see Profile photos below).
 Messages is a labeled dialog with a Close button and a "Something feels wrong" button inside it; focus moves in and back out, Tab stays inside, and Escape closes the top window even while typing. The Verification permit step says exactly where the teen stands (`window.twPermitStepStatus`, called from `parent-consent-v44.js`). Check with `node tests/onboarding-v53.cjs`.
 
 ## Sharing (v54)
@@ -96,6 +96,21 @@ Still to do:
 
 1. A real payment has not been tried yet. Admin → System Health shows "Payments (Stripe)". Stripe is in live mode, so a test payment is a real $3.99 charge: refund it in Stripe afterwards. For a free practice run, use a Stripe sandbox with its own test key and test prices in the `STRIPE_PRICE_*` secrets, and the card 4242 4242 4242 4242.
 2. Resend: verify a domain (for example `ayaqd.com`), then set `RESEND_API_KEY` and `RESEND_FROM` (for example `TeenWork <hello@ayaqd.com>`). Until then Resend only delivers to the Resend account's own email and everything else goes through EmailJS. The EmailJS template's message field must be `{{{message}}}` (three braces) so emails keep their layout.
+
+## Profile photos (v55 teens, v58 parents and employers)
+
+Everyone can add a photo: teens under Profile → Profile Photo, parents under My Teens, employers on Company Profile (`assets/js/profile-photo-v55.js` + `.css`; the parent and employer boxes are added by the script). The browser turns it into a 400×400 JPEG (which drops hidden details like GPS location) and uploads it to the private Supabase Storage bucket `profile-photos`, in a folder named after the person's sign-in id. There are no public links: viewers get a one-hour signed link only when the rules allow it.
+Each person picks who sees it, and the box lists exactly who that is right now:
+
+- Teen: only me, me and my parent (the default), or my parent and employers. An employer is included only after a parent approved the teen's application to that employer's job.
+- Parent: only me, me and my teens (the default), or my teens and their employers (employers of jobs the teen applied to, after a parent's OK).
+- Employer: only me, teens who applied (once a parent approved the application), or those teens and the parents who approved them (the default).
+
+The choice and the emails it covers are in `public.tw_profile_photos`, a table only the owner's own sign-in can write. The owner's app refreshes the lists from its own records (the teen's parent link and applications, the parent's linked teens and their applications, the applications to the employer's jobs). Photos show in Messages (contact list and chat header) for everyone, on the teen card and in My Teens for parents, and on the Applicant Pipeline for employers. Everyone else sees initials. Practice accounts never upload.
+Deleting or closing an account deletes its photo and takes its email off everyone's lists (`delete-account` function and `tw_photo_forget_viewer`).
+Database: `supabase/migrations/20261107_profile_photos.sql` (bucket, table, rules) and `delete-account` version 4 have been live since 2026-11-09, which is all teen photos need. `supabase/migrations/20261113_profile_photos_all_roles.sql` adds the teens list and the parent and employer choices; until it is applied, the parent and employer boxes say "Photo upload is still being set up" and teen photos keep working.
+Who counts as someone's parent, teen or employer still comes from `user_data`, which anyone with the app's key can write; the photo rules only trust the owner's own row, and the owner sees the list of people.
+Checks: `node tests/profile-photo-v55.cjs` (screens, fake Supabase), `node --experimental-strip-types tests/delete-account-photos.mjs`, and the database rules on a throwaway local Postgres: `TW_PG="host=… port=… user=postgres" node tests/profile-photos-sql.mjs`.
 
 ## Source layout and secure AI deployment
 

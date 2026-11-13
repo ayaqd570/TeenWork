@@ -82,7 +82,7 @@ const settle = (p) => p.waitForTimeout(450);
       const context = await browser.newContext({ viewport: { width: 640, height: 900 }, deviceScaleFactor: 2 });
       await context.route('**/*', r => { const u = r.request().url(); if (u.endsWith('/logo.png')) return r.fulfill({ body: fs.readFileSync(path.join(ROOT_DIR, 'logo.png')), contentType: 'image/png' }); return r.continue(); });
       const p = await context.newPage();
-      for (const [file, role, step] of [['email-reminder-1.jpg', 'teen', 1], ['email-reminder-2.jpg', 'parent', 2]]) {
+      for (const [file, role, step] of [['email-reminder-1.jpg', 'teen', 1], ['email-reminder-2.jpg', 'parent', 2], ['email-reminder-3.jpg', 'employer', 3]]) {
         const m = buildEmail({ first_name: 'Sam', account_type: role, step, unsub_token: '00000000-0000-4000-8000-000000000000' }, { site: 'https://teenwork.ayaqd.com', postal: '' });
         await p.setContent('<body style="margin:0;background:#f5f0e8">' + m.html + '</body>'); await p.waitForTimeout(300);
         await p.screenshot({ path: OUT(file), fullPage: true, type: 'jpeg', quality: 82 });

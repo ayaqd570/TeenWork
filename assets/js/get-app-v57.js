@@ -24,9 +24,10 @@
      what the QR code opens).
    • The pop-up: a real member on their dashboard (never the home page,
      sign-up, demos or the admin) sees the same window on its own, after the
-     tour and any other window is closed. At most 3 times per account on a
-     device, 14 days apart; "Don't ask again" stops it; it never shows once
-     TeenWork is installed or opened from the home screen. It replaces the
+     tour and any other window is closed. Every 14 days or more, with no
+     limit on how many times (Aya: "don't just end promotional stuff unless
+     they unsubscribe"): only "Don't ask again" stops it, and it never shows
+     once TeenWork is installed or opened from the home screen. It replaces the
      old featpack-js install sheet (polish-v54 still calls
      window.twOfferInstall a few seconds after a dashboard opens; that is
      now this pop-up).
@@ -48,7 +49,7 @@
   var SITE = 'https://teenwork.ayaqd.com/';
   var APP_LINK = SITE + '?app=1';
   var INSTALLED = 'tw57_app_installed';   // localStorage: this device installed TeenWork (accepted the prompt / opened it as an app)
-  var NUDGE_GAP_DAYS = 14, NUDGE_MAX = 3;
+  var NUDGE_GAP_DAYS = 14;   // no cap on how many times: "Don't ask again" is the way to stop it
   // pop-up timing: polish-v54 asks 8 s after a dashboard opens, this waits 4 s more (about 12 s in), then
   // checks every 10 s for up to 2 minutes until nothing else is on screen
   var T = { first: 4000, retry: 10000, giveUp: 120000 };
@@ -374,7 +375,7 @@
     var u = user();
     if (!isMember(u) || installed() || !onDashboard() || $('tw57-app')) return false;
     var s = nudgeState(u);
-    if (s.never || (s.n || 0) >= NUDGE_MAX) return false;
+    if (s.never) return false;
     if (s.last && Date.now() - s.last < NUDGE_GAP_DAYS * 864e5) return false;
     return true;
   }

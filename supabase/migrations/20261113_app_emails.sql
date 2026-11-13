@@ -1,5 +1,6 @@
 -- TeenWork v57 (2026-11-13): occasional "get the app" reminder emails, and who already has the app.
--- Aya: "have a download app button and a popup try to get users to download and send emails about sometimes".
+-- Aya: "have a download app button and a popup try to get users to download and send emails about sometimes",
+-- then "don't just end promotional stuff unless they unsubscribe": the reminders keep coming until they unsubscribe.
 --
 -- • tw_email_prefs: one row per Supabase user who got a reminder, opened TeenWork as an installed app, or
 --   unsubscribed. Nobody in the app can read it. People change their own row only through the functions below.
@@ -13,7 +14,8 @@
 --
 -- Who gets a reminder: a teen / parent / employer account that is at least 2 days old and hasn't opened the
 -- installed app, hasn't unsubscribed and isn't closed. Never the admin, demo / .test addresses or Aya's tester
--- inboxes. At most 2 reminders per person ever, at least 21 days apart (the function's defaults).
+-- inboxes. One every 21 days or more, with no limit on how many (the function's defaults), until the person
+-- unsubscribes or opens the installed app. Whoever has had the fewest reminders goes first.
 --
 -- Apply in the Supabase SQL editor (https://supabase.com/dashboard/project/qocmpwimsfcnqijtfmki/sql/new) or with
 -- apply_migration. It only adds things; running it twice is safe.
@@ -91,7 +93,8 @@ as $$
   ) select exists (select 1 from u);
 $$;
 
--- Who is due a reminder now (newest accounts first). Service role only.
+-- Who is due a reminder now: fewest reminders so far first, then whoever waited longest, then newest accounts.
+-- p_max_per_user 0 (or null) = no cap. Service role only.
 create or replace function public.tw_app_email_due(p_min_age interval, p_gap interval, p_max_per_user int)
 returns table (user_id uuid, email text, first_name text, account_type text, created_at timestamptz, sent int, last_at timestamptz)
 language sql
@@ -118,9 +121,9 @@ as $$
     and not exists (select 1 from public.closed_accounts c where lower(c.key) = lower(u.email))
     and p.tips_off_at is null
     and p.app_installed_at is null
-    and coalesce(p.app_emails_sent, 0) < p_max_per_user
+    and (coalesce(p_max_per_user, 0) <= 0 or coalesce(p.app_emails_sent, 0) < p_max_per_user)   -- 0 = no cap
     and (p.last_app_email_at is null or p.last_app_email_at < now() - p_gap)
-  order by u.created_at desc;
+  order by coalesce(p.app_emails_sent, 0), p.last_app_email_at nulls first, u.created_at desc;
 $$;
 
 -- Pick up to p_limit people who are due and mark them as emailed (count + 1, time = now).
@@ -129,7 +132,7 @@ create or replace function public.tw_app_email_claim(
   p_limit int default 25,
   p_min_age interval default '2 days',
   p_gap interval default '21 days',
-  p_max_per_user int default 2,
+  p_max_per_user int default 0,          -- 0 = no cap: keep going until they unsubscribe
   p_every interval default '20 hours',
   p_force boolean default false
 ) returns table (user_id uuid, email text, first_name text, account_type text, step int, unsub_token uuid, prev_last_at timestamptz)

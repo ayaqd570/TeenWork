@@ -46,7 +46,7 @@ const post = (h, body, headers = {}, q = '') => h(new Request('https://example.s
   const w = world(), h = fn.makeHandler(base, w.fetch);
   const r = await (await post(h, { action: 'run' })).json();
   ok(r.ok && r.due === 3 && r.sent === 3 && r.failed === 0 && !r.stopped, 'run ' + JSON.stringify(r));
-  ok(w.claimArgs.p_limit === 20 && w.claimArgs.p_min_age === '2 days' && w.claimArgs.p_gap === '21 days' && w.claimArgs.p_max_per_user === 2, 'claim args ' + JSON.stringify(w.claimArgs));
+  ok(w.claimArgs.p_limit === 20 && w.claimArgs.p_min_age === '2 days' && w.claimArgs.p_gap === '21 days' && w.claimArgs.p_max_per_user === 0, 'claim args (no cap) ' + JSON.stringify(w.claimArgs));
   const [a, b, c] = w.sent;
   ok(a.body.from === 'TeenWork <hello@teenwork.ayaqd.com>' && a.body.to.length === 1 && a.body.to[0] === 'sam@example.com', 'from / to');
   ok(a.headers['Idempotency-Key'] === 'app-email/u1/step-1' && b.headers['Idempotency-Key'] === 'app-email/u2/step-2', 'idempotency keys');
@@ -55,7 +55,7 @@ const post = (h, body, headers = {}, q = '') => h(new Request('https://example.s
   ok(a.body.html.includes('https://teenwork.ayaqd.com/?app=1') && a.body.text.includes('https://teenwork.ayaqd.com/?app=1'), 'Get the app link');
   ok(a.body.subject === 'Put TeenWork on your phone 📲' && b.body.subject === 'TeenWork is one tap away', 'subjects by step');
   ok(/Hi Sam,/.test(a.body.html) && /new jobs, messages and your work log/.test(a.body.html), 'teen wording');
-  ok(/Hi Dana,/.test(b.body.html) && !/script/i.test(b.body.html) && /job requests and alerts/.test(b.body.html) && /last reminder/.test(b.body.html), 'parent wording, name cleaned, last reminder said');
+  ok(/Hi Dana,/.test(b.body.html) && !/script/i.test(b.body.html) && /job requests and alerts/.test(b.body.html) && !/last reminder/i.test(b.body.html + b.body.text), 'parent wording, name cleaned, never says "last reminder"');
   ok(/Hi there,/.test(c.body.html) && /new applicants/.test(c.body.html), 'employer wording, no name');
   for (const s of w.sent) {
     ok(!/🌱|&#127793;/.test(s.body.html), 'no leaf logo');
@@ -122,6 +122,18 @@ for (const [label, env, code] of [
   ok(p.ok && p.configured === true && p.from_domain === 'teenwork.ayaqd.com' && p.day_cap === 60 && !('due' in p), 'ping ' + JSON.stringify(p));
   const pv = await (await post(h, { action: 'preview', role: 'parent', step: 2, name: 'Dana' })).json();
   ok(pv.ok && pv.subject === 'TeenWork is one tap away' && /Hi Dana/.test(pv.html), 'preview');
+  // no cap: the wording takes turns (A, B, C, A …) and never says it's the last one
+  const subj = [];
+  for (const step of [1, 2, 3, 4, 5, 6, 7]) {
+    const m = await (await post(h, { action: 'preview', role: 'teen', step, name: 'Sam' })).json();
+    subj.push(m.subject);
+    ok(!/last reminder|at most twice/i.test(m.html + m.text) && /every few weeks until you add the app or unsubscribe/.test(m.html) && /every few weeks until you add the app or unsubscribe/.test(m.text), 'step ' + step + ': footer says it keeps going until unsubscribe');
+    ok(!/&rsquo;|&[a-z]+;/.test(m.text), 'step ' + step + ': plain text has no HTML entities');
+  }
+  assert.deepEqual(subj, ['Put TeenWork on your phone 📲', 'TeenWork is one tap away', 'A faster way to open TeenWork', 'Put TeenWork on your phone 📲', 'TeenWork is one tap away', 'A faster way to open TeenWork', 'Put TeenWork on your phone 📲'], 'subjects take turns ' + subj); n++;
+  const bad = await (await post(h, { action: 'preview', role: 'teen', step: 'x' })).json();
+  ok(bad.subject === 'Put TeenWork on your phone 📲', 'a bad step falls back to the first email');
+  ok(fn.envFrom(() => undefined).maxPerUser === 0 && fn.envFrom((k) => (k === 'APP_EMAILS_MAX_PER_PERSON' ? '5' : undefined)).maxPerUser === 5, 'no cap unless APP_EMAILS_MAX_PER_PERSON is set');
   ok(w.calls.length === 0, 'ping / preview called nothing');
   ok((await h(new Request('https://example.supabase.co/functions/v1/app-emails', { method: 'GET' }))).status === 405, 'GET without unsub');
 }

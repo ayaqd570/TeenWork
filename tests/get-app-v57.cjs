@@ -198,7 +198,7 @@ async function bigEnough(p, w, tag) {
       await context.close();
     }
 
-    /* 4. The pop-up: after the tour, at most 3 times, 14 days apart, Don't ask again; never for demos / admin / visitors */
+    /* 4. The pop-up: after the tour, every 14 days with no cap until Don't ask again; never for demos / admin / visitors */
     {
       const { context, p, errors } = await open(browser);
       await p.evaluate(() => { twGetApp._t.first = 300; twGetApp._t.retry = 300; });
@@ -218,12 +218,15 @@ async function bigEnough(p, w, tag) {
       await p.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)); s.last = Date.now() - 15 * 864e5; localStorage.setItem(k, JSON.stringify(s)); }, key);
       ok(await p.evaluate(() => twOfferInstall()) === true, 'again after 14 days');
       await p.waitForSelector('#tw57-app.tw57-is-nudge', { timeout: 3000 });
+      await p.click('.tw57-later');
+      await p.evaluate(k => localStorage.setItem(k, JSON.stringify({ n: 12, last: Date.now() - 15 * 864e5, never: false })), key);
+      ok(await p.evaluate(() => twOfferInstall()) === true, 'no cap: still asks after 12 times');
+      await p.waitForSelector('#tw57-app.tw57-is-nudge', { timeout: 3000 });
+      ok((await p.evaluate(k => JSON.parse(localStorage.getItem(k)).n, key)) === 13, 'counted again');
       await p.click('.tw57-never');
       ok((await p.evaluate(k => JSON.parse(localStorage.getItem(k)), key)).never === true, 'Don’t ask again saved');
       await p.evaluate(k => { const s = JSON.parse(localStorage.getItem(k)); s.last = 0; localStorage.setItem(k, JSON.stringify(s)); }, key);
       ok(await p.evaluate(() => twOfferInstall()) === false, 'never again');
-      await p.evaluate(k => localStorage.setItem(k, JSON.stringify({ n: 3, last: 1, never: false })), key);
-      ok(await p.evaluate(() => twOfferInstall()) === false, 'at most 3 times');
       // a visitor on the home page, a demo, the admin: no pop-up
       await p.evaluate(() => { try { doLogout(); } catch (e) {} });
       await p.waitForTimeout(500);

@@ -86,12 +86,24 @@ const forced = claim('p_force => true');
 ok(forced.length === 1 && forced[0][0] === 'mom@example.com', 'forced run picks only who is left ' + JSON.stringify(forced));
 ok(claim('p_force => true').length === 0, 'nobody gets a 2nd email before 21 days');
 
-// 22 days later: the second (last) reminder, then never again
+// 22 days later: the second reminder, and they keep coming (no cap) until the person unsubscribes
 psql(`update tw_email_prefs set last_app_email_at = now() - interval '22 days' where app_emails_sent > 0; update tw_job_runs set last_run_at = now() - interval '21 hours'`);
 const second = claim();
 ok(second.length === 3 && second.every((r) => r[1] === '2' && r[3] !== ''), 'second reminder ' + JSON.stringify(second));
+for (let k = 3; k <= 6; k++) {
+  psql(`update tw_email_prefs set last_app_email_at = now() - interval '22 days' where app_emails_sent > 0`);
+  const more = claim('p_force => true');
+  ok(more.length === 3 && more.every((r) => r[1] === String(k)), `reminder ${k}: no cap ` + JSON.stringify(more));
+}
+ok(claim('p_force => true').length === 0, 'still never twice within 21 days');
+// a cap still works when one is asked for (APP_EMAILS_MAX_PER_PERSON)
 psql(`update tw_email_prefs set last_app_email_at = now() - interval '60 days' where app_emails_sent > 0`);
-ok(claim('p_force => true').length === 0, 'at most 2 reminders per person');
+ok(claim('p_force => true, p_max_per_user => 6').length === 0, 'an optional cap is respected');
+ok(rows(`select count(*) from tw_app_email_due('2 days', '21 days', 0)`)[0][0] === '3', '0 = no cap');
+// whoever has had the fewest reminders goes first, so new accounts are not crowded out
+psql(`update tw_email_prefs set app_emails_sent = 9 where user_id = '${id.teen}'`);
+ok(rows(`select email from tw_app_email_due('2 days', '21 days', 0)`)[2][0] === 'sam@example.com', 'most-emailed person goes last');
+psql(`update tw_email_prefs set app_emails_sent = 2, last_app_email_at = now() where app_emails_sent > 0`);
 
 // a failed send is put back
 psql(`select tw_app_email_unclaim('${id.teen}', now() - interval '22 days')`);

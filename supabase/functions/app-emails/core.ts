@@ -1,11 +1,15 @@
 // app-emails: TeenWork's occasional "get the app" reminder emails (v57, 2026-11-13).
 // Aya: "have a download app button and a popup try to get users to download and send emails about sometimes".
+// Aya, later the same day: "don't just end promotional stuff unless they unsubscribe". So the reminders keep
+// coming every 3 weeks until the person unsubscribes (or opens TeenWork as an installed app, which is what
+// they ask for). The wording takes turns between three versions so it isn't the same email every time.
 // The logic lives here, apart from Deno.serve, so tests/app-emails-function.mjs can run it in Node.
 //
 // What it does, once a day (pg_cron calls POST {"action":"run"}, see migration 20261113_app_emails.sql):
 //   • asks the database who is due (rpc tw_app_email_claim): teen / parent / employer accounts at least
 //     2 days old that haven't opened TeenWork as an installed app and haven't unsubscribed. Never the admin,
-//     demo / .test addresses or Aya's tester inboxes. At most 2 reminders per person ever, 21+ days apart.
+//     demo / .test addresses or Aya's tester inboxes. One every 21+ days, with no limit on how many.
+//     People with the fewest reminders go first, so new accounts aren't crowded out.
 //     The database also refuses a second run within 20 hours, so calling this function again sends nothing.
 //   • sends each one a short email through Resend from the same address as the app's other emails, with a
 //     one-click unsubscribe (List-Unsubscribe headers + a link to https://teenwork.ayaqd.com/?unsub=<token>).
@@ -17,7 +21,7 @@
 //
 // Other requests:
 //   POST {"ping":true}            → is it set up? Sends nothing.
-//   POST {"action":"preview", "role":"teen|parent|employer", "step":1|2, "name":"Sam"}
+//   POST {"action":"preview", "role":"teen|parent|employer", "step":1|2|3…, "name":"Sam"}
 //                                 → the email it would send (subject, html, text). Sends nothing.
 //   GET  ?unsub=<token>           → redirects to the site's unsubscribe page (Supabase shows HTML as text).
 //   POST ?unsub=<token>           → one-click unsubscribe from a mail app (RFC 8058).
@@ -26,6 +30,7 @@
 //   RESEND_API_KEY, RESEND_FROM (e.g. hello@teenwork.ayaqd.com). Nothing is sent without both, and never
 //   from Resend's test sender.
 // Optional: SITE_URL (default https://teenwork.ayaqd.com), APP_EMAILS_PER_RUN, APP_EMAILS_DAY_CAP,
+//   APP_EMAILS_MAX_PER_PERSON (a cap on reminders per person; unset = no cap, keep going until they unsubscribe),
 //   APP_EMAILS_OFF=1 (sends nothing), APP_EMAILS_SECRET (when set, "run" needs header x-tw-cron with it),
 //   MAIL_POSTAL_ADDRESS (a mailing address shown in the footer; US law (CAN-SPAM) asks for one in
 //   promotional email: a P.O. box is fine).
@@ -34,7 +39,7 @@
 
 export type Env = {
   url: string; serviceKey: string; resendKey: string; resendFrom: string; site: string;
-  perRun: number; dayCap: number; minAgeDays: number; gapDays: number; maxPerUser: number;
+  perRun: number; dayCap: number; minAgeDays: number; gapDays: number; maxPerUser: number;   // maxPerUser 0 = no cap
   off: boolean; secret: string; postal: string; pauseMs: number;
 };
 export type Person = { user_id: string; email: string; first_name: string | null; account_type: string | null; step: number; unsub_token: string; prev_last_at: string | null };
@@ -68,25 +73,41 @@ export function buildEmail(p: { first_name?: string | null; account_type?: strin
   const oneTap = role === "parent" ? "your teen&rsquo;s job requests and alerts are one tap away"
     : role === "employer" ? "new applicants and messages are one tap away"
     : "new jobs, messages and your work log are one tap away";
-  const last = p.step >= 2;
-  const subject = last ? "TeenWork is one tap away" : "Put TeenWork on your phone 📲";
-  const preheader = last ? "Add it to your home screen so it opens like an app. This is our last reminder about it."
-    : "It’s free, there’s no app store, and it takes about 10 seconds.";
+  // Three versions that take turns: 1st email = A, 2nd = B, 3rd = C, 4th = A again, and so on.
+  const V = [
+    {
+      subject: "Put TeenWork on your phone 📲", heading: "Put TeenWork on your phone",
+      preheader: "It’s free, there’s no app store, and it takes about 10 seconds.",
+      intro: `TeenWork works great as an app on your phone. It&rsquo;s free, there&rsquo;s no app store, and it takes about 10 seconds. Then ${oneTap}.`,
+      outro: "Sign in with the same email and password. It&rsquo;s the same TeenWork, so your account, jobs and messages are all there.",
+    },
+    {
+      subject: "TeenWork is one tap away", heading: "TeenWork is one tap away",
+      preheader: "Add it to your home screen so it opens like an app.",
+      intro: `Quick tip: you can add TeenWork to your phone&rsquo;s home screen, so it opens like any other app. Then ${oneTap}.`,
+      outro: "Sign in with the same email and password. Once you open TeenWork from your home screen, these reminders stop.",
+    },
+    {
+      subject: "A faster way to open TeenWork", heading: "Open TeenWork in one tap",
+      preheader: "No typing the address, no hunting for the tab.",
+      intro: `Here&rsquo;s a shortcut: put TeenWork on your home screen and it opens in one tap, full screen, like any other app. No typing the address and no hunting for the tab. Then ${oneTap}.`,
+      outro: "Already added it? Open TeenWork from your home screen and sign in once, and these reminders stop.",
+    },
+  ];
+  const v = V[(Math.max(1, Math.floor(Number(p.step) || 1)) - 1) % V.length];
+  const subject = v.subject;
+  const preheader = v.preheader;
   const button = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:22px auto;"><tr><td bgcolor="${C.green}" style="border-radius:12px;background:${C.green};">` +
     `<a href="${appLink}" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:12px;">&#128242; Get the TeenWork app</a></td></tr></table>`;
   const how = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 4px;background:${C.bg};border:1px solid ${C.border};border-radius:14px;"><tr><td style="padding:14px 18px;font-family:${FONT};font-size:15px;line-height:1.6;color:${C.text};">` +
     `<b>iPhone:</b> open teenwork.ayaqd.com in Safari, tap the <b>Share</b> button, then <b>Add to Home Screen</b>.<br>` +
     `<b>Android:</b> open it in Chrome, then tap <b>Install app</b> (or the menu &#8942; &rarr; <b>Add to Home screen</b>).` +
     `</td></tr></table>`;
-  const body = last
-    ? `<p style="margin:0 0 14px;">${hi}</p>` +
-      `<p style="margin:0 0 14px;">Quick tip: you can add TeenWork to your phone&rsquo;s home screen, so it opens like any other app. Then ${oneTap}.</p>` +
-      button + how +
-      `<p style="margin:16px 0 0;">Sign in with the same email and password. This is the last reminder we&rsquo;ll send about it.</p>`
-    : `<p style="margin:0 0 14px;">${hi}</p>` +
-      `<p style="margin:0 0 14px;">TeenWork works great as an app on your phone. It&rsquo;s free, there&rsquo;s no app store, and it takes about 10 seconds. Then ${oneTap}.</p>` +
-      button + how +
-      `<p style="margin:16px 0 0;">Sign in with the same email and password. It&rsquo;s the same TeenWork, so your account, jobs and messages are all there.</p>`;
+  const body = `<p style="margin:0 0 14px;">${hi}</p>` +
+    `<p style="margin:0 0 14px;">${v.intro}</p>` +
+    button + how +
+    `<p style="margin:16px 0 0;">${v.outro}</p>`;
+  const plain = (h: string) => h.replace(/&rsquo;/g, "'");
   const html =
     `<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:${C.bg};">${esc(preheader)}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.bg}" style="width:100%;background:${C.bg};margin:0;padding:0;"><tr><td align="center" style="padding:28px 12px;">` +
@@ -97,11 +118,11 @@ export function buildEmail(p: { first_name?: string | null; account_type?: strin
           `<td style="font-family:${DISPLAY};font-size:28px;font-weight:900;line-height:1.1;color:#ffffff;">Teen<span style="color:${C.amberMid};">Work</span></td>` +
         `</tr></table></td></tr>` +
       `<tr><td height="6" style="height:6px;line-height:6px;font-size:0;background:${C.amber};background-image:linear-gradient(90deg,${C.amber} 0%,${C.amberMid} 45%,${C.greenLight} 100%);">&nbsp;</td></tr>` +
-      `<tr><td style="padding:28px 30px 6px;"><h1 style="margin:0;font-family:${DISPLAY};font-size:25px;line-height:1.25;font-weight:900;color:${C.green};">${last ? "TeenWork is one tap away" : "Put TeenWork on your phone"}</h1></td></tr>` +
+      `<tr><td style="padding:28px 30px 6px;"><h1 style="margin:0;font-family:${DISPLAY};font-size:25px;line-height:1.25;font-weight:900;color:${C.green};">${esc(v.heading)}</h1></td></tr>` +
       `<tr><td style="padding:14px 30px 28px;font-family:${FONT};font-size:16px;line-height:1.6;color:${C.text};">${body}</td></tr>` +
       `<tr><td bgcolor="${C.bg}" style="background:${C.bg};border-top:1px solid ${C.border};padding:18px 30px 22px;text-align:center;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.muted};border-radius:0 0 20px 20px;">` +
         `<div style="font-family:${DISPLAY};font-size:15px;font-weight:900;color:${C.green};margin-bottom:4px;">&#127795; Built by a teen, for teens.</div>` +
-        `You&rsquo;re getting this because you have a TeenWork account. We send this reminder at most twice.<br>` +
+        `You&rsquo;re getting this because you have a TeenWork account. We send a reminder like this every few weeks until you add the app or unsubscribe.<br>` +
         `<a href="${unsubLink}" style="color:${C.green};text-decoration:underline;">Unsubscribe from reminders like this</a>. You&rsquo;ll still get the emails you need, like sign-in codes and parent approvals.` +
         (env.postal ? `<br>TeenWork &middot; ${esc(env.postal)}` : "") +
       `</td></tr>` +
@@ -109,19 +130,17 @@ export function buildEmail(p: { first_name?: string | null; account_type?: strin
   const text = [
     name ? `Hi ${name},` : "Hi there,",
     "",
-    last
-      ? `Quick tip: you can add TeenWork to your phone's home screen, so it opens like any other app. Then ${oneTap.replace("&rsquo;", "'")}.`
-      : `TeenWork works great as an app on your phone. It's free, there's no app store, and it takes about 10 seconds. Then ${oneTap.replace("&rsquo;", "'")}.`,
+    plain(v.intro),
     "",
     `Get the app: ${appLink}`,
     "",
     "iPhone: open teenwork.ayaqd.com in Safari, tap the Share button, then Add to Home Screen.",
     "Android: open it in Chrome, then tap Install app (or the menu, then Add to Home screen).",
     "",
-    last ? "Sign in with the same email and password. This is the last reminder we'll send about it." : "Sign in with the same email and password. It's the same TeenWork, so your account, jobs and messages are all there.",
+    plain(v.outro),
     "",
     "--",
-    "You're getting this because you have a TeenWork account. We send this reminder at most twice.",
+    "You're getting this because you have a TeenWork account. We send a reminder like this every few weeks until you add the app or unsubscribe.",
     `Unsubscribe: ${unsubLink}`,
     env.postal ? `TeenWork · ${env.postal}` : "",
   ].join("\n").trim();
@@ -231,7 +250,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
     try { body = await req.json(); } catch { return fail(400, "bad_request", "Bad JSON"); }
     if (body?.ping) return json({ ok: true, configured, off: env.off, per_run: env.perRun, day_cap: env.dayCap, from_domain: (fromAddr.split("@")[1] || "") });
     if (body?.action === "preview") {
-      const step = Number(body.step) === 2 ? 2 : 1;
+      const step = Math.min(Math.max(Math.floor(Number(body.step)) || 1, 1), 999);
       const mail = buildEmail({ first_name: body.name ?? "Sam", account_type: String(body.role || "teen"), step, unsub_token: "00000000-0000-4000-8000-000000000000" }, env);
       return json({ ok: true, ...mail });
     }
@@ -251,7 +270,7 @@ export function envFrom(get: (k: string) => string | undefined): Env {
     resendKey: s("RESEND_API_KEY"), resendFrom: s("RESEND_FROM"),
     site: s("SITE_URL") || "https://teenwork.ayaqd.com",
     perRun: n("APP_EMAILS_PER_RUN", 20, 60), dayCap: n("APP_EMAILS_DAY_CAP", 60, 90),
-    minAgeDays: 2, gapDays: 21, maxPerUser: 2,
+    minAgeDays: 2, gapDays: 21, maxPerUser: n("APP_EMAILS_MAX_PER_PERSON", 0, 1000),   // 0 = no cap
     off: /^(1|true|yes|on)$/i.test(s("APP_EMAILS_OFF")), secret: s("APP_EMAILS_SECRET"), postal: s("MAIL_POSTAL_ADDRESS").slice(0, 200),
     pauseMs: 600,
   };

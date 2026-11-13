@@ -272,7 +272,7 @@
              ${s.jobTypes.map(j => `<span style="background:var(--green-pale);color:var(--green);border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:700">${esc(j)}</span>`).join('')}
            </div>`
         : `<div data-tw-empty="work-record" style="background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:.65rem .9rem;font-size:.8rem;color:var(--muted);line-height:1.5">
-             ${s.isEmpty ? '🌱 Nothing logged yet, and that\'s fine. ' : ''}When you finish a job, add your hours in <strong>Work → Hours</strong>. Your hours, weeks and job types fill in here, and reviews from employers add your rating.
+             ${s.isEmpty ? '🌳 Nothing logged yet, and that\'s fine. ' : ''}When you finish a job, add your hours in <strong>Work → Hours</strong>. Your hours, weeks and job types fill in here, and reviews from employers add your rating.
              <div style="margin-top:.45rem"><button type="button" class="btn-sm btn-ai" style="font-size:.72rem" onclick="if(typeof switchDashTab==='function')switchDashTab(null,'ttab-worklog')">⏱️ Log hours</button></div>
            </div>`;
     }

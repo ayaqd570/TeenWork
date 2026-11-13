@@ -59,13 +59,30 @@ export function linkAllowed(href: string, site: string, signedIn: boolean): bool
   } catch { return false; }
 }
 
-// Remove what an email never needs (scripts, forms, images…) and turn links that aren't allowed into
-// their plain text, so the TeenWork address can't carry someone else's link.
+// The one picture an email may show (v56): TeenWork's tree logo in the email header, and only from
+// the TeenWork site itself at /email-logo.png. It is rebuilt as a fixed tag, so nothing else in the
+// original <img> (other attributes, event handlers) survives.
+export function logoTag(tag: string, site: string): string {
+  const sm = tag.match(/\ssrc\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  const src = sm ? decode(sm[2] ?? sm[3] ?? sm[4] ?? "").trim() : "";
+  try {
+    const u = new URL(src), s = new URL(site);
+    const ok = u.protocol === "https:" && u.hostname === s.hostname && !u.username && !u.password &&
+      (!u.port || u.port === s.port) && u.pathname === "/email-logo.png" && !u.search && !u.hash;
+    if (!ok) return "";
+    return `<img src="https://${s.host}/email-logo.png" width="44" height="44" alt="TeenWork tree logo" ` +
+      `style="display:block;width:44px;height:44px;border:0;outline:none;text-decoration:none;border-radius:10px;">`;
+  } catch { return ""; }
+}
+
+// Remove what an email never needs (scripts, forms, images other than the logo…) and turn links that
+// aren't allowed into their plain text, so the TeenWork address can't carry someone else's link.
 export function cleanHtml(html: string, site: string, signedIn: boolean): { html: string; removedLinks: number } {
   let removed = 0;
   let out = html
     .replace(/<(script|style|iframe|object|embed|form|svg|math|template)\b[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<(script|iframe|object|embed|form|input|button|textarea|select|img|svg|link|meta|base|frame|frameset|source|video|audio)\b[^>]*>/gi, "")
+    .replace(/<(script|iframe|object|embed|form|input|button|textarea|select|img|svg|link|meta|base|frame|frameset|source|video|audio)\b[^>]*>/gi,
+      (m: string, tag: string) => (tag.toLowerCase() === "img" ? logoTag(m, site) : ""))
     .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/url\s*\(/gi, "url-(")
     .replace(/(href|src)\s*=\s*(["'])\s*(javascript|data|vbscript):[^"']*\2/gi, "");

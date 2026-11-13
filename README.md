@@ -148,3 +148,23 @@ Demos are empty practice accounts with no sign-in. They send `x-teenwork-demo: 1
 visitor (a salted hash of the address) and for all demos together by `supabase/migrations/20261025_demo_ai_quota.sql`
 (6 a minute and 25 a day per visitor, 1,500 a day for all demos). The demo itself shows 5 tries a day in the browser.
 Apply the migration before deploying the function: `node --test supabase/functions/groq-chat/core.test.mjs`.
+
+## Get the app (v57)
+
+TeenWork has no app-store app: it is a web app with a manifest and a service worker, so people install it from the browser and it opens from the home screen like any other app. `assets/js/get-app-v57.js` (+ `assets/css/get-app-v57.css`) is the one place that offers it, with `window.twGetApp({ source })`:
+
+- **The window** shows what works on that device: the browser's own install prompt as a "Download the app" button (Chrome, Edge and Samsung Internet on Android and computers); the Share → Add to Home Screen steps on iPhone and iPad (Safari, Chrome and others); the menu steps on other Android browsers; "open it in your browser first" inside Instagram, TikTok, Snapchat or Facebook; and on computers a QR code (`assets/img/get-app-qr.svg`, opens `https://teenwork.ayaqd.com/?app=1`) plus "Email me the link" for members.
+- **Buttons:** "📲 Download the app" in the dashboard menu footer (clean-menu-v43's `[data-twm="app"]` item; until the menu has one, this file adds its own button there), "📲 Get the app" in the home page top bar on computers, a band above "Share TeenWork", and the home page footer. They hide once TeenWork is installed.
+- **The pop-up** replaces the v54 install sheet (`#featpack-install` is hidden; `polish-v54` still calls `window.twOfferInstall` 8 seconds after a dashboard opens). Only real members on their dashboard, never on the home page, sign-up, demos or the admin. It waits until the tour and any other window are closed and comes back every 14 days with no limit on how many times; only "Don't ask again" stops it (Aya: "don't just end promotional stuff unless they unsubscribe"). Never once TeenWork is installed or opened from the home screen.
+- **Opened from the home screen**, TeenWork skips the marketing home page and opens Sign In, and tells Supabase that the signed-in member has the app (`rpc tw_app_installed`, once a week per device) so the reminder emails stop.
+- `manifest.json` has two screenshots (`assets/img/app-shot-*.jpg`), which Chrome shows in its install sheet.
+
+**Reminder emails.** `supabase/functions/app-emails/` sends an occasional "Put TeenWork on your phone" email through Resend (the same `RESEND_API_KEY` / `RESEND_FROM` as `send-email`). A pg_cron job calls it once a day at 22:00 UTC. Who gets one: teen, parent and employer accounts at least 2 days old that haven't opened the installed app, haven't unsubscribed and aren't closed; never the admin, demo or `.test` addresses or the tester inboxes. One every 21 days or more, with no limit on how many, until the person unsubscribes or opens the installed app (set the optional secret `APP_EMAILS_MAX_PER_PERSON` to cap it). The wording takes turns between three versions, and whoever has had the fewest reminders goes first. At most 20 a run, and none once the last 24 hours hold 60 emails of any kind, so at least 35 of the 95 a day stay free for sign-up, parent and job emails. Each email has a one-click unsubscribe (mail apps' own Unsubscribe button, and a link to `https://teenwork.ayaqd.com/?unsub=<token>`, which has an Undo). No tracking pictures, only the person's first name. The database decides who is due (`supabase/migrations/20261113_app_emails.sql`: `tw_email_prefs`, `tw_app_email_claim`, `tw_email_unsubscribe` …) and refuses a second run within 20 hours, so calling the function again sends nothing new.
+
+To turn it on:
+
+1. Apply `supabase/migrations/20261113_app_emails.sql` (it also turns on pg_cron and schedules the daily job).
+2. Deploy `supabase/functions/app-emails/` with Verify JWT off.
+3. Optional secrets: `MAIL_POSTAL_ADDRESS` (a mailing address for the email footer; US law asks for one in promotional email, and a P.O. box is fine), `APP_EMAILS_OFF=1` to pause it, `APP_EMAILS_PER_RUN`, `APP_EMAILS_DAY_CAP`. To stop it for good: `select cron.unschedule('tw-app-emails');`.
+
+Nothing is sent until Resend is set up, and never from Resend's test sender. Checks: `node tests/get-app-v57.cjs`, `node --experimental-strip-types tests/app-emails-function.mjs`, and `TW_PG="-h <socket dir> -p <port> -U postgres" node tests/app-emails-sql.mjs` (a throw-away local Postgres). `node docs/get-app/shots.cjs` remakes the pictures in `docs/get-app/` and the manifest screenshots.

@@ -154,8 +154,13 @@ async function bigEnough(p, w, tag) {
       const { context, p, errors } = await open(browser, { ctx: { viewport } });
       await member(p, 'parent', 'mom@example.com');
       await skipTour(p);
-      if (phone) { await p.click('#twm-bottom [data-twm="menu"]'); await p.waitForSelector('#twm-sheet .tw57-menu-app'); }
-      const sel = phone ? '#twm-sheet .tw57-menu-app' : '#twm-side .tw57-menu-app';
+      // clean-menu's own [data-twm="app"] item (the sidebar PR) or, without it, the button this file adds
+      const foot = phone ? '#twm-sheet .twm-sheet-foot' : '#twm-side .twm-foot';
+      if (phone) { await p.click('#twm-bottom [data-twm="menu"]'); await p.waitForSelector('#twm-sheet .twm-sheet-foot'); }
+      await p.waitForTimeout(150);
+      const theirs = await p.locator(foot + ' [data-twm="app"]').count() > 0;
+      const sel = foot + (theirs ? ' [data-twm="app"]' : ' .tw57-menu-app');
+      ok(await p.locator(foot + ' [data-twm="app"], ' + foot + ' .tw57-menu-app').count() === 1, tag + ': exactly one Download the app button');
       const box = await p.locator(sel).boundingBox();
       ok(box && box.height >= 40 && box.x >= 0 && box.x + box.width <= viewport.width, tag + ': menu button ' + JSON.stringify(box));
       ok(await p.locator(sel).innerText() === '📲Download the app' || /Download the app/.test(await p.locator(sel).innerText()), tag + ': label');
@@ -175,13 +180,18 @@ async function bigEnough(p, w, tag) {
       }
       await p.keyboard.press('Escape');
       // clean-menu's own [data-twm="app"] item (the sidebar change) takes over: ours steps aside
-      if (!phone) {
+      if (!phone && !theirs) {
         await p.evaluate(() => { const f = document.querySelector('#twm-side .twm-foot'); const b = document.createElement('button'); b.className = 'twm-item'; b.setAttribute('data-twm', 'app'); b.textContent = 'Download the app'; f.prepend(b); document.body.appendChild(document.createElement('i')); });
         await p.waitForTimeout(100);
         ok(await p.locator('#twm-side .tw57-menu-app').count() === 0 && await p.locator('#twm-side [data-twm="app"]').count() === 1, 'one menu button only');
         await p.evaluate(() => { localStorage.setItem('tw57_app_installed', 'true'); document.body.appendChild(document.createElement('i')); });
         await p.waitForTimeout(100);
         ok(await p.evaluate(() => document.querySelector('#twm-side [data-twm="app"]').hidden), 'hidden once installed');
+      }
+      if (!phone && theirs) {
+        await p.evaluate(() => { localStorage.setItem('tw57_app_installed', 'true'); window.twCleanMenu && twCleanMenu.sync && twCleanMenu.sync(); document.body.appendChild(document.createElement('i')); });
+        await p.waitForTimeout(150);
+        ok(await p.evaluate(() => { const b = document.querySelector('#twm-side [data-twm="app"]'); return !b || b.hidden || getComputedStyle(b).display === 'none'; }), 'menu item hidden once installed');
       }
       ok(await noOverflow(p), tag + ': sideways scroll');
       ok(errors.length === 0, tag + ' errors ' + errors);

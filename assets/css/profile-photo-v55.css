@@ -1,13 +1,13 @@
-/* v55 · teen profile photos (profile-photo-v55.js) */
+/* v55 + v58 · profile photos for teens, parents and employers (profile-photo-v55.js) */
 .tw55-has-photo{background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;color:transparent!important;font-size:0!important}
-#tw55-photo .tw55-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 6px}
-#tw55-photo .tw55-btns button{min-height:44px;padding:8px 16px;width:auto;margin:0}
-#tw55-photo .tw55-btns button:disabled{opacity:.55;cursor:not-allowed}
-#tw55-photo .tw55-remove{color:var(--red,#b42318);border-color:currentColor}
-#tw55-photo .tw55-status{text-align:center;font-size:.8rem;min-height:1.2em;margin:0 0 8px;color:var(--muted,#5b6470)}
-#tw55-photo .tw55-status:empty{display:none}
-#tw55-photo .tw55-status.ok{color:var(--green,#2d6a4f);font-weight:600}
-#tw55-photo .tw55-status.bad{color:var(--red,#b42318);font-weight:600}
+:is(.tw53-photo,.tw55-box) .tw55-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 6px}
+:is(.tw53-photo,.tw55-box) .tw55-btns button{min-height:44px;padding:8px 16px;width:auto;margin:0}
+:is(.tw53-photo,.tw55-box) .tw55-btns button:disabled{opacity:.55;cursor:not-allowed}
+:is(.tw53-photo,.tw55-box) .tw55-remove{color:var(--red,#b42318);border-color:currentColor}
+:is(.tw53-photo,.tw55-box) .tw55-status{text-align:center;font-size:.8rem;min-height:1.2em;margin:0 0 8px;color:var(--muted,#5b6470)}
+:is(.tw53-photo,.tw55-box) .tw55-status:empty{display:none}
+:is(.tw53-photo,.tw55-box) .tw55-status.ok{color:var(--green,#2d6a4f);font-weight:600}
+:is(.tw53-photo,.tw55-box) .tw55-status.bad{color:var(--red,#b42318);font-weight:600}
 .tw55-aud{border:1.5px solid var(--border,#d9dee5);border-radius:12px;padding:8px 12px 10px;margin:4px 0 10px;min-width:0}
 .tw55-aud:disabled{opacity:.6}
 .tw55-aud legend{font-weight:700;font-size:.84rem;padding:0 4px;color:var(--text,#1b1b1b)}
@@ -26,8 +26,13 @@
 .tw55-mini{width:28px;height:28px;border-radius:50%;flex-shrink:0;background-color:var(--green-pale,#d8f3dc);display:inline-block}
 html.dark .tw55-aud legend,html.dark .tw55-aud label{color:#e8eaed}
 html.dark .tw55-who{background:#1f2933;color:#e8eaed}
-html.dark #tw55-photo .btn-secondary{color:#95d5b2;border-color:#52b788}
-html.dark #tw55-photo .tw55-remove{color:#f5a3a3;border-color:#f5a3a3}
-html.dark #tw55-photo .tw55-status.ok{color:#95d5b2}
-html.dark #tw55-photo .tw55-status.bad{color:#f5a3a3}
+html.dark :is(.tw53-photo,.tw55-box) .btn-secondary{color:#95d5b2;border-color:#52b788}
+html.dark :is(.tw53-photo,.tw55-box) .tw55-remove{color:#f5a3a3;border-color:#f5a3a3}
+html.dark :is(.tw53-photo,.tw55-box) .tw55-status.ok{color:#95d5b2}
+html.dark :is(.tw53-photo,.tw55-box) .tw55-status.bad{color:#f5a3a3}
 html.dark .tw55-aud small,html.dark .tw55-who .tw55-mail,html.dark .tw55-who .tw55-muted,html.dark .tw55-who .tw55-note{color:#b8c0cc}
+.tw55-square{border-radius:14px!important}
+/* v58 · the parent's and employer's boxes look like the teen's (onboarding-v53.css .tw53-photo) */
+.tw55-box{text-align:left}
+.tw55-box p{font-size:.84rem;line-height:1.5;margin:0 0 8px;color:var(--text,#1b1b1b)}
+.tw55-box .tw53-hint{color:var(--muted,#5b6470);font-size:.8rem}

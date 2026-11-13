@@ -1,4 +1,5 @@
-/* Checks the v55 profile photo rules (supabase/migrations/20261107_profile_photos.sql) on a throwaway LOCAL
+/* Checks the profile photo rules (supabase/migrations/20261107_profile_photos.sql, then the v58 parent and employer
+   choices in 20261113_profile_photos_all_roles.sql) on a throwaway LOCAL
    Postgres with a small stand-in for Supabase's auth and storage schemas (tests/sql/supabase-stub.sql).
    It never touches the real project. Needs psql and a local server you can create databases on:
      TW_PG="host=/var/lib/postgresql port=55432 user=postgres" node tests/profile-photos-sql.mjs
@@ -25,6 +26,8 @@ const load = f => { const r = psql(db, readFileSync(f, 'utf8')); assert(r.ok, f 
 load(path.join(here, 'sql/supabase-stub.sql'));
 load(path.join(here, '../supabase/migrations/20261107_profile_photos.sql'));
 load(path.join(here, '../supabase/migrations/20261107_profile_photos.sql'));   // running it twice is safe
+load(path.join(here, '../supabase/migrations/20261113_profile_photos_all_roles.sql'));
+load(path.join(here, '../supabase/migrations/20261113_profile_photos_all_roles.sql'));
 
 const U = {
   teen: ['11111111-1111-1111-1111-111111111111', 'teen@example.com'],
@@ -112,5 +115,59 @@ assert.deepEqual(seen('parent'), []);
 assert.deepEqual(rows('teen', "delete from storage.objects where bucket_id = 'profile-photos' returning 1;"), ['1']);
 rows('teen', "update public.tw_profile_photos set path = null where owner_key = 'teen@example.com';");
 assert.deepEqual(seen('teen'), []);
+
+/* ── v58: parents and employers have a photo and a choice too ─────────────────────────────────── */
+const P = U.parent[0], B = U.boss[0];
+const seenOf = (who, key) => rows(who, `select path from public.tw_photo_paths(array['${key}']);`);
+const filesOf = (who, folder) => rows(who, `select name from storage.objects where bucket_id = 'profile-photos' and name like '${folder}/%';`);
+
+// The parent shows the photo to their teens; the employer of the teen's approved job only when the parent says so
+rows('parent', `insert into storage.objects (bucket_id, name) values ('profile-photos', '${P}/p1-200.jpg');`);
+rows('parent', `insert into public.tw_profile_photos (owner_key, path, audience, teen_viewers, employer_viewers)
+                values ('parent@example.com', '${P}/p1-200.jpg', 'teens', '{teen@example.com}', '{boss@example.com}');`);
+assert.deepEqual(seenOf('teen', 'parent@example.com'), [`${P}/p1-200.jpg`]);
+assert.deepEqual(filesOf('teen', P), [`${P}/p1-200.jpg`]);
+assert.deepEqual(seenOf('boss', 'parent@example.com'), []);
+assert.deepEqual(filesOf('boss', P), []);
+assert.deepEqual(seenOf('stranger', 'parent@example.com'), []);
+rows('parent', "update public.tw_profile_photos set audience = 'teens_employers' where owner_key = 'parent@example.com';");
+assert.deepEqual(seenOf('boss', 'parent@example.com'), [`${P}/p1-200.jpg`]);
+assert.deepEqual(filesOf('boss', P), [`${P}/p1-200.jpg`]);
+assert.deepEqual(seenOf('stranger', 'parent@example.com'), []);
+rows('parent', "update public.tw_profile_photos set audience = 'me' where owner_key = 'parent@example.com';");
+assert.deepEqual(seenOf('teen', 'parent@example.com'), []);
+assert.deepEqual(filesOf('teen', P), []);
+assert.deepEqual(seenOf('parent', 'parent@example.com'), [`${P}/p1-200.jpg`]);
+
+// The employer shows the photo to teens who applied, and with 'teens_parents' to those teens' parents
+rows('boss', `insert into storage.objects (bucket_id, name) values ('profile-photos', '${B}/p1-300.jpg');`);
+rows('boss', `insert into public.tw_profile_photos (owner_key, path, audience, teen_viewers, parent_viewers)
+              values ('boss@example.com', '${B}/p1-300.jpg', 'teens_parents', '{teen@example.com}', '{parent@example.com}');`);
+assert.deepEqual(seenOf('teen', 'boss@example.com'), [`${B}/p1-300.jpg`]);
+assert.deepEqual(seenOf('parent', 'boss@example.com'), [`${B}/p1-300.jpg`]);
+assert.deepEqual(filesOf('parent', B), [`${B}/p1-300.jpg`]);
+assert.deepEqual(seenOf('stranger', 'boss@example.com'), []);
+assert.deepEqual(filesOf('stranger', B), []);
+assert.deepEqual(filesOf('anon', B), []);
+rows('boss', "update public.tw_profile_photos set audience = 'teens' where owner_key = 'boss@example.com';");
+assert.deepEqual(seenOf('teen', 'boss@example.com'), [`${B}/p1-300.jpg`]);
+assert.deepEqual(seenOf('parent', 'boss@example.com'), []);
+// teen_viewers only counts for the teen choices, so a teen-style 'parent' choice on an adult's row never shows it to the teen list
+rows('boss', "update public.tw_profile_photos set audience = 'parent', parent_viewers = '{}' where owner_key = 'boss@example.com';");
+assert.deepEqual(seenOf('teen', 'boss@example.com'), []);
+
+// Still nobody else writes the row, unknown choices and over-long lists are refused, other people's rows stay theirs
+refused('boss', "update public.tw_profile_photos set audience = 'everyone' where owner_key = 'boss@example.com';", 'unknown audience');
+refused('boss', `update public.tw_profile_photos set teen_viewers = (select array_agg('t' || g || '@example.com') from generate_series(1, 301) g) where owner_key = 'boss@example.com';`, 'over 300 teens');
+assert.deepEqual(rows('stranger', "update public.tw_profile_photos set teen_viewers = '{someone@example.com}' where owner_key = 'boss@example.com' returning 1;"), []);
+assert.deepEqual(rows('teen', "update public.tw_profile_photos set audience = 'teens' where owner_key = 'parent@example.com' returning 1;"), []);
+assert.deepEqual(rows('parent', "select owner_key from public.tw_profile_photos order by 1;"), ['parent@example.com']);
+
+// delete-account takes a closed teen off adults' teen lists too
+rows('boss', "update public.tw_profile_photos set audience = 'teens' where owner_key = 'boss@example.com';");
+assert.deepEqual(seenOf('teen', 'boss@example.com').length, 1);
+rows('service', "select public.tw_photo_forget_viewer('Teen@Example.com');");
+assert.deepEqual(seenOf('teen', 'boss@example.com'), []);
+assert.deepEqual(rows('service', "select cardinality(teen_viewers) from public.tw_profile_photos where owner_key = 'boss@example.com';"), ['0']);
 
 console.log('profile-photos SQL checks passed');

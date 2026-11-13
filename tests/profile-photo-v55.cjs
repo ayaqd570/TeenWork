@@ -1,9 +1,12 @@
-/* Offline checks for v55 teen profile photos (profile-photo-v55.js).
+/* Offline checks for profile photos (profile-photo-v55.js): v55 teens, v58 parents and employers.
    • Practice teen: the photo stays in the browser, nothing reaches Supabase.
    • Real teen against a FAKE Supabase client (no network): the photo is made a 400×400 JPEG, uploaded to
      <sign-in id>/p1-….jpg, the "who can see it" choice and the parent / employer lists are saved, the panel names
      the people, changing and removing the photo cleans up the old file, and "not set up yet" is said plainly.
    • A linked parent and an employer see the photo when the teen's choice allows it, and initials otherwise.
+   • v58: a parent and an employer add their own photo and pick who sees it (teens, their employers, the teens'
+     parents); the teen's photo works without the v58 database change, theirs say "still being set up" without it;
+     people see each other's photos in Messages only when the owner's choice allows it.
    The database rules themselves are checked in tests/profile-photos-sql.mjs.
    Run: node tests/profile-photo-v55.cjs */
 const { chromium } = require('playwright');
@@ -13,6 +16,7 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 
 const PORT = 8025, ROOT = 'http://127.0.0.1:' + PORT + '/';
+const SHOTS = process.env.TW_SHOTS || require('node:os').tmpdir();   // where the v58 boxes are photographed
 const TEEN = { id: '11111111-1111-1111-1111-111111111111', email: 'teen@example.com' };
 const MOM = { id: '22222222-2222-2222-2222-222222222222', email: 'mom@example.com' };
 const BOSS = { id: '33333333-3333-3333-3333-333333333333', email: 'boss@example.com' };
@@ -33,7 +37,8 @@ const PHOTO = { name: 'me.png', mimeType: 'image/png', buffer: png(900, 600) };
    table, Storage files and user_data rows in memory. tw_photo_paths follows the same rule as the SQL. */
 function fakeSupabase() {
   const PNG1 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
-  const F = window.__fake = { photos: {}, objects: {}, removed: [], userData: [], session: null, missing: false, calls: [] };
+  const F = window.__fake = { photos: {}, objects: {}, removed: [], userData: [], session: null, missing: false, v58missing: false, calls: [] };
+  const NO_COL = { code: '42703', message: 'column tw_profile_photos.teen_viewers does not exist' };
   const ok = data => ({ data, error: null });
   const MISSING = { code: 'PGRST205', message: "Could not find the table 'public.tw_profile_photos' in the schema cache" };
   const match = (row, filters) => filters.every(([op, c, v]) => op === 'eq' ? String(row[c]) === String(v)
@@ -44,6 +49,7 @@ function fakeSupabase() {
     const one = list => (q.single || q.maybe ? ok(list[0] || null) : ok(list));
     if (q.table === 'tw_profile_photos') {
       if (F.missing) return { data: null, error: MISSING };
+      if (F.v58missing && (/teen_viewers/.test(q.cols || '') || (q.payload && 'teen_viewers' in q.payload))) return { data: null, error: NO_COL };
       if (q.op === 'select') return one(Object.values(F.photos).filter(r => match(r, q.filters)).map(r => ({ ...r })));
       if (q.op === 'upsert') {
         const p = q.payload, mine = F.session && F.session.user;
@@ -67,7 +73,7 @@ function fakeSupabase() {
     const q = { table, op: 'select', filters: [], payload: null };
     const api = new Proxy({}, { get(_, prop) {
       if (prop === 'then') return (res, rej) => Promise.resolve().then(() => run(q)).then(res, rej);
-      if (prop === 'select') return () => api;
+      if (prop === 'select') return c => { if (q.op === 'select' || !q.cols) q.cols = c || ''; return api; };
       if (['upsert', 'insert', 'update'].includes(prop)) return p => { q.op = prop; q.payload = p; return api; };
       if (prop === 'delete') return () => { q.op = 'delete'; return api; };
       if (['eq', 'like', 'in'].includes(prop)) return (c, v) => { q.filters.push([prop, c, v]); return api; };
@@ -85,9 +91,11 @@ function fakeSupabase() {
       if (name !== 'tw_photo_paths') return ok(null);
       if (F.missing) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.tw_photo_paths' } };
       const me = F.session && F.session.user; if (!me) return ok([]);
+      const has = (list, who) => (list || []).includes(who);
       return ok(Object.values(F.photos).filter(p => args.p_keys.includes(p.owner_key) && p.path && (p.owner_id === me.id
-        || (['parent', 'employers'].includes(p.audience) && (p.parent_viewers || []).includes(me.email))
-        || (p.audience === 'employers' && (p.employer_viewers || []).includes(me.email)))).map(p => ({ owner_key: p.owner_key, path: p.path })));
+        || (['parent', 'employers', 'teens_parents'].includes(p.audience) && has(p.parent_viewers, me.email))
+        || (['employers', 'teens_employers'].includes(p.audience) && has(p.employer_viewers, me.email))
+        || (['teens', 'teens_employers', 'teens_parents'].includes(p.audience) && has(p.teen_viewers, me.email)))).map(p => ({ owner_key: p.owner_key, path: p.path })));
     },
     storage: { from: bucket => ({
       upload: async (p, blob, opts) => { F.calls.push('upload:' + bucket); if (F.missing) return { data: null, error: { message: 'Bucket not found' } }; F.objects[p] = { blob, opts, owner: F.session.user.id }; return ok({ path: p }); },
@@ -185,6 +193,7 @@ async function signIn(p, user, extra) {
       {
         const { context, p, errors } = await open(browser, viewport, true);
         await p.evaluate(({ TEEN, MOM, BOSS }) => {
+          window.__fake.v58missing = true;   // a teen's photo needs only the first (v55) database change
           window.__fake.userData.push(
             { email: TEEN.email, key: 'parent_link', value: JSON.stringify({ status: 'approved', parentEmail: MOM.email, parentName: 'Dana Rivera', parents: [MOM.email] }) },
             { email: TEEN.email, key: 'job_app:101', value: JSON.stringify({ jobId: 101, employerKey: BOSS.email, status: 'applied', job: { title: 'Lawn helper', employer: "Mike's Lawn" } }) },
@@ -308,6 +317,138 @@ async function signIn(p, user, extra) {
           await context.close();
         }
       }
+      /* 5. v58 · a real parent adds a photo and picks: me and my teens / my teens and their employers */
+      {
+        const { context, p, errors } = await open(browser, viewport, true);
+        await p.evaluate(({ TEEN, MOM, BOSS }) => {
+          window.__fake.userData.push(
+            { email: MOM.email, key: 'linked_teens', value: JSON.stringify({ teens: [{ key: TEEN.email, email: TEEN.email, name: 'Sam Rivera', linkedAt: Date.now() }, { key: 'notyet@example.com', email: 'notyet@example.com', name: 'Not synced', pending: true }], updatedAt: Date.now() }) },
+            { email: TEEN.email, key: 'job_app:101', value: JSON.stringify({ jobId: 101, employerKey: BOSS.email, status: 'applied', parentEmail: MOM.email, job: { title: 'Lawn helper', employer: "Mike's Lawn" } }) },
+            { email: TEEN.email, key: 'job_app:102', value: JSON.stringify({ jobId: 102, employerKey: 'other@example.com', status: 'pending-approval', job: { title: 'Dog walker', employer: 'Not yet' } }) });
+        }, { TEEN, MOM, BOSS });
+        await signIn(p, MOM, { acct: { name: 'Dana Rivera', type: 'parent' },
+          local: { tw_mom_example_com_linked_teens: { teens: [{ key: TEEN.email, email: TEEN.email, name: 'Sam Rivera', linkedAt: Date.now() }], updatedAt: Date.now() } } });
+        await p.evaluate(() => switchParentTab('ptab-teens', 'pdtab-teens'));
+        await p.waitForSelector('#tw55-photo-parent');
+        await p.locator('#tw55-photo-parent').scrollIntoViewIfNeeded();
+        await p.waitForFunction(() => window._twPhotoV55.state.setup === 'ok' && window._twPhotoV55.state.people);
+        await p.waitForTimeout(100);
+        assert.equal(await text(p, '#tw55-avatar-parent'), 'DR');
+        assert.equal(await p.locator('input[name="tw55-aud-parent"][value="teens"]').isChecked(), true);
+        let who = await text(p, '#tw55-who-parent');
+        assert.match(who, /No photo yet\. If you add one, it shows to: You Sam Rivera teen@example\.com/);
+        assert.doesNotMatch(who, /boss@example\.com|notyet@example\.com/);
+        const btn = await p.locator('#tw55-pick-parent').boundingBox();
+        assert(btn.height >= 44, tag + ': parent Add a photo button is too small');
+        await p.setInputFiles('#tw55-file-parent', PHOTO);
+        await p.waitForFunction(() => /Photo saved/.test(document.getElementById('tw55-status-parent').textContent));
+        const row = await p.evaluate(() => window.__fake.photos['mom@example.com']);
+        assert.match(row.path, new RegExp('^' + MOM.id + '/p1-\\d+\\.jpg$'));
+        assert.deepEqual([row.audience, row.teen_viewers, row.employer_viewers, row.parent_viewers], ['teens', [TEEN.email], [BOSS.email], []]);
+        assert.equal(await p.evaluate(() => document.getElementById('tw55-avatar-parent').classList.contains('tw55-has-photo')), true);
+        assert.match(await text(p, '#tw55-status-parent'), /Photo saved\. You and 1 other person can see it\./);
+        await p.locator('#tw55-aud-parent label').filter({ hasText: 'My teens and their employers' }).click();
+        await p.waitForFunction(() => window.__fake.photos['mom@example.com'].audience === 'teens_employers');
+        who = await text(p, '#tw55-who-parent');
+        assert.match(who, /Sam Rivera teen@example\.com/);
+        assert.match(who, /Mike.s Lawn boss@example\.com for Lawn helper/);
+        assert.doesNotMatch(who, /other@example\.com/);
+        assert(await noOverflow(p), tag + ': parent photo box overflows');
+        if (viewport.width === 390) await p.locator('#tw55-photo-parent').screenshot({ path: path.join(SHOTS, 'parent-photo-box-phone.png') });
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+
+      /* 6. v58 · a real employer adds a photo or logo: teens who applied / those teens and their parents */
+      {
+        const { context, p, errors } = await open(browser, viewport, true);
+        await p.evaluate(({ TEEN, MOM, BOSS }) => {
+          window.__fake.userData.push(
+            { email: BOSS.email, key: 'job_post:101', value: JSON.stringify({ id: 101, title: 'Lawn helper', employerKey: BOSS.email, status: 'active' }) },
+            { email: TEEN.email, key: 'job_app:101', value: JSON.stringify({ jobId: 101, employerKey: BOSS.email, status: 'applied', teenName: 'Sam Rivera', parentEmail: MOM.email, parentName: 'Dana Rivera', job: { title: 'Lawn helper' } }) },
+            { email: 'waiting@example.com', key: 'job_app:101', value: JSON.stringify({ jobId: 101, employerKey: BOSS.email, status: 'pending-approval', teenName: 'Waiting Teen', job: { title: 'Lawn helper' } }) },
+            { email: 'elsewhere@example.com', key: 'job_app:101', value: JSON.stringify({ jobId: 101, employerKey: 'someone-else@example.com', status: 'applied', teenName: 'Other', job: { title: 'Lawn helper' } }) });
+        }, { TEEN, MOM, BOSS });
+        await signIn(p, BOSS, { acct: { name: 'Mike Lawson', type: 'employer' } });
+        await p.evaluate(() => switchDashTab(null, 'etab-profile'));
+        await p.waitForSelector('#tw55-photo-employer');
+        await p.locator('#tw55-photo-employer').scrollIntoViewIfNeeded();
+        await p.waitForFunction(() => window._twPhotoV55.state.setup === 'ok' && window._twPhotoV55.state.people);
+        await p.waitForTimeout(100);
+        assert.equal(await p.locator('input[name="tw55-aud-employer"][value="teens_parents"]').isChecked(), true);
+        let who = await text(p, '#tw55-who-employer');
+        assert.match(who, /You Sam Rivera teen@example\.com for Lawn helper Dana Rivera \(parent\) mom@example\.com/);
+        assert.doesNotMatch(who, /waiting@example\.com|elsewhere@example\.com/);
+        await p.setInputFiles('#tw55-file-employer', PHOTO);
+        await p.waitForFunction(() => /Photo saved/.test(document.getElementById('tw55-status-employer').textContent));
+        const row = await p.evaluate(() => window.__fake.photos['boss@example.com']);
+        assert.deepEqual([row.audience, row.teen_viewers, row.parent_viewers, row.employer_viewers], ['teens_parents', [TEEN.email], [MOM.email], []]);
+        assert.match(await text(p, '#tw55-status-employer'), /You and 2 other people can see it/);
+        assert.equal(await p.evaluate(() => document.getElementById('emp-profile-avatar-display').classList.contains('tw55-has-photo')), true, 'company profile card shows the photo');
+        await p.locator('#tw55-aud-employer label').filter({ hasText: 'Teens who applied' }).click();
+        await p.waitForFunction(() => window.__fake.photos['boss@example.com'].audience === 'teens');
+        assert.doesNotMatch(await text(p, '#tw55-who-employer'), /mom@example\.com/);
+        assert(await noOverflow(p), tag + ': employer photo box overflows');
+        await p.locator('#tw55-aud-employer label').filter({ hasText: 'Those teens and their parents' }).click();
+        await p.waitForFunction(() => window.__fake.photos['boss@example.com'].audience === 'teens_parents');
+        await p.waitForTimeout(150);
+        if (viewport.width === 1440) {
+          await p.evaluate(() => window.scrollTo(0, 0));
+          await p.locator('#etab-profile').screenshot({ path: path.join(SHOTS, 'employer-company-profile-desktop.png'), clip: undefined }).catch(() => {});
+        }
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+
+      /* 7. v58 · before the v58 database change, a parent's box says it's being set up and nothing breaks */
+      {
+        const { context, p, errors } = await open(browser, viewport, true);
+        await p.evaluate(() => { window.__fake.v58missing = true; });
+        await signIn(p, MOM, { acct: { name: 'Dana Rivera', type: 'parent' } });
+        await p.evaluate(() => switchParentTab('ptab-teens', 'pdtab-teens'));
+        await p.waitForFunction(() => window._twPhotoV55.state.setup === 'missing');
+        await p.waitForTimeout(100);
+        assert.equal(await text(p, '#tw55-status-parent'), 'Photo upload is still being set up. Check back soon.');
+        assert.equal(await p.locator('#tw55-pick-parent').isDisabled(), true);
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+
+      /* 8. v58 · Messages shows a contact's photo only when the owner's choice allows it */
+      {
+        const path1 = MOM.id + '/p1-5.jpg', path2 = BOSS.id + '/p1-6.jpg', path3 = '44444444-4444-4444-4444-444444444444/p1-7.jpg';
+        const { context, p, errors } = await open(browser, viewport, true);
+        await p.evaluate(({ MOM, BOSS, TEEN, path1, path2, path3 }) => {
+          const F = window.__fake, blob = new Blob(['x'], { type: 'image/jpeg' });
+          [path1, path2, path3].forEach(x => { F.objects[x] = { blob }; });
+          F.photos[MOM.email] = { owner_key: MOM.email, owner_id: MOM.id, path: path1, audience: 'teens', teen_viewers: [TEEN.email], parent_viewers: [], employer_viewers: [] };
+          F.photos[BOSS.email] = { owner_key: BOSS.email, owner_id: BOSS.id, path: path2, audience: 'teens_parents', teen_viewers: [TEEN.email], parent_viewers: [MOM.email], employer_viewers: [] };
+          F.photos['shady@example.com'] = { owner_key: 'shady@example.com', owner_id: '44444444-4444-4444-4444-444444444444', path: path3, audience: 'teens', teen_viewers: [], parent_viewers: [], employer_viewers: [] };
+        }, { MOM, BOSS, TEEN, path1, path2, path3 });
+        // a teen without a linked parent can't open Messages yet, so this teen is linked
+        await signIn(p, TEEN, { acct: { name: 'Sam Rivera', type: 'teen', dob: '2010-03-01', city: 'Burlington', state: 'Vermont' },
+          local: { tw_parent_links: { [TEEN.email]: { status: 'approved', parentEmail: MOM.email, parentName: 'Dana Rivera', parents: [MOM.email] } } } });
+        await p.evaluate(({ MOM, BOSS }) => {
+          const add = (id, name, role, key) => MSG_CONTACTS.teen.push({ id, name, avatar: role === 'parent' ? '👪' : '🏢', role, jobTitle: '', unread: 0, messages: [], cloudKey: key });
+          add('t-mom', 'Dana Rivera', 'parent', MOM.email); add('t-boss', "Mike's Lawn", 'employer', BOSS.email); add('t-shady', 'Someone', 'employer', 'shady@example.com');
+          openMsgModal();
+        }, { MOM, BOSS });
+        await p.waitForTimeout(1200);
+        const painted = await p.evaluate(() => [...document.querySelectorAll('#msg-contacts-list .msg-contact')].map(r => {
+          const m = /openMsgChat\('([^']+)'\)/.exec(r.getAttribute('onclick') || ''); const a = r.querySelector('.msg-contact-avatar');
+          return [m && m[1], a.classList.contains('tw55-has-photo'), a.getAttribute('aria-label')];
+        }).filter(x => /^t-/.test(x[0])));
+        assert.deepEqual(painted, [['t-mom', true, 'Photo of Dana Rivera'], ['t-boss', true, "Photo of Mike's Lawn"], ['t-shady', false, null]]);
+        await p.evaluate(() => openMsgChat('t-boss'));
+        await p.waitForTimeout(900);
+        assert.equal(await p.evaluate(() => document.querySelector('#msg-main-area .msg-header-avatar').classList.contains('tw55-has-photo')), true);
+        await p.evaluate(() => openMsgChat('t-shady'));
+        await p.waitForTimeout(900);
+        assert.equal(await p.evaluate(() => document.querySelector('#msg-main-area .msg-header-avatar').classList.contains('tw55-has-photo')), false);
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+
       console.log(tag + ': profile photo checks passed');
     }
     console.log('profile-photo-v55: all checks passed');

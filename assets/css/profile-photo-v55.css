@@ -36,3 +36,5 @@ html.dark .tw55-aud small,html.dark .tw55-who .tw55-mail,html.dark .tw55-who .tw
 .tw55-box{text-align:left}
 .tw55-box p{font-size:.84rem;line-height:1.5;margin:0 0 8px;color:var(--text,#1b1b1b)}
 .tw55-box .tw53-hint{color:var(--muted,#5b6470);font-size:.8rem}
+.tw55-who .tw55-warn{margin:6px 0 0;padding:6px 8px;border-radius:8px;background:var(--amber-pale,#fff4e0);color:#7a4a00;font-size:.8rem;font-weight:600}
+html.dark .tw55-who .tw55-warn{background:#3a2a10;color:#ffd79a}

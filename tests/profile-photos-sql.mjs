@@ -63,7 +63,7 @@ refused('teen', `insert into storage.objects (bucket_id, name) values ('profile-
 refused('stranger', `insert into public.tw_profile_photos (owner_key, audience) values ('teen@example.com#2', 'me');`, 'claim the teen\'s extra account key');
 refused('stranger', `insert into public.tw_profile_photos (owner_key, owner_id) values ('someone@example.com', '${T}');`, 'row owned by the teen\'s id');
 refused('stranger', `insert into public.tw_profile_photos (owner_key, path) values ('someone@example.com', '${T}/p1-100.jpg');`, 'point at the teen\'s file');
-refused('teen', `insert into public.tw_profile_photos (owner_key, audience) values ('teen@example.com#2', 'everyone');`, 'unknown audience');
+refused('teen', `insert into public.tw_profile_photos (owner_key, audience) values ('teen@example.com#2', 'public');`, 'unknown audience');
 // the teen's second account on the same email is fine
 rows('teen', `insert into public.tw_profile_photos (owner_key, audience) values ('teen@example.com#2', 'me');`);
 
@@ -157,14 +157,31 @@ rows('boss', "update public.tw_profile_photos set audience = 'parent', parent_vi
 assert.deepEqual(seenOf('teen', 'boss@example.com'), []);
 
 // Still nobody else writes the row, unknown choices and over-long lists are refused, other people's rows stay theirs
-refused('boss', "update public.tw_profile_photos set audience = 'everyone' where owner_key = 'boss@example.com';", 'unknown audience');
+refused('boss', "update public.tw_profile_photos set audience = 'public' where owner_key = 'boss@example.com';", 'unknown audience');
 refused('boss', `update public.tw_profile_photos set teen_viewers = (select array_agg('t' || g || '@example.com') from generate_series(1, 301) g) where owner_key = 'boss@example.com';`, 'over 300 teens');
 assert.deepEqual(rows('stranger', "update public.tw_profile_photos set teen_viewers = '{someone@example.com}' where owner_key = 'boss@example.com' returning 1;"), []);
 assert.deepEqual(rows('teen', "update public.tw_profile_photos set audience = 'teens' where owner_key = 'parent@example.com' returning 1;"), []);
 assert.deepEqual(rows('parent', "select owner_key from public.tw_profile_photos order by 1;"), ['parent@example.com']);
 
+// v58b · 'everyone': anyone signed in sees it (any role, even with empty lists); anon never does
+rows('teen', `insert into storage.objects (bucket_id, name) values ('profile-photos', '${T}/p1-400.jpg');`);
+rows('teen', `update public.tw_profile_photos set audience = 'everyone', path = '${T}/p1-400.jpg' where owner_key = 'teen@example.com';`);
+rows('boss', "update public.tw_profile_photos set audience = 'everyone', teen_viewers = '{}', parent_viewers = '{}' where owner_key = 'boss@example.com';");
+assert.deepEqual(seenOf('stranger', 'teen@example.com'), [`${T}/p1-400.jpg`]);
+assert.deepEqual(filesOf('stranger', T), [`${T}/p1-400.jpg`]);
+assert.deepEqual(seenOf('stranger', 'boss@example.com'), [`${B}/p1-300.jpg`]);
+assert.deepEqual(filesOf('stranger', B), [`${B}/p1-300.jpg`]);
+assert.deepEqual(filesOf('anon', B), []);
+assert.deepEqual(filesOf('anon', T), []);
+assert.match(refused('anon', "select * from public.tw_photo_paths(array['boss@example.com']);", 'anon'), /permission denied/);
+// and back to a narrower choice takes it away again
+rows('teen', "update public.tw_profile_photos set audience = 'me' where owner_key = 'teen@example.com';");
+assert.deepEqual(seenOf('stranger', 'teen@example.com'), []);
+assert.deepEqual(seenOf('parent', 'teen@example.com'), []);
+assert.deepEqual(filesOf('stranger', T), []);
+
 // delete-account takes a closed teen off adults' teen lists too
-rows('boss', "update public.tw_profile_photos set audience = 'teens' where owner_key = 'boss@example.com';");
+rows('boss', "update public.tw_profile_photos set audience = 'teens', teen_viewers = '{teen@example.com}' where owner_key = 'boss@example.com';");
 assert.deepEqual(seenOf('teen', 'boss@example.com').length, 1);
 rows('service', "select public.tw_photo_forget_viewer('Teen@Example.com');");
 assert.deepEqual(seenOf('teen', 'boss@example.com'), []);

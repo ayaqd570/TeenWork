@@ -50,6 +50,8 @@ function fakeSupabase() {
     if (q.table === 'tw_profile_photos') {
       if (F.missing) return { data: null, error: MISSING };
       if (F.v58missing && (/teen_viewers/.test(q.cols || '') || (q.payload && 'teen_viewers' in q.payload))) return { data: null, error: NO_COL };
+      if (F.v58missing && q.payload && !['me', 'parent', 'employers'].includes(q.payload.audience || 'parent'))
+        return { data: null, error: { code: '23514', message: 'new row for relation "tw_profile_photos" violates check constraint "tw_profile_photos_audience_check"' } };
       if (q.op === 'select') return one(Object.values(F.photos).filter(r => match(r, q.filters)).map(r => ({ ...r })));
       if (q.op === 'upsert') {
         const p = q.payload, mine = F.session && F.session.user;
@@ -92,7 +94,7 @@ function fakeSupabase() {
       if (F.missing) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.tw_photo_paths' } };
       const me = F.session && F.session.user; if (!me) return ok([]);
       const has = (list, who) => (list || []).includes(who);
-      return ok(Object.values(F.photos).filter(p => args.p_keys.includes(p.owner_key) && p.path && (p.owner_id === me.id
+      return ok(Object.values(F.photos).filter(p => args.p_keys.includes(p.owner_key) && p.path && (p.owner_id === me.id || p.audience === 'everyone'
         || (['parent', 'employers', 'teens_parents'].includes(p.audience) && has(p.parent_viewers, me.email))
         || (['employers', 'teens_employers'].includes(p.audience) && has(p.employer_viewers, me.email))
         || (['teens', 'teens_employers', 'teens_parents'].includes(p.audience) && has(p.teen_viewers, me.email)))).map(p => ({ owner_key: p.owner_key, path: p.path })));
@@ -234,6 +236,13 @@ async function signIn(p, user, extra) {
         assert.match(await text(p, '#tw55-who'), /right now: Only you/);
         await p.locator('#tw55-aud label').filter({ hasText: 'Me and my parent' }).click();
         await p.waitForFunction(() => window.__fake.photos['teen@example.com'].audience === 'parent');
+        // before the v58 database change, "Anyone on TeenWork" is refused by itself and the box keeps working
+        await p.locator('#tw55-aud label').filter({ hasText: 'Anyone on TeenWork' }).click();
+        await p.waitForFunction(() => /isn't switched on yet/.test(document.getElementById('tw55-status').textContent));
+        assert.equal(await p.evaluate(() => window.__fake.photos['teen@example.com'].audience), 'parent');
+        assert.equal(await p.locator('input[name="tw55-aud"][value="parent"]').isChecked(), true);
+        assert.equal(await p.evaluate(() => window._twPhotoV55.state.setup), 'ok');
+        assert.equal(await p.locator('#tw55-pick').isEnabled(), true);
 
         // a new photo replaces the old file
         const first = up.paths[0];
@@ -354,6 +363,12 @@ async function signIn(p, user, extra) {
         assert.match(who, /Mike.s Lawn boss@example\.com for Lawn helper/);
         assert.doesNotMatch(who, /other@example\.com/);
         assert(await noOverflow(p), tag + ': parent photo box overflows');
+        await p.locator('#tw55-aud-parent label').filter({ hasText: 'Anyone on TeenWork' }).click();
+        await p.waitForFunction(() => window.__fake.photos['mom@example.com'].audience === 'everyone');
+        assert.match(await text(p, '#tw55-who-parent'), /right now: You Anyone signed in to TeenWork People who aren't signed in to TeenWork never see it/);
+        assert.doesNotMatch(await text(p, '#tw55-who-parent'), /Talk to your parent/);
+        await p.locator('#tw55-aud-parent label').filter({ hasText: 'Me and my teens' }).click();
+        await p.waitForFunction(() => window.__fake.photos['mom@example.com'].audience === 'teens');
         if (viewport.width === 390) await p.locator('#tw55-photo-parent').screenshot({ path: path.join(SHOTS, 'parent-photo-box-phone.png') });
         assert.deepEqual(errors, []);
         await context.close();
@@ -389,6 +404,9 @@ async function signIn(p, user, extra) {
         await p.waitForFunction(() => window.__fake.photos['boss@example.com'].audience === 'teens');
         assert.doesNotMatch(await text(p, '#tw55-who-employer'), /mom@example\.com/);
         assert(await noOverflow(p), tag + ': employer photo box overflows');
+        await p.locator('#tw55-aud-employer label').filter({ hasText: 'Anyone on TeenWork' }).click();
+        await p.waitForFunction(() => window.__fake.photos['boss@example.com'].audience === 'everyone');
+        assert.match(await text(p, '#tw55-status-employer'), /Saved\. Anyone signed in to TeenWork can see it\./);
         await p.locator('#tw55-aud-employer label').filter({ hasText: 'Those teens and their parents' }).click();
         await p.waitForFunction(() => window.__fake.photos['boss@example.com'].audience === 'teens_parents');
         await p.waitForTimeout(150);
@@ -424,6 +442,8 @@ async function signIn(p, user, extra) {
           F.photos[MOM.email] = { owner_key: MOM.email, owner_id: MOM.id, path: path1, audience: 'teens', teen_viewers: [TEEN.email], parent_viewers: [], employer_viewers: [] };
           F.photos[BOSS.email] = { owner_key: BOSS.email, owner_id: BOSS.id, path: path2, audience: 'teens_parents', teen_viewers: [TEEN.email], parent_viewers: [MOM.email], employer_viewers: [] };
           F.photos['shady@example.com'] = { owner_key: 'shady@example.com', owner_id: '44444444-4444-4444-4444-444444444444', path: path3, audience: 'teens', teen_viewers: [], parent_viewers: [], employer_viewers: [] };
+          F.objects['55555555-5555-5555-5555-555555555555/p1-8.jpg'] = { blob };
+          F.photos['open@example.com'] = { owner_key: 'open@example.com', owner_id: '55555555-5555-5555-5555-555555555555', path: '55555555-5555-5555-5555-555555555555/p1-8.jpg', audience: 'everyone', teen_viewers: [], parent_viewers: [], employer_viewers: [] };
         }, { MOM, BOSS, TEEN, path1, path2, path3 });
         // a teen without a linked parent can't open Messages yet, so this teen is linked
         await signIn(p, TEEN, { acct: { name: 'Sam Rivera', type: 'teen', dob: '2010-03-01', city: 'Burlington', state: 'Vermont' },
@@ -439,12 +459,39 @@ async function signIn(p, user, extra) {
           return [m && m[1], a.classList.contains('tw55-has-photo'), a.getAttribute('aria-label')];
         }).filter(x => /^t-/.test(x[0])));
         assert.deepEqual(painted, [['t-mom', true, 'Photo of Dana Rivera'], ['t-boss', true, "Photo of Mike's Lawn"], ['t-shady', false, null]]);
+        // people found with the search box: a photo only when they picked "Anyone on TeenWork"
+        await p.evaluate(() => {
+          const box = document.getElementById('msg-contacts-list'), sec = document.createElement('div'); sec.className = 'tw47c-people';
+          sec.innerHTML = ['open@example.com|Open Business', 'shady@example.com|Someone Else'].map(x => { const [k, n] = x.split('|');
+            return '<div class="tw47c-person"><div class="msg-contact-avatar employer">🏢</div><div class="msg-contact-info"><div class="msg-contact-name">' + n + '</div></div><button type="button" class="tw47c-add" data-tw47c-add="' + k + '">➕ Add</button></div>'; }).join('');
+          box.appendChild(sec);
+        });
+        await p.waitForTimeout(900);
+        assert.deepEqual(await p.evaluate(() => [...document.querySelectorAll('.tw47c-person')].map(r => [r.querySelector('.msg-contact-name').textContent, r.querySelector('.msg-contact-avatar').classList.contains('tw55-has-photo')])),
+          [['Open Business', true], ['Someone Else', false]]);
         await p.evaluate(() => openMsgChat('t-boss'));
         await p.waitForTimeout(900);
         assert.equal(await p.evaluate(() => document.querySelector('#msg-main-area .msg-header-avatar').classList.contains('tw55-has-photo')), true);
         await p.evaluate(() => openMsgChat('t-shady'));
         await p.waitForTimeout(900);
         assert.equal(await p.evaluate(() => document.querySelector('#msg-main-area .msg-header-avatar').classList.contains('tw55-has-photo')), false);
+        assert.deepEqual(errors, []);
+        await context.close();
+      }
+
+      /* 9. v58b · a teen who picks "Anyone on TeenWork" is told it includes adults they don't know */
+      {
+        const { context, p, errors } = await open(browser, viewport, true);
+        await signIn(p, TEEN, { acct: { name: 'Sam Rivera', type: 'teen', dob: '2010-03-01', city: 'Burlington', state: 'Vermont' },
+          local: { tw_parent_links: { [TEEN.email]: { status: 'approved', parentEmail: MOM.email, parents: [MOM.email] } } } });
+        await profile(p);
+        await p.waitForFunction(() => window._twPhotoV55.state.setup === 'ok');
+        await p.locator('#tw55-aud label').filter({ hasText: 'Anyone on TeenWork' }).click();
+        await p.waitForFunction(() => (window.__fake.photos['teen@example.com'] || {}).audience === 'everyone');
+        const who = await text(p, '#tw55-who');
+        assert.match(who, /Anyone signed in to TeenWork/);
+        assert.match(who, /That includes adults you don't know\. Talk to your parent before you pick this\./);
+        assert(await noOverflow(p), tag + ': teen Anyone note overflows');
         assert.deepEqual(errors, []);
         await context.close();
       }

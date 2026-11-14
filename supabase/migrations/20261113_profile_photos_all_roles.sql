@@ -8,6 +8,8 @@
 --                  · 'teens_employers' (+ teen_viewers + employer_viewers: employers of jobs the parent approved)
 --   employer  'me' · 'teens' (+ teen_viewers: teens whose application reached them after a parent's OK)
 --                  · 'teens_parents' (+ teen_viewers + parent_viewers: those teens and the parents who approved)
+--   everyone  'everyone': anyone signed in to TeenWork (any role; Aya 2026-11-14: "also have it so anyone can see as
+--             option for all photos"). People who aren't signed in (anon) still never get a link.
 -- The owner's app fills the lists from its own records. A viewer is recognised by the email on their sign-in token.
 
 -- 1. A list for teens, and room for an employer's applicants' parents.
@@ -15,7 +17,7 @@ alter table public.tw_profile_photos add column if not exists teen_viewers text[
 
 alter table public.tw_profile_photos drop constraint if exists tw_profile_photos_audience_check;
 alter table public.tw_profile_photos add constraint tw_profile_photos_audience_check
-  check (audience in ('me', 'parent', 'employers', 'teens', 'teens_employers', 'teens_parents'));
+  check (audience in ('me', 'parent', 'employers', 'teens', 'teens_employers', 'teens_parents', 'everyone'));
 
 alter table public.tw_profile_photos drop constraint if exists tw_profile_photos_parent_viewers_check;
 alter table public.tw_profile_photos add constraint tw_profile_photos_parent_viewers_check
@@ -34,6 +36,7 @@ set search_path = ''
 as $$
   select auth.uid() is not null and (
        p_owner = auth.uid()
+    or p_audience = 'everyone'
     or (p_audience in ('parent', 'employers', 'teens_parents') and public.tw_my_email() = any (p_parents))
     or (p_audience in ('employers', 'teens_employers') and public.tw_my_email() = any (p_employers))
     or (p_audience in ('teens', 'teens_employers', 'teens_parents') and public.tw_my_email() = any (p_teens)));

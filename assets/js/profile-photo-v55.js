@@ -16,6 +16,10 @@
        parent    only me / me and my teens / my teens and their employers
        employer  only me / teens whose application reached me / those
                  teens and the parents who approved them
+       and, for everyone (v58b, Aya 2026-11-14: "also have it so anyone
+       can see as option for all photos"), anyone on TeenWork: anyone
+       signed in, never people who aren't. Teens get a "talk to your
+       parent first" note on that choice.
      The choice and the people it covers are saved in
      public.tw_profile_photos, which only the owner's own signed-in
      account can write. Storage gives a viewer a one-hour link only when
@@ -39,11 +43,12 @@
   const BUCKET = 'profile-photos', TABLE = 'tw_profile_photos', SIZE = 400, MAX_IN = 20 * 1024 * 1024, LINK_SECS = 3600;
   const ROLES = ['teen', 'parent', 'employer'];
   // who-can-see choices per role, the first list each one adds, and the default
-  const AUD = { teen: ['me', 'parent', 'employers'], parent: ['me', 'teens', 'teens_employers'], employer: ['me', 'teens', 'teens_parents'] };
+  const AUD = { teen: ['me', 'parent', 'employers', 'everyone'], parent: ['me', 'teens', 'teens_employers', 'everyone'], employer: ['me', 'teens', 'teens_parents', 'everyone'] };
   const DEFAULT = { teen: 'parent', parent: 'teens', employer: 'teens_parents' };
   const SHOWS = {   // which lists each choice lets see the photo (same rule as tw_photo_viewer_ok in SQL)
     me: [], parent: ['parents'], employers: ['parents', 'employers'],
     teens: ['teens'], teens_employers: ['teens', 'employers'], teens_parents: ['teens', 'parents'],
+    everyone: [],   // v58b: anyone signed in to TeenWork (never people who aren't signed in)
   };
   const CAP = { parents: 300, employers: 200, teens: 300 };
   const $ = id => document.getElementById(id);
@@ -76,10 +81,12 @@
       return s && s.user && low(s.user.email) === emailOfKey(key) ? s : null;
     } catch (e) { return null; }
   }
+  // the database doesn't know this choice yet (the v58 change isn't applied): only that choice is refused
+  const notReady = err => !!err && (err.code === '23514' || /audience_check/i.test(String(err.message || '')));
   // "not set up yet": the table, the rpc or (for parents and employers) the v58 column / choices are missing
   const missing = err => !!err && (err.code === 'PGRST205' || err.code === 'PGRST202' || err.code === 'PGRST204' || err.code === '42P01' ||
     err.code === '42883' || err.code === '42703' ||
-    /tw_profile_photos|tw_photo_paths|bucket not found|schema cache|teen_viewers|audience_check/i.test(String(err.message || '')));
+    /tw_profile_photos|tw_photo_paths|bucket not found|schema cache|teen_viewers/i.test(String(err.message || '')));
 
   /* ══ 1. my own photo ═══════════════════════════════════════════════ */
   // the box's parts: the teen's box is in index.html, the parent's and employer's are added below
@@ -91,9 +98,11 @@
   }
   const CHOICES = {
     parent: [['me', 'Only me', ''], ['teens', 'Me and my teens', 'Teens linked to your account'],
-      ['teens_employers', 'My teens and their employers', 'An employer sees it only after you approve your teen\'s application to their job']],
+      ['teens_employers', 'My teens and their employers', 'An employer sees it only after you approve your teen\'s application to their job'],
+      ['everyone', 'Anyone on TeenWork', 'Anyone signed in to TeenWork']],
     employer: [['me', 'Only me', ''], ['teens', 'Teens who applied', 'A teen sees it once their application reaches you, after their parent says OK'],
-      ['teens_parents', 'Those teens and their parents', 'Also the parent who approved each application']],
+      ['teens_parents', 'Those teens and their parents', 'Also the parent who approved each application'],
+      ['everyone', 'Anyone on TeenWork', 'Anyone signed in to TeenWork, so teens and parents can see who you are']],
   };
   const HINT = {
     parent: 'Pick a friendly picture of your face. TeenWork makes it a small square and removes hidden details phone cameras add, like where the photo was taken.',
@@ -243,7 +252,8 @@
     const row = rowFor(fields);
     let r;
     try { r = await c.from(TABLE).upsert(row, { onConflict: 'owner_key' }).select(cols(st.role)).single(); } catch (e) { r = { error: e }; }
-    if (r && r.error) { if (missing(r.error)) st.setup = 'missing'; return false; }
+    if (r && r.error) { st.refused = notReady(r.error); if (!st.refused && missing(r.error)) st.setup = 'missing'; return false; }
+    st.refused = false;
     st.row = r.data || row;
     return true;
   }
@@ -357,7 +367,7 @@
     st.row = Object.assign({}, st.row || {}, { audience: a }); draw();
     if (!st.people) { const p = await readPeople(c, st.key, st.role); if (p) st.people = p; }
     if (await save(c, { audience: a })) say('Saved. ' + whoShort() + '.', 'ok');
-    else { st.row = before; say(st.setup === 'missing' ? setupText() : 'That change didn\'t save. Please try again.', 'bad'); }
+    else { st.row = before; say(st.refused ? 'That choice isn\'t switched on yet. Check back soon.' : st.setup === 'missing' ? setupText() : 'That change didn\'t save. Please try again.', 'bad'); }
   }
 
   /* ══ 2. the photo box ═══════════════════════════════════════════════ */
@@ -374,6 +384,7 @@
   function whoShort() {
     const a = audience(), p = st.people || { parents: [], employers: [], teens: [] };
     if (a === 'me') return 'Only you can see it';
+    if (a === 'everyone') return 'Anyone signed in to TeenWork can see it';
     const n = SHOWS[a].reduce((t, k) => t + p[k].length, 0);
     return n ? 'You and ' + n + (n === 1 ? ' other person' : ' other people') + ' can see it' : 'Right now only you can see it';
   }
@@ -385,13 +396,16 @@
   const PRACTICE = {
     parent: 'Your linked parent', employers: 'Your linked parent, and employers after your parent approves an application',
     teens: 'Your linked teens', teens_employers: 'Your linked teens, and their employers after you approve an application',
+    everyone: 'Anyone signed in to TeenWork',
   };
   function whoHTML() {
     const a = audience(), role = st.role, p = st.people, has = !!photoUrl();
     const lead = has ? '<b>Who can see your photo right now:</b>' : '<b>No photo yet.</b> If you add one, it shows to:';
     if (a === 'me') return lead + '<ul><li>Only you</li></ul>';
+    if (a === 'everyone') return lead + '<ul><li>You</li><li>Anyone signed in to TeenWork</li></ul>' +
+      (role === 'teen' ? '<p class="tw55-warn">⚠️ That includes adults you don\'t know. Talk to your parent before you pick this.</p>' : '');
     if (st.setup === 'practice') {
-      const what = role === 'employer' ? (a === 'teens' ? 'Teens whose application reached you' : 'Those teens and the parents who approved them') : PRACTICE[a];
+      const what = role === 'employer' && a !== 'everyone' ? (a === 'teens' ? 'Teens whose application reached you' : 'Those teens and the parents who approved them') : PRACTICE[a];
       return lead + '<ul><li>You</li><li>' + what + ' (in a real account)</li></ul>';
     }
     if (!p) return lead + '<ul><li>You</li><li class="tw55-muted">Checking who that is…</li></ul>';
@@ -436,7 +450,8 @@
       stat.className = 'tw55-status' + (st.msgKind ? ' ' + st.msgKind : (!ready && st.setup !== 'idle' ? ' bad' : ''));
     }
     if (who) {
-      const h = ready ? whoHTML() + '<p class="tw55-note">Everyone else sees your initials. TeenWork\'s owner can open stored photos to keep the site safe.</p>' : '';
+      const h = ready ? whoHTML() + '<p class="tw55-note">' + (audience() === 'everyone' ? 'People who aren\'t signed in to TeenWork never see it.' : 'Everyone else sees your initials.') +
+        ' TeenWork\'s owner can open stored photos to keep the site safe.</p>' : '';
       if (who.innerHTML !== h) who.innerHTML = h;
       who.hidden = !h;
     }
@@ -505,6 +520,11 @@
       const m = /openMsgChat\('([^']+)'\)/.exec(row.getAttribute('onclick') || ''), c = m ? byId(m[1]) : null;
       const el = row.querySelector('.msg-contact-avatar');
       if (el && c && c.cloudKey) spots.push({ el, key: low(c.cloudKey), name: c.name || 'this person' });
+    });
+    // people found with the Messages search box (their photo shows only when they picked "Anyone on TeenWork")
+    document.querySelectorAll('#msg-contacts-list .tw47c-person').forEach(row => {
+      const b = row.querySelector('[data-tw47c-add]'), el = row.querySelector('.msg-contact-avatar'), n = row.querySelector('.msg-contact-name');
+      if (b && el) spots.push({ el, key: low(b.getAttribute('data-tw47c-add')), name: (n && n.textContent) || 'this person' });
     });
     const head = document.querySelector('#msg-main-area .msg-header-avatar'), c = byId(activeChat());
     if (head && c && c.cloudKey) spots.push({ el: head, key: low(c.cloudKey), name: c.name || 'this person' });

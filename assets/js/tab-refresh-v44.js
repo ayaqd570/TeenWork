@@ -176,7 +176,7 @@
   function aiHTML(state, text) {
     if (state === 'loading') return '🤖 <strong>AI Assessment:</strong> <span class="loading-dots">Writing your assessment</span>';
     if (state === 'ok') return '🤖 <strong>AI Assessment:</strong> ' + esc(text).replace(/\n+/g, '<br>');
-    if (state === 'empty') return '🌱 <strong>Your report fills in as you go.</strong> Add your skills in <strong>Skills &amp; Tags</strong>, finish a lesson, or log your hours after a job, and your AI assessment shows up here.';
+    if (state === 'empty') return '🌳 <strong>Your report fills in as you go.</strong> Add your skills in <strong>Skills &amp; Tags</strong>, finish a lesson, or log your hours after a job, and your AI assessment shows up here.';
     if (state === 'limit') return '🤖 <strong>AI Assessment:</strong> ' + esc(text || 'You\'ve used today\'s AI requests.') + ' Your progress below is up to date.';
     if (state === 'slow') return '🤖 <strong>AI Assessment:</strong> The AI is taking too long to answer right now. Your progress below is up to date.' + RETRY;
     return '🤖 <strong>AI Assessment:</strong> The AI assessment isn\'t available right now. Your progress below is up to date.' + RETRY;

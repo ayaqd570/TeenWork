@@ -54,6 +54,9 @@ const post = (h, body, headers = {}, q = '') => h(new Request('https://example.s
   ok(a.body.html.includes(`https://teenwork.ayaqd.com/?unsub=${T1}`) && a.body.text.includes(`https://teenwork.ayaqd.com/?unsub=${T1}`), 'unsubscribe link in the email');
   ok(a.body.html.includes('https://teenwork.ayaqd.com/?app=1') && a.body.text.includes('https://teenwork.ayaqd.com/?app=1'), 'Get the app link');
   ok(a.body.subject === 'Put TeenWork on your phone 📲' && b.body.subject === 'TeenWork is one tap away', 'subjects by step');
+  ok(w.sent.every((x) => x.body.reply_to === 'aqdteenwork@gmail.com'), 'replies go to the team inbox');
+  ok(w.sent.every((x) => /Questions\? Reply to this email or write to aqdteenwork@gmail\.com\./.test(x.body.html) && /Questions\? Reply to this email or write to aqdteenwork@gmail\.com\./.test(x.body.text)), 'contact address in the footer (html + text)');
+  ok(w.sent.every((x) => !/\n\n\n/.test(x.body.text)), 'plain text has no double blank lines');
   ok(/Hi Sam,/.test(a.body.html) && /new jobs, messages and your work log/.test(a.body.html), 'teen wording');
   ok(/Hi Dana,/.test(b.body.html) && !/script/i.test(b.body.html) && /job requests and alerts/.test(b.body.html) && !/last reminder/i.test(b.body.html + b.body.text), 'parent wording, name cleaned, never says "last reminder"');
   ok(/Hi there,/.test(c.body.html) && /new applicants/.test(c.body.html), 'employer wording, no name');
@@ -134,6 +137,12 @@ for (const [label, env, code] of [
   const bad = await (await post(h, { action: 'preview', role: 'teen', step: 'x' })).json();
   ok(bad.subject === 'Put TeenWork on your phone 📲', 'a bad step falls back to the first email');
   ok(fn.envFrom(() => undefined).maxPerUser === 0 && fn.envFrom((k) => (k === 'APP_EMAILS_MAX_PER_PERSON' ? '5' : undefined)).maxPerUser === 5, 'no cap unless APP_EMAILS_MAX_PER_PERSON is set');
+  const other = fn.envFrom((k) => ({ MAIL_CONTACT: 'help@teenwork.ayaqd.com', MAIL_POSTAL_ADDRESS: 'PO Box 1, Burlington, VT 05401' })[k]);
+  const om = fn.buildEmail({ first_name: 'Sam', account_type: 'teen', step: 1, unsub_token: T1 }, other);
+  ok(other.contact === 'help@teenwork.ayaqd.com' && /write to help@teenwork\.ayaqd\.com\./.test(om.html) && /PO Box 1, Burlington/.test(om.html) && /PO Box 1, Burlington/.test(om.text), 'MAIL_CONTACT and MAIL_POSTAL_ADDRESS show in the footer');
+  ok(fn.envFrom((k) => (k === 'MAIL_CONTACT' ? 'not an address' : undefined)).contact === 'aqdteenwork@gmail.com', 'a bad MAIL_CONTACT falls back to the team inbox');
+  const pg = await (await post(h, { ping: true })).json();
+  ok(pg.contact === 'aqdteenwork@gmail.com' && pg.postal === false && pg.max_per_person === 0, 'ping shows the contact, no postal address, no cap ' + JSON.stringify(pg));
   ok(w.calls.length === 0, 'ping / preview called nothing');
   ok((await h(new Request('https://example.supabase.co/functions/v1/app-emails', { method: 'GET' }))).status === 405, 'GET without unsub');
 }

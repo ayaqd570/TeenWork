@@ -34,6 +34,8 @@
   var FONT = "'DM Sans',Arial,Helvetica,sans-serif";
   var DISPLAY = "Fraunces,Georgia,'Times New Roman',serif";
   var MARK = '<!--tw-branded-email-->';
+  // v56: TeenWork's logo is the tree. Emails load it from the live site (send-email keeps only this picture).
+  var LOGO = 'https://teenwork.ayaqd.com/email-logo.png';
   var EMOJI_RE = /(?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:️|‍(?:\p{Extended_Pictographic})️?|\p{Emoji_Modifier})*/gu;
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -171,7 +173,11 @@
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + C.card + '" style="width:100%;max-width:600px;background:' + C.card + ';border:1px solid ' + C.border + ';border-radius:20px;overflow:hidden;">' +
         /* header */
         '<tr><td bgcolor="' + C.green + '" style="background:' + C.green + ';background-image:linear-gradient(135deg,' + C.green + ' 0%,' + C.dark + ' 60%,' + C.darker + ' 100%);padding:26px 32px 22px;border-radius:20px 20px 0 0;">' +
-          '<div style="font-family:' + DISPLAY + ';font-size:30px;font-weight:900;line-height:1.1;color:#ffffff;">&#127793; Teen<span style="color:' + C.amberMid + ';">Work</span></div>' +
+          /* v56: the tree logo (a picture from the TeenWork site; the word mark stays as text if pictures are off) */
+          '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>' +
+            '<td style="padding:0 12px 0 0;vertical-align:middle;"><img src="' + LOGO + '" width="44" height="44" alt="TeenWork tree logo" style="display:block;width:44px;height:44px;border:0;outline:none;text-decoration:none;border-radius:10px;"></td>' +
+            '<td style="vertical-align:middle;font-family:' + DISPLAY + ';font-size:30px;font-weight:900;line-height:1.1;color:#ffffff;">Teen<span style="color:' + C.amberMid + ';">Work</span></td>' +
+          '</tr></table>' +
           '<div style="font-family:' + FONT + ';font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:' + C.greenLight + ';margin-top:8px;">Safe local jobs for teens 13&ndash;17</div>' +
         '</td></tr>' +
         '<tr><td height="6" style="height:6px;line-height:6px;font-size:0;' + stripe + '">&nbsp;</td></tr>' +
@@ -186,7 +192,7 @@
         (o.share ? '<tr><td style="padding:0 32px 26px;">' + o.share + '</td></tr>' : '') +
         /* footer */
         '<tr><td bgcolor="' + C.bg + '" style="background:' + C.bg + ';border-top:1px solid ' + C.border + ';padding:20px 32px 24px;text-align:center;font-family:' + FONT + ';font-size:12px;line-height:1.6;color:' + C.muted + ';border-radius:0 0 20px 20px;">' +
-          '<div style="font-family:' + DISPLAY + ';font-size:15px;font-weight:900;color:' + C.green + ';margin-bottom:4px;">&#127793; Built by a teen, for teens.</div>' +
+          '<div style="font-family:' + DISPLAY + ';font-size:15px;font-weight:900;color:' + C.green + ';margin-bottom:4px;">&#127795; Built by a teen, for teens.</div>' +
           'Questions? Tap <b style="color:' + C.green + ';">Help &amp; Support</b> in the TeenWork app and we&rsquo;ll reply in your in-app inbox.' +
         '</td></tr>' +
       '</table>' +
@@ -202,7 +208,7 @@
     if (/consent|parent|link/.test(s)) return '&#128106;';
     if (/support|message/.test(s)) return '&#128236;';
     if (/sign-?up/.test(s)) return '&#128640;';
-    return '&#127793;';
+    return '&#127795;';
   }
 
   /* Turn one EmailJS call into a branded one. Returns [service, template, params]. */
@@ -319,7 +325,7 @@
       '<p style="margin:0 0 18px;font-family:' + FONT + ';font-size:16px;line-height:1.6;color:' + C.text + ';">' + intro + '</p>' +
       stepCards(steps) + '<div style="height:8px;line-height:8px;font-size:0;">&nbsp;</div>' + note +
       button('🚀 Open TeenWork') +
-      '<p style="margin:24px 0 0;font-family:' + FONT + ';font-size:15px;line-height:1.5;color:' + C.muted + ';">See you inside,<br><b style="color:' + C.green + ';">The TeenWork team</b> &#127793;</p>' +
+      '<p style="margin:24px 0 0;font-family:' + FONT + ';font-size:15px;line-height:1.5;color:' + C.muted + ';">See you inside,<br><b style="color:' + C.green + ';">The TeenWork team</b> &#127795;</p>' +
       '</div>';
     return window.twSendEmail(to, 'Welcome to TeenWork' + (name ? ', ' + name : '') + '! 🎉', html, {
       heading: 'Welcome to TeenWork' + (name ? ', ' + name : '') + '!',

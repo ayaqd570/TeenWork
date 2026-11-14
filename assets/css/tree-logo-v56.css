@@ -1,0 +1,21 @@
+/* v56 (2026-11-13): the tree is TeenWork's only logo. Aya: "the apps logo is the leafe not the treee
+   only use tree in all places". The 🌱 next to "TeenWork" in page headers, the dashboard menu and the
+   weekly digest is now the tree picture (logo.png) in the same cream frame as the home page header logo
+   (trust-usability.css). The site icons and the email header use the same tree badge. */
+.tw-tree-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 2px;
+  border: 2px solid #24553f;
+  border-radius: 8px;
+  background: #fffdf7;
+  object-fit: contain;
+  vertical-align: middle;
+}
+.tw-tree-mark-lg { width: 40px; height: 40px; padding: 3px; border-radius: 10px; }
+/* dashboard menu brand (clean-menu-v43) */
+.twm-logo { display: inline-flex; align-items: center; gap: 8px; }
+.twm-logo .tw-tree-mark { width: 30px; height: 30px; }

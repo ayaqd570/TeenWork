@@ -190,6 +190,18 @@ assert(h.includes('href="https://teenwork.ayaqd.com/?share=AB12CD"'), 'TeenWork 
 assert(h.includes('href="mailto:?subject=Hi"'), 'mailto kept');
 assert(!/evil\.example|<img|<script|javascript:|onclick/i.test(h), 'unsafe parts left: ' + h);
 assert(h.includes('<span>Sign in</span>'), 'outside link turned into text');
+// v56: the tree logo from the TeenWork site is the only picture kept, rebuilt as a fixed tag
+{
+  const LOGO = '<img src="https://teenwork.ayaqd.com/email-logo.png" width="44" height="44" alt="TeenWork tree logo" style="display:block;width:44px;height:44px;border:0;outline:none;text-decoration:none;border-radius:10px;">';
+  const c = (x) => mail.cleanHtml(x, 'https://teenwork.ayaqd.com', true).html;
+  assert.equal(c('<img src="https://teenwork.ayaqd.com/email-logo.png" width="44" alt="x">'), LOGO, 'logo kept');
+  assert.equal(c('<img onerror="x()" src="https://teenwork.ayaqd.com/email-logo.png" data-x=1>'), LOGO, 'logo rebuilt without extra attributes');
+  for (const bad of ['https://evil.example/email-logo.png', 'https://teenwork.ayaqd.com.evil.example/email-logo.png', 'http://teenwork.ayaqd.com/email-logo.png',
+    'https://teenwork.ayaqd.com/x.png', 'https://teenwork.ayaqd.com/email-logo.png?u=1', 'https://a@teenwork.ayaqd.com/email-logo.png', 'javascript:alert(1)', 'data:image/png;base64,AA'])
+    assert.equal(c('<img src="' + bad + '">'), '', 'picture not allowed: ' + bad);
+  assert.equal(c('<svg><image href="https://teenwork.ayaqd.com/email-logo.png"/></svg>'), '', 'svg still removed');
+  assert(c(LOGO).includes('alt="TeenWork tree logo"'));
+}
 assert.equal(sent.at(-1).from, 'TeenWork <hello@ayaqd.com>');
 assert.equal(reserves.at(-1).p_max_ip_hour, 20, 'signed-in people get the per-person limit');
 // not signed in: no links at all, per-IP limit

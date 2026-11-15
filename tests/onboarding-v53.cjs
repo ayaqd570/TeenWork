@@ -169,11 +169,13 @@ const tab = (p, id) => p.evaluate(id => switchDashTab(document.querySelector('[d
       assert.deepEqual(g.s3open, { kind: 'active', label: 'Needed: add your permit' });
       assert.deepEqual(g.s3vt, { kind: 'done', label: '✓ Not needed at 15 in Vermont' });
 
-      /* 8. Profile photo: optional, who sees it, default avatar, no fake upload button */
+      /* 8. Profile photo: optional, who sees it, default avatar, no fake upload button
+         (since v55 the upload is real: tests/profile-photo-v55.cjs; practice accounts keep it on the screen) */
       await tab(p, 'ttab-resume');
       const photo = await text(p, '.tw53-photo');
       assert.match(photo, /You don't need a photo\. You can apply for jobs/);
-      assert.match(photo, /Who can see it: photo upload isn't turned on yet, so nobody sees a photo of you/);
+      assert.match(photo, /Who can see your photo/);
+      assert.match(photo, /Practice account: a photo you add stays on this screen only and is never uploaded/);
       assert.match(photo, /doesn't show your school name, your house or street/);
       assert.equal(await text(p, '#tw53-avatar'), 'DT');
       assert.equal(await p.locator('#ttab-resume button', { hasText: 'Upload Photo' }).count(), 0);

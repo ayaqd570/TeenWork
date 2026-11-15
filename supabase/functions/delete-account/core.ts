@@ -14,6 +14,8 @@
 //   { action: "purge" }                        deletes what is left of accounts closed by the admin
 //       more than KEEP_DAYS days ago. Needs no password: it only touches accounts already closed.
 //   { ping: true }                             { ok, ready } without doing anything.
+// Profile photos (v55): the account's photo files in the private "profile-photos" bucket and its
+// tw_profile_photos row go too, and the email is taken off other teens' photo viewer lists.
 // Every closed account gets a row in public.closed_accounts (key, type, closed_by, closed_at,
 // purge_after, purged_at). The app reads that table to hide closed accounts everywhere and to tell
 // people an account they worked with was closed. Only this function can write it.
@@ -31,6 +33,7 @@ const PUBLIC_PREFIXES = ["job_post:", "job_app:", "code:", "consent:", "link_req
 // account on that email must never take them
 const ADMIN_KEYS = ["plan_settings"];
 export const ADMIN_EMAIL = "ayaquarrierdraper@gmail.com";
+export const PHOTO_BUCKET = "profile-photos";
 
 const low = (s: unknown) => String(s ?? "").trim().toLowerCase();
 export const validKey = (k: unknown) => typeof k === "string" && k.length <= 254 && /^[^\s@#,()"*]+@[^\s@#,()"*]+\.[^\s@#,()"*]+(#\d{1,3})?$/.test(k);
@@ -148,6 +151,28 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
     await del("user_data", `email=eq.${q(key)}&key=in.(${PUBLIC_KEYS.join(",")})`);
     for (const p of PUBLIC_PREFIXES) await del("user_data", `email=eq.${q(key)}&key=like.${q(p + "*")}`);
   }
+  // The account's profile photo: every file of this account in its owner's folder (p<slot>-….jpg), then the row.
+  // Quietly does nothing when the photo tables aren't set up yet.
+  async function removePhoto(key: string) {
+    try {
+      const got = await (await rest(`tw_profile_photos?owner_key=eq.${q(key)}&select=owner_id,path`)).json();
+      const row = Array.isArray(got) ? got[0] : null;
+      if (row?.owner_id) {
+        const folder = String(row.owner_id), names: string[] = [];
+        const l = await fetchImpl(`${env.url}/storage/v1/object/list/${PHOTO_BUCKET}`, { method: "POST", headers: svc, body: JSON.stringify({ prefix: folder, limit: 1000 }) });
+        if (l.ok) for (const o of ((await l.json()) ?? []) as Json[]) { const n = `${folder}/${o?.name ?? ""}`; if (n.startsWith(`${folder}/p${slotOfKey(key)}-`)) names.push(n); }
+        if (row.path && !names.includes(row.path)) names.push(String(row.path));
+        if (names.length) {
+          const d = await fetchImpl(`${env.url}/storage/v1/object/${PHOTO_BUCKET}`, { method: "DELETE", headers: svc, body: JSON.stringify({ prefixes: names }) });
+          if (!d.ok && d.status !== 404) throw new Error(`storage delete ${d.status}`);
+        }
+      }
+      await del("tw_profile_photos", `owner_key=eq.${q(key)}`);
+    } catch (e) {
+      if (!/ 404 |PGRST205|42P01/.test(String(e))) throw e;   // only "not set up yet" is quietly skipped
+    }
+    try { await rest("rpc/tw_photo_forget_viewer", { method: "POST", body: JSON.stringify({ p_email: emailOfKey(key) }) }); } catch { /* not set up yet */ }
+  }
   async function typeOf(key: string) {
     try { const r = await select(`email=eq.${q(key)}&key=eq.account_profile`); const t = low(parse(r[0]?.value)?.type); return ROLES.includes(t) ? t : ""; } catch { return ""; }
   }
@@ -157,6 +182,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
 
   async function purgeOne(key: string, type: string) {
     await unlinkFromOthers(key, type);
+    await removePhoto(key);
     await deleteOwn(key, true);
     const signIn = await removeSignIn(key, await findAuthUser(emailOfKey(key)));
     await mark(key, { purged_at: new Date().toISOString() });
@@ -189,6 +215,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
         if (user.email !== emailOfKey(key)) return fail(403, "not_yours", "You can only delete your own account.");
         const type = (await typeOf(key)) || low(body.type);
         await unlinkFromOthers(key, type);
+        await removePhoto(key);
         await deleteOwn(key, true);
         const signIn = await removeSignIn(key, user);
         await mark(key, { type, closed_by: "self", closed_at: now.toISOString(), purge_after: now.toISOString(), purged_at: now.toISOString() });
@@ -203,6 +230,7 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
         const type = (await typeOf(key)) || low(body.type);
         const purgeAfter = new Date(now.getTime() + KEEP_DAYS * 86_400_000).toISOString();
         await unlinkFromOthers(key, type);
+        await removePhoto(key);
         await deleteOwn(key, false);
         await mark(key, { type, closed_by: "admin", closed_at: now.toISOString(), purge_after: purgeAfter, purged_at: null });
         return json({ ok: true, key, closed_by: "admin", purge_after: purgeAfter });

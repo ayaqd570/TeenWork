@@ -541,7 +541,7 @@
         const age = ageFrom(t.dob), info = [age ? 'Age ' + age : '', placeOf(t)].filter(Boolean).join(' · ');
         return `<div data-tw-teen="${esc(t.key)}" style="background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">
           <div style="display:flex;gap:12px;align-items:flex-start">
-            <div style="width:48px;height:48px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🧑</div>
+            <div data-tw-photo-key="${esc(t.key)}" data-tw-photo-name="${esc(teenLabel(t))}" style="width:48px;height:48px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🧑</div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:.95rem">${esc(teenLabel(t))}</div>
               ${info ? `<div style="font-size:.78rem;color:var(--muted)">${esc(info)}</div>` : ''}
@@ -810,7 +810,7 @@
         <div class="teen-info">Ask your teen for the link code on their Profile tab, then enter it under My Teens. Or approve their request when it shows at the top of this page.</div></div>
         <button class="btn-sm btn-approve" style="margin-top:10px;width:100%" onclick="switchParentTab('ptab-teens','pdtab-teens')">🔗 Link your teen</button>`;
     const age = ageFrom(t.dob), info = [age ? 'Age ' + age : '', placeOf(t)].filter(Boolean).join(' · ');
-    return `<div class="teen-profile-card"><div class="teen-avatar">🧑</div><div class="teen-name" id="p-teen-name">${esc(teenLabel(t))}</div>
+    return `<div class="teen-profile-card"><div class="teen-avatar" data-tw-photo-key="${esc(t.key)}" data-tw-photo-name="${esc(teenLabel(t))}">🧑</div><div class="teen-name" id="p-teen-name">${esc(teenLabel(t))}</div>
         ${info ? `<div class="teen-info">${esc(info)}</div>` : ''}
         <div class="teen-info">Skills: ${t.skills && t.skills.length ? esc(t.skills.join(', ')) : 'none added yet'}</div></div>
         ${t.code ? `<div style="${SMALL}">Link Code</div><div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:monospace;font-size:.95rem;letter-spacing:2px">${esc(t.code)}</div>

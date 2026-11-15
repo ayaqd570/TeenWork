@@ -26,7 +26,9 @@
 
   /* 1. Reviews: only the ones that really exist ───────────────────── */
   window._getReviews = function () {
-    try { const s = localStorage.getItem('tw_admin_reviews'); const v = s ? JSON.parse(s) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
+    // v59: old copies of the made-up sample reviews are dropped (window.twIsOldSample, app-05.js)
+    const old = r => !!(r && window.twIsOldSample && (window.twIsOldSample(r.body) || window.twIsOldSample(r.name)));
+    try { const s = localStorage.getItem('tw_admin_reviews'); const v = s ? JSON.parse(s) : []; return Array.isArray(v) ? v.filter(r => !old(r)) : []; } catch (e) { return []; }
   };
   const _oSchema = window._injectReviewSchema;
   window._injectReviewSchema = function (reviews) {

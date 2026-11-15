@@ -570,16 +570,14 @@
   };
   window.voteQA = function(i){ const list = load(LS.qa, SEED_QA); list[i].votes = (list[i].votes||0)+1; save(LS.qa, list); renderQA('qa-board-container'); };
 
-  /* ─── SUCCESS STORIES / TESTIMONIALS ─── */
-  const SEED_STORIES = [
-    {name:'Maya, 15 · TX', role:'teen', quote:'I made $320 in my first month cleaning cars — the AI cover letter got me 3 interviews in a week.'},
-    {name:'James, 14 · CA', role:'teen', quote:"The safety filter caught a sketchy job post before I even applied. My mom felt way better about me using this."},
-    {name:'Riverbed Landscaping', role:'employer', quote:"Clear job details and parent involvement means the teens we hire actually show up. Game changer."},
-    {name:'Dana · Parent, VT', role:'parent', quote:"The weekly digest email is gold. I know what my kid is up to without hovering."},
-  ];
+  /* ─── SUCCESS STORIES ───
+     v59 (2026-11-15): the made-up sample stories are gone. Only stories members add are shown;
+     old sample copies saved in a browser are dropped (window.twIsOldSample, app-05.js). */
+  const SEED_STORIES = [];
+  const notSample = s => !(s && window.twIsOldSample && (window.twIsOldSample(s.name) || window.twIsOldSample(s.quote)));
   window.renderStories = function(containerId){
     const el = document.getElementById(containerId); if(!el) return;
-    const list = load(LS.stories, SEED_STORIES); save(LS.stories, list);
+    const list = (load(LS.stories, SEED_STORIES) || []).filter(notSample); save(LS.stories, list);
     el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">${list.map(s=>`
       <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem">
         <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;font-weight:700">${s.role}</div>
@@ -806,28 +804,12 @@
     };
   }
 
-  /* ─── LANDING PAGE: add testimonials + pricing link + discord ─── */
-  function patchLanding(){
-    const landing = document.querySelector('#page-landing .landing-shell');
-    if(!landing || document.getElementById('featpack-testimonials')) return;
-    const block = document.createElement('section');
-    block.id = 'featpack-testimonials';
-    block.className = 'landing-section';
-    block.style.cssText = 'padding:2rem 1.6rem';
-    block.innerHTML = `
-      <h2 style="font-family:'Fraunces',serif;font-size:1.8rem;color:var(--green);text-align:center;margin-bottom:1.2rem">Loved by teens, parents & employers</h2>
-      <div id="featpack-stories-landing"></div>
-      <div style="text-align:center;margin-top:1.4rem;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button onclick="gotoPage('pricing')" class="btn-secondary" style="padding:10px 22px">💳 See pricing</button>
-        <button onclick="gotoPage('school')" class="btn-secondary" style="padding:10px 22px">🏫 Bring to my school</button>
-      </div>`;
-    landing.appendChild(block);
-    renderStories('featpack-stories-landing');
-  }
+  /* v59 (2026-11-15): the hidden home page testimonial block with made-up quotes
+     that used to be added to the home page here is deleted. */
 
   /* ─── BOOT ─── */
   function boot(){
-    patchNav(); patchMobileMore(); patchLanding();
+    patchNav(); patchMobileMore();
     // Swipe-to-dismiss on any notification in the DOM now or later
     const wire = ()=>document.querySelectorAll('[data-dismissable]:not([data-fp-wired])').forEach(el=>{
       el.dataset.fpWired='1'; makeSwipeDismiss(el, ()=>{ const k = el.dataset.dismissId; if(k){ const seen = load('tw_seen_notifs', []); seen.push(k); save('tw_seen_notifs', seen); } });

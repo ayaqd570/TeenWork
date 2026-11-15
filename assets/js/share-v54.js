@@ -98,16 +98,20 @@
   function shareCodeForSheet() { return myCode(true) || (arrival.share && arrival.share !== '1' ? arrival.share : ''); }
 
   /* ── 3. what is shared ──────────────────────────────────────────── */
+  // v59: twShare({ audience: 'employer' }) asks a neighbor or local business to post a job
+  // (used by the empty Find Jobs list). The link and the code stay the member's own.
+  var audience = '';
   function message(role) {
+    if (role === 'hire') return 'Could you use a hand with yard work, pet care, snow shoveling or other odd jobs? On TeenWork, neighbors and local businesses post small jobs for teens 13–17, and a parent approves every application. Posting a job is free:';
     if (role === 'employer') return 'Hiring teens for local jobs? TeenWork connects you with teens 13–17, and a parent approves every application. It’s free to post a job:';
     if (role === 'parent') return 'TeenWork helps teens 13–17 find safe local jobs, and parents approve every application. Free for teens and parents:';
     if (role === 'teen') return 'I’m using TeenWork to find local jobs like lawn care, pet sitting and babysitting. It’s free for teens 13–17 and a parent approves every application:';
     return 'TeenWork is a free app that helps teens 13–17 find safe local jobs, with a parent approving every application:';
   }
   function payload() {
-    var u = user(), role = u && !u.isAdmin ? u.type : '';
+    var u = user(), role = audience === 'employer' ? 'hire' : (u && !u.isAdmin ? u.type : '');
     var url = linkFor(shareCodeForSheet());
-    return { title: 'TeenWork — safe local jobs for teens', text: message(role), url: url };
+    return { title: audience === 'employer' ? 'Post a job for local teens on TeenWork' : 'TeenWork — safe local jobs for teens', text: message(role), url: url };
   }
 
   /* ── 4. how many joined with this code ──────────────────────────── */
@@ -167,13 +171,13 @@
     m.innerHTML =
       '<div class="tw54-share-card">' +
         '<button type="button" class="tw54-x" data-tw54="close" aria-label="Close">✕</button>' +
-        '<h2 id="tw54-share-title">📣 Share TeenWork</h2>' +
-        '<p class="tw54-lead">' + esc(member && u.type === 'employer' ? 'Know another business that hires teens? Send them TeenWork.' : 'Know a teen, a parent or a local business who’d like TeenWork? It’s free for them too.') + '</p>' +
+        '<h2 id="tw54-share-title">' + (audience === 'employer' ? '🏡 Ask someone to post a job' : '📣 Share TeenWork') + '</h2>' +
+        '<p class="tw54-lead">' + esc(audience === 'employer' ? 'Know a neighbor, family friend or local business who could use a hand? Send them TeenWork. Posting a job is free.' : member && u.type === 'employer' ? 'Know another business that hires teens? Send them TeenWork.' : 'Know a teen, a parent or a local business who’d like TeenWork? It’s free for them too.') + '</p>' +
         '<div class="tw54-link"><input id="tw54-link-input" type="text" readonly value="' + esc(p.url) + '" aria-label="Your share link">' +
           '<button type="button" class="tw54-copy" data-tw54="copy">Copy link</button></div>' +
         '<div class="tw54-grid">' +
           '<a class="tw54-btn" data-tw54="sms" href="sms:?&body=' + enc(full) + '"><span aria-hidden="true">💬</span>Text message</a>' +
-          '<a class="tw54-btn" data-tw54="email" href="mailto:?subject=' + enc('Have you seen TeenWork?') + '&body=' + enc(p.text + '\n\n' + p.url) + '"><span aria-hidden="true">✉️</span>Email</a>' +
+          '<a class="tw54-btn" data-tw54="email" href="mailto:?subject=' + enc(audience === 'employer' ? 'Could you post a job on TeenWork?' : 'Have you seen TeenWork?') + '&body=' + enc(p.text + '\n\n' + p.url) + '"><span aria-hidden="true">✉️</span>Email</a>' +
           '<a class="tw54-btn" data-tw54="whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=' + enc(full) + '"><span aria-hidden="true">🟢</span>WhatsApp</a>' +
           '<a class="tw54-btn" data-tw54="facebook" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=' + enc(p.url) + '"><span aria-hidden="true">📘</span>Facebook</a>' +
           (navigator.share ? '<button type="button" class="tw54-btn" data-tw54="more"><span aria-hidden="true">⋯</span>More…</button>' : '') +
@@ -234,7 +238,7 @@
   function firstName(u) { return String((u && (u.firstName || u.name)) || '').trim().split(/\s+/)[0].replace(/[^\p{L}\p{M}'’-]/gu, '').slice(0, 30); }
   function inviteEmail(u, link) {
     var name = firstName(u), who = name ? esc(name) : 'A friend';
-    var about = u.type === 'employer'
+    var about = u.type === 'employer' || audience === 'employer'
       ? 'TeenWork connects local businesses and neighbors with teens 13&ndash;17 for small jobs. A parent approves every application, and posting a job is free.'
       : 'TeenWork helps teens 13&ndash;17 find safe local jobs like lawn care, pet sitting and snow shoveling. A parent approves every application, and chats with employers stay inside the app. It&rsquo;s free for teens and parents.';
     var html =
@@ -248,7 +252,7 @@
     return {
       subject: (name ? name + ' invited you to TeenWork' : 'You’re invited to TeenWork'),
       html: html,
-      text: (name ? name : 'A friend') + ' thinks you’d like TeenWork. ' + message(u.type) + ' ' + link
+      text: (name ? name : 'A friend') + ' thinks you’d like TeenWork. ' + message(audience === 'employer' ? 'hire' : u.type) + ' ' + link
     };
   }
   function inviteMsg(form, text, kind, mailto) {
@@ -312,6 +316,7 @@
 
   window.twShare = function (opts) {
     opts = opts || {};
+    audience = opts.audience === 'employer' ? 'employer' : '';
     try { if (window.twCleanMenu && window.twCleanMenu.close) window.twCleanMenu.close(true); } catch (e) {}
     if (navigator.share && phoneLike() && !opts.sheet && !isMember(user())) {
       remember('open:' + (opts.source || ''));

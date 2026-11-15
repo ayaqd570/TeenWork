@@ -319,6 +319,18 @@
 <!-- v51 (H3): the picture is in its final place from the first paint; homepage-v49.css, which loads last, says the same.
      The picture is a big square across the page on every screen, as before (Aya, Oct 31: a smaller one in the middle looked tiny). -->
 <style id="tw51-first-paint">#page-landing .landing{padding-top:0}</style>
+<!-- v59 (2026-11-15): on computers the top bar says what TeenWork is next to the logo, so the first screen is not
+     only the picture (the picture stays big, whole and first). Taps on the home page while the app is still loading
+     are kept and run when it is ready (first-screen-v59.js). -->
+<style id="tw59-first-screen">
+.tw59-tag{display:none;flex:0 1 auto;min-width:0;margin:0 auto 0 14px;line-height:1.2;text-align:left;transition:opacity .2s,visibility .2s}
+.tw59-tag b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Fraunces',Georgia,serif;font-size:1.15rem;font-weight:700;color:var(--green,#2d6a4f)}
+.tw59-tag span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;font-family:'DM Sans',system-ui,sans-serif;font-size:.84rem;color:var(--muted,#6b7280)}
+.tw59-tag.tw59-quiet{opacity:0;visibility:hidden}
+@media (min-width:900px){.tw59-tag{display:block}}
+#page-landing .tw59-wait{cursor:progress !important;opacity:.7}
+</style>
+<script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES
@@ -353,7 +365,8 @@
   <!-- TOP NAV BAR -->
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem;">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px;">
-      <a href="#" onclick="gotoPage('landing');return false" aria-label="TeenWork home" style="display:flex;align-items:center;flex-shrink:0;"><img src="logo.png" alt="TeenWork" width="42" height="42" style="object-fit:contain;"></a>
+      <a href="#" onclick="gotoPage('landing');return false" aria-label="TeenWork home" style="display:flex;align-items:center;flex-shrink:0;"><img src="assets/img/small-logo.png" alt="TeenWork" width="42" height="42" style="object-fit:contain;"></a>
+      <p class="tw59-tag" id="tw59-tag" aria-hidden="true"><b>Safe local jobs for teens 13–17</b><span>A parent approves every application · Free to join</span></p>
       <div style="display:flex;gap:10px;align-items:center;">
         <button type="button" id="tw51-nav-employers" onclick="twGoEmployers()" style="background:none;border:none;color:var(--muted);padding:8px 14px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--muted)'">For employers</button>
         <button onclick="gotoPage('login')" style="background:none;border:2px solid var(--green);color:var(--green);padding:8px 20px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='var(--green-pale)'" onmouseout="this.style.background='none'">Sign In</button>
@@ -377,7 +390,7 @@
           style="width:100%;height:100%;object-fit:cover;display:block;border-radius:20px;">
         </picture>
         <div style="position:absolute;top:0;left:0;right:0;padding:1.4rem 1.8rem;background:linear-gradient(to bottom,rgba(27,67,50,0.92) 0%,rgba(27,67,50,0.5) 60%,transparent 100%);display:flex;align-items:center;gap:16px;border-radius:20px 20px 0 0;">
-          <img src="logo.png" alt="TeenWork tree logo" width="68" height="68" style="width:68px;height:68px;object-fit:contain;flex-shrink:0;">
+          <img src="assets/img/small-logo.png" alt="TeenWork tree logo" width="68" height="68" style="width:68px;height:68px;object-fit:contain;flex-shrink:0;">
           <span style="font-family:'Fraunces',Georgia,serif;font-size:2.4rem;font-weight:900;color:#fff;letter-spacing:-.02em;text-shadow:0 3px 12px rgba(0,0,0,0.4);">TeenWork</span>
         </div>
       </div></div>
@@ -1167,7 +1180,7 @@
             <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
               <div style="background:var(--green);padding:1.2rem 1.4rem;color:#fff">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:.4rem">
-                  <img class="tw-tree-mark tw-tree-mark-lg" src="logo.png" alt="" width="40" height="40">
+                  <img class="tw-tree-mark tw-tree-mark-lg" src="assets/img/small-logo.png" alt="" width="40" height="40">
                   <div>
                     <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700">TeenWork Weekly Digest</div>
                     <div style="font-size:.78rem;opacity:.8" id="weekly-summary-date">Week of April 14–20, 2026</div>
@@ -3405,7 +3418,7 @@
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/js/app-05.js?v=54"></script>
+<script src="assets/js/app-05.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3504,7 +3517,7 @@
 <div id="page-pricing" class="page">
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px">
-      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="logo.png" alt="" width="32" height="32">TeenWork</div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="assets/img/small-logo.png" alt="" width="32" height="32">TeenWork</div>
       <button onclick="history.back()" class="btn-secondary" style="padding:8px 16px">← Back</button>
     </div>
   </nav>
@@ -3604,7 +3617,7 @@
 <div id="page-school" class="page">
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px">
-      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="logo.png" alt="" width="32" height="32">TeenWork</div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="assets/img/small-logo.png" alt="" width="32" height="32">TeenWork</div>
       <button onclick="gotoPage('landing')" class="btn-secondary" style="padding:8px 16px">← Back</button>
     </div>
   </nav>
@@ -3631,7 +3644,7 @@
 <div id="page-admin" class="page">
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px">
-      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green)"><img class="tw-tree-mark" src="logo.png" alt="" width="32" height="32"><span>TeenWork · <span style="color:var(--purple)">Admin</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green)"><img class="tw-tree-mark" src="assets/img/small-logo.png" alt="" width="32" height="32"><span>TeenWork · <span style="color:var(--purple)">Admin</span></span></div>
       <div style="display:flex;gap:8px"><button class="darkmode-toggle" onclick="toggleDarkMode()">🌙 Dark</button><button onclick="gotoPage('landing')" class="btn-secondary" style="padding:8px 16px">Exit</button></div>
     </div>
   </nav>
@@ -3648,7 +3661,7 @@
   </div>
 </div>
 
-<script id="featpack-js" src="assets/js/featpack-js.js?v=54"></script>
+<script id="featpack-js" src="assets/js/featpack-js.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3685,7 +3698,7 @@
 <div id="page-safety-lab" class="page">
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px">
-      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="logo.png" alt="" width="32" height="32"><span>TeenWork · <span style="color:var(--red)">Safety Lab</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:900;color:var(--green);cursor:pointer" onclick="gotoPage('landing')"><img class="tw-tree-mark" src="assets/img/small-logo.png" alt="" width="32" height="32"><span>TeenWork · <span style="color:var(--red)">Safety Lab</span></span></div>
       <button onclick="gotoPage('landing')" class="btn-secondary" style="padding:8px 16px">← Back</button>
     </div>
   </nav>
@@ -3732,7 +3745,7 @@
      ═══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-07.css">
 
-<script src="assets/js/app-12.js?v=54"></script>
+<script src="assets/js/app-12.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v16 PATCH
@@ -3809,7 +3822,7 @@
 
 <script id="support-email-v39" src="assets/js/support-email-v39.js"></script>
 
-<script id="featpack-v39-nodemo-js" src="assets/js/featpack-v39-nodemo-js.js"></script>
+<script id="featpack-v39-nodemo-js" src="assets/js/featpack-v39-nodemo-js.js?v=59"></script>
 
 <script id="plan-limits-v40" src="assets/js/plan-limits-v40.js?v=54"></script>
 
@@ -3821,9 +3834,9 @@
 
 <script id="address-autocomplete-v42" src="assets/js/address-autocomplete-v42.js"></script>
 
-<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=56"></script>
+<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=59"></script>
 
-<script id="real-data-v43" src="assets/js/real-data-v43.js"></script>
+<script id="real-data-v43" src="assets/js/real-data-v43.js?v=59"></script>
 
 <script id="find-jobs-simple-v45" src="assets/js/find-jobs-simple-v45.js"></script>
 
@@ -3871,17 +3884,17 @@
 <script id="work-rules-v52" src="assets/js/work-rules-v52.js?v=52"></script>
 <script id="parent-hours-v52" src="assets/js/parent-hours-v52.js?v=52"></script>
 <script id="practice-v52" src="assets/js/practice-v52.js?v=52"></script>
-<link rel="stylesheet" href="assets/css/onboarding-v53.css?v=53">
-<script id="onboarding-v53" src="assets/js/onboarding-v53.js?v=53"></script>
+<link rel="stylesheet" href="assets/css/onboarding-v53.css?v=59">
+<script id="onboarding-v53" src="assets/js/onboarding-v53.js?v=59"></script>
 <script id="dob-start-v50" src="assets/js/dob-start-v50.js"></script>
 <link rel="stylesheet" href="assets/css/home-v51.css?v=51">
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>
 <script id="app-fixes-v51" src="assets/js/app-fixes-v51.js?v=51"></script>
 <link rel="stylesheet" href="assets/css/share-v54.css?v=54">
-<script id="share-v54" src="assets/js/share-v54.js?v=54"></script>
+<script id="share-v54" src="assets/js/share-v54.js?v=59"></script>
 <!-- v57: Get the TeenWork app (Download the app button, the install pop-up, ?app=1 and ?unsub= links) -->
 <link rel="stylesheet" href="assets/css/get-app-v57.css?v=57">
-<script id="get-app-v57" src="assets/js/get-app-v57.js?v=57"></script>
+<script id="get-app-v57" src="assets/js/get-app-v57.js?v=59"></script>
 <script id="billing-v54" src="assets/js/billing-v54.js?v=54"></script>
 <link rel="stylesheet" href="assets/css/polish-v54.css?v=54">
 <script id="polish-v54" src="assets/js/polish-v54.js?v=54"></script>

@@ -164,6 +164,8 @@
     worklog() { go('ttab-worklog'); },
     earnings() { go('ttab-earnings'); },
     references() { go('ttab-references'); },
+    // v59: an empty job list needs employers, so the teen can ask someone they know to post a job
+    invite() { if (typeof window.twShare === 'function') window.twShare({ source: 'teen-empty-jobs', audience: 'employer', sheet: true }); },
   };
   window.twTeenSteps = {
     gates, profile, lessons, alerts, passes,
@@ -182,7 +184,12 @@
     const lessonStatus = l.safetyDone ? 'Done. ' + l.done + ' of ' + l.total + ' lessons finished' : 'Recommended first lesson · ' + l.done + ' of ' + l.total + ' lessons done';
     const parentStatus = esc(parent.status) + (parent.state === 'todo' ? '. You need this before you can apply.' : '.');
     const alertStatus = a.inapp || a.email ? 'On: ' + [a.inapp ? 'in the app' : '', a.email ? 'by email' : ''].filter(Boolean).join(' and ') + ' when a job matches your skills.' : 'Off. Turn them on to hear about new jobs.';
-    return `<h3 id="tw53-next-h">While you wait for jobs</h3>
+    return `<div class="tw59-ask" role="note">
+        <span class="tw59-ask-icon" aria-hidden="true">🏡</span>
+        <div class="tw59-ask-text"><b>Know someone who could use a hand?</b><span>Neighbors, family friends and local businesses can post jobs on TeenWork for free. Ask them to post one for you.</span></div>
+        ${button('invite', 'Ask someone to post a job', true)}
+      </div>
+      <h3 id="tw53-next-h">While you wait for jobs</h3>
       <p class="tw53-next-sub">Do these now so you're ready to apply as soon as a job is posted near you.</p>
       <ul class="tw53-steps">
         ${row(p.pct >= 100 ? 'is-done' : '', '👤', 'Complete your profile', profileStatus, button('profile', p.pct >= 100 ? 'Edit profile' : 'Complete profile', p.pct < 100))}

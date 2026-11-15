@@ -88,7 +88,13 @@ const tab = (p, id) => p.evaluate(id => switchDashTab(document.querySelector('[d
       assert.match(next, /Link a parent Skipped in this practice account\./);
       assert.match(next, /Job-match alerts On: in the app and by email/);
       assert.deepEqual(await p.locator('#tw53-next [data-tw53-act]').evaluateAll(b => b.map(x => x.textContent.trim())),
-        ['Complete profile', 'Start lesson', 'See how linking works', 'Alert settings', 'See the First Job Checklist']);
+        ['Ask someone to post a job', 'Complete profile', 'Start lesson', 'See how linking works', 'Alert settings', 'See the First Job Checklist']);
+      // v59: an empty job list asks the teen to get someone they know to post a job (share window aimed at employers)
+      await p.locator('#tw53-next [data-tw53-act="invite"]').click(); await p.waitForTimeout(400);
+      assert.match(await text(p, '#tw54-share'), /Ask someone to post a job.*Posting a job is free/, tag + ' invite window');
+      assert.match(await p.locator('#tw54-share [data-tw54="email"]').getAttribute('href'), /Could%20you%20post%20a%20job%20on%20TeenWork/);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+      assert.equal(await p.locator('#tw54-share').count(), 0, tag + ' invite window did not close');
       assert(await p.locator('#tw53-next .tw53-btn').evaluateAll(b => b.every(x => x.getBoundingClientRect().height >= 44)), tag + ' next-step buttons under 44px');
       assert.equal(await p.evaluate(() => computeProfileCompletion()), 60);
 

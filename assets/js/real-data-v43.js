@@ -734,11 +734,11 @@
   }
   const _oLbOpt = window.leaderboardOptToggle;
   if (typeof _oLbOpt === 'function') window.leaderboardOptToggle = function () { const r = _oLbOpt.apply(this, arguments); drawLeaderboard(); return r; };
-  // success stories: the four built-in quotes are samples
-  const SEED_STORY = /^(Maya, 15 · TX|James, 14 · CA|Riverbed Landscaping|Dana · Parent, VT)$/;
+  // success stories: old copies of the made-up sample stories are dropped (v59: window.twIsOldSample in app-05.js)
+  const isSample = s => !!(window.twIsOldSample && (window.twIsOldSample(s.name) || window.twIsOldSample(s.quote)));
   function drawStories() {
     const el = $('stories-container'); if (!el || !isReal(me())) return;
-    const list = readJSON('tw_success_stories', []).filter(s => s && !SEED_STORY.test(String(s.name || '')));
+    const list = readJSON('tw_success_stories', []).filter(s => s && !isSample(s));
     el.innerHTML = list.length
       ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">${list.map(s => `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem"><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;font-weight:700">${esc(s.role)}</div><p style="font-size:.9rem;margin:6px 0 8px;line-height:1.5">"${esc(s.quote)}"</p><div style="font-size:.78rem;color:var(--green);font-weight:700">— ${esc(s.name)}</div></div>`).join('')}</div>`
       : EMPTY('🌟', 'No member stories yet', 'Got one? Share it below and it could be featured here.');

@@ -116,3 +116,13 @@ html.dark .tw53-gate.is-done .tw53-gate-status,html.dark .tw53-gate.is-na .tw53-
 html.dark .tw53-gate.is-todo .tw53-gate-status{color:#f5a3a3;border-color:#f5a3a3}
 html.dark .tw53-msg-sos{background:transparent;color:#f5a3a3;border-color:#f5a3a3}
 html.dark .tw53-btn:focus-visible,html.dark .tw53-msg-bar button:focus-visible,html.dark .tw53-fj-check:focus-visible,html.dark .tw53-go:focus-visible{outline-color:#a9cdf2}
+
+/* v59: empty job list — ask someone you know to post a job (opens the share window, aimed at employers) */
+.tw59-ask{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin:0 0 1rem;padding:12px 14px;border:1.5px solid var(--green,#2d6a4f);border-radius:12px;background:var(--green-pale,#e8f5ee)}
+.tw59-ask-icon{font-size:1.5rem;line-height:1}
+.tw59-ask-text b{display:block;font-size:.95rem;color:var(--text,#1b1b1b)}
+.tw59-ask-text span{display:block;font-size:.84rem;line-height:1.4;color:var(--muted,#555)}
+@media (max-width:600px){
+  .tw59-ask{grid-template-columns:auto minmax(0,1fr)}
+  .tw59-ask .tw53-btn{grid-column:1/-1;width:100%}
+}

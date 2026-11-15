@@ -718,79 +718,10 @@ window.v14SubmitFeedback = function() {
 
 /* ══════════════════════
    8. PUBLIC REVIEWS on LANDING PAGE
-   Shows published reviews with Google schema
+   v59 (2026-11-15): the made-up sample reviews and their review markup are deleted. Public reviews
+   come only from members who chose to share theirs (the consented Supabase feed, #tw48-reviews).
 ══════════════════════ */
-function _injectLandingReviews() {
-  return; // Public reviews use only the consented Supabase feed, not device-local samples.
-
-  if (document.getElementById('v14-reviews-section')) return;
-  const landing = document.querySelector('#page-landing .landing-shell');
-  if (!landing) return;
-
-  function _getPublished() {
-    try {
-      const stored = JSON.parse(localStorage.getItem('tw_admin_reviews') || '[]');
-      const pub = stored.filter(r => r.published);
-      if (pub.length) return pub;
-    } catch(e) {}
-    return [
-      { name:'Maya, 15 · TX', role:'teen', rating:5, body:'I made $320 in my first month cleaning cars — the AI cover letter got me 3 interviews in a week.', date:'2025-05-10' },
-      { name:'James, 14 · CA', role:'teen', rating:5, body:'The safety filter caught a sketchy job post before I even applied. My mom felt way better.', date:'2025-06-01' },
-      { name:'Riverbed Landscaping', role:'employer', rating:5, body:'TeenWork member feedback. Game changer.', date:'2025-06-15' },
-      { name:'Dana · Parent, VT', role:'parent', rating:5, body:'The weekly digest email is gold. I know what my kid is up to without hovering.', date:'2025-07-01' },
-    ];
-  }
-
-  const reviews = _getPublished();
-  const avg = reviews.length ? (reviews.reduce((s,r)=>s+(r.rating||5),0)/reviews.length).toFixed(1) : '5.0';
-
-  const sec = document.createElement('div');
-  sec.id = 'v14-reviews-section';
-  sec.innerHTML = `
-    <div class="v14-rev-inner">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:.25rem">
-        <div>
-          <h2 style="font-family:'Fraunces',serif;font-size:1.5rem;color:var(--green);margin-bottom:.2rem">What people are saying</h2>
-          <div style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)">
-            <span style="color:var(--amber)">${'★'.repeat(Math.round(Number(avg)))}</span>
-            <strong style="color:var(--text)">${avg}</strong> · ${reviews.length} review${reviews.length!==1?'s':''}
-            <span style="font-size:.72rem;color:var(--muted)">(member feedback)</span>
-          </div>
-        </div>
-        <button onclick="document.getElementById('v14-feedback-modal').classList.add('open')" style="background:var(--green);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:700;font-size:.84rem;cursor:pointer;font-family:'DM Sans',sans-serif">✍️ Leave a Review</button>
-      </div>
-      <div class="v14-rev-grid">
-        ${reviews.slice(0,6).map(r=>`
-          <div class="v14-rev-card" itemscope itemtype="https://schema.org/Review">
-            <div class="v14-rev-stars" itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
-              ${'★'.repeat(r.rating||5)}${'☆'.repeat(5-(r.rating||5))}
-              <meta itemprop="ratingValue" content="${r.rating||5}">
-              <meta itemprop="bestRating" content="5">
-            </div>
-            <p class="v14-rev-body" itemprop="reviewBody">"${r.body}"</p>
-            <div class="v14-rev-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
-              <span itemprop="name">— ${r.name}</span>
-              <meta itemprop="datePublished" content="${r.date||'2025-01-01'}">
-            </div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-
-  const finalSection = landing.querySelector('.landing-final');
-  if (finalSection) finalSection.before(sec);
-  else landing.appendChild(sec);
-
-  // Inject Google Schema
-  const schema = {
-    '@context':'https://schema.org','@type':'SoftwareApplication',name:'TeenWork',
-    applicationCategory:'BusinessApplication',
-    aggregateRating:{'@type':'AggregateRating',ratingValue:String(avg),reviewCount:String(reviews.length),bestRating:'5',worstRating:'1'},
-    review:reviews.slice(0,10).map(r=>({'@type':'Review',author:{'@type':'Person',name:r.name},reviewRating:{'@type':'Rating',ratingValue:String(r.rating||5),bestRating:'5'},reviewBody:r.body,datePublished:r.date||'2025-01-01'}))
-  };
-  let sel = document.getElementById('v14-review-schema');
-  if (!sel){ sel=document.createElement('script');sel.type='application/ld+json';sel.id='v14-review-schema';document.head.appendChild(sel); }
-  sel.textContent = JSON.stringify(schema);
-}
+function _injectLandingReviews() {}
 
 /* ══════════════════════
    9. TOUR — clean overlay, no weird positioning

@@ -1317,13 +1317,25 @@ async function adminRunHealthCheck() {
 // ── Reviews System ─────────────────────────────────────────────────────────
 const REVIEWS_KEY = 'tw_admin_reviews';
 
+// v59 (2026-11-15): the made-up sample reviews and stories that early versions saved in visitors'
+// browsers are recognised by a short fingerprint of their first 24 letters (name or quote), so the
+// quotes themselves are no longer anywhere in the page code. twIsOldSample(text) is true for them.
+const _TW_OLD_SAMPLES = ['1adqpo6', '17mamzp', 'zclysu', '1jz93z4', '2rhgaf', 'vm9x9g', '12fczm3', '12keivb', 'gr9135', 'dipm2x'];
+function twIsOldSample(text) {
+  const s = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 24);
+  if (!s) return false;
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return _TW_OLD_SAMPLES.indexOf((h >>> 0).toString(36)) >= 0;
+}
+window.twIsOldSample = twIsOldSample;
+
 function _getReviews() {
   const defaults = []; // No seeded member reviews.
   try {
     const stored = localStorage.getItem(REVIEWS_KEY);
-    // v49: old copies of the four made-up sample reviews are dropped
-    const SAMPLE = /^(I made \$320 in my first month|The safety filter caught a sketchy job|Verified employer badge plus parent approval|The weekly digest email is gold)/;
-    return stored ? JSON.parse(stored).filter(r => !(r && SAMPLE.test(String(r.body || '')))) : defaults;
+    // old copies of the made-up sample reviews are dropped
+    return stored ? JSON.parse(stored).filter(r => !(r && (twIsOldSample(r.body) || twIsOldSample(r.name)))) : defaults;
   } catch(e) { return defaults; }
 }
 function _saveReviews(reviews) {

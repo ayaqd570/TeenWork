@@ -263,7 +263,7 @@
     m.innerHTML =
       '<div class="tw57-card">' +
         '<button type="button" class="tw57-x" data-tw57="close" aria-label="Close">✕</button>' +
-        '<div class="tw57-head"><img class="tw57-logo" src="logo.png" width="52" height="52" alt="">' +
+        '<div class="tw57-head"><img class="tw57-logo" src="assets/img/small-logo.png" width="52" height="52" alt="">' +
           '<div><h2 id="tw57-title">Get the TeenWork app</h2><p class="tw57-lead">' + esc(leadFor(u)) + '</p></div></div>' +
         '<div class="tw57-body" id="tw57-body">' + body(opts) + '</div>' +
       '</div>';
@@ -477,7 +477,7 @@
     m.id = 'tw57-app'; m.className = 'tw57-app';
     m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'tw57-title');
     m.innerHTML = '<div class="tw57-card"><button type="button" class="tw57-x" data-tw57="close" aria-label="Close">✕</button>' +
-      '<div class="tw57-head"><img class="tw57-logo" src="logo.png" width="52" height="52" alt=""><div><h2 id="tw57-title">TeenWork emails</h2></div></div>' +
+      '<div class="tw57-head"><img class="tw57-logo" src="assets/img/small-logo.png" width="52" height="52" alt=""><div><h2 id="tw57-title">TeenWork emails</h2></div></div>' +
       '<div class="tw57-body"><p class="tw57-big" id="tw57-unsub-msg" role="status" aria-live="polite">Turning off reminder emails…</p>' +
       '<p class="tw57-small" id="tw57-unsub-more"></p><button type="button" class="tw57-alt" id="tw57-unsub-undo" hidden>Undo: keep sending them</button></div></div>';
     m.addEventListener('mousedown', function (e) { if (e.target === m) close(); });

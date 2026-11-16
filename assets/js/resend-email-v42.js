@@ -21,6 +21,12 @@
      everyone else go through Resend. When someone is signed in, their own
      sign-in token goes with the email, so send-email keeps TeenWork links
      (it turns every link into plain text for emails sent without a sign-in).
+   • v57 (2026-11-13, Aya: "use resend not emailJS"): EmailJS is gone. Every
+     email, including the ones to the TeenWork team inboxes, goes through
+     Resend. There is no backup sender: if Resend can't take an email, the
+     send fails and the caller shows its own message (the verification code
+     is then shown on screen). resend-mailer-v57.js stands in for the old
+     EmailJS library, so older code that calls emailjs.send() lands here.
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -36,7 +42,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function looksHtml(m) { var t = String(m || '').trim(); return t.charAt(0) === '<' && t.charAt(t.length - 1) === '>'; }
 
-  // TeenWork's own inboxes: emails to them are "received" mail and go through EmailJS (v54).
+  // TeenWork's own inboxes (support, sign-up notices). Since v57 they get their email through Resend too.
   var TEAM = ['ayaquarrierdraper@gmail.com', 'aqdteenwork@gmail.com'];
   function isTeam(to) {
     var t = String(to || '').trim().toLowerCase();
@@ -108,29 +114,27 @@
 
   function remember(entry) { state.log.push(entry); if (state.log.length > 30) state.log.shift(); }
 
-  /* Called by the branded-email-v41 wrapper after branding. viaEmailJS() sends the same email through EmailJS. */
-  window.twDeliverEmail = function (service, template, params, key, emailJS) {
-    function viaEmailJS() {
-      // some callers (the SOS alert) never call emailjs.init, so make sure the public key is set first
-      try { if (!key && typeof EMAILJS_PUBKEY !== 'undefined' && window.emailjs && typeof window.emailjs.init === 'function') window.emailjs.init(EMAILJS_PUBKEY); } catch (e) {}
-      return emailJS();
+  /* Called by the branded-email-v41 wrapper after branding. Since v57 every email goes through Resend;
+     the last argument (the old EmailJS sender) is ignored. Resolves like emailjs.send, rejects {status, text, code}. */
+  window.twDeliverEmail = function (service, template, params) {
+    var p = params || {}, at = new Date().toISOString();
+    var base = { at: at, to: p.to_email, subject: p.subject, team: isTeam(p.to_email) };
+    if (!isEmail(p.to_email) || typeof p.message !== 'string' || !p.message.trim()) {
+      remember(Object.assign({ via: 'not sent', error: 'bad_request' }, base));
+      return Promise.reject({ status: 0, text: 'An email needs one valid address and a message', code: 'bad_request' });
     }
     try {
-      var p = params || {};
-      if (!mainTemplate() || template !== mainTemplate() || !isEmail(p.to_email) || typeof p.message !== 'string') return viaEmailJS();
-      if (isTeam(p.to_email)) { remember({ at: new Date().toISOString(), to: p.to_email, subject: p.subject, via: 'emailjs', why: 'team inbox' }); return viaEmailJS(); }
-      var at = new Date().toISOString();
       return window.twSendViaResend(p).then(function (r) {
-        remember({ at: at, to: p.to_email, subject: p.subject, via: 'resend', id: r.id });
+        remember(Object.assign({ via: 'resend', id: r.id }, base));
         return r;
       }, function (err) {
-        remember({ at: at, to: p.to_email, subject: p.subject, via: 'emailjs', resendError: err && (err.code + ': ' + err.text) });
-        if (err && err.code !== 'off') console.info('TeenWork: Resend could not send (' + (err.code || '') + '), using EmailJS instead.', err.text || '');
-        return viaEmailJS();
+        remember(Object.assign({ via: 'not sent', error: err && (err.code + ': ' + err.text) }, base));
+        if (err && err.code !== 'off') console.warn('TeenWork: Resend could not send this email (' + (err.code || '') + ').', err.text || '');
+        throw err;
       });
     } catch (e) {
-      console.warn('TeenWork Resend hook failed, using EmailJS:', e);
-      return viaEmailJS();
+      console.warn('TeenWork email failed:', e);
+      return Promise.reject({ status: 0, text: String((e && e.message) || e), code: 'error' });
     }
   };
 
@@ -140,11 +144,11 @@
   /* ── Admin → System Health: "Email sender" line + test button ───── */
   function healthNote(d) {
     if (d.ok && d.configured && !d.testing) return { status: 'ok', note: 'Resend ready · sending from ' + (d.from_domain || 'your domain') };
-    if (d.ok && d.configured) return { status: 'warn', note: 'Resend in test mode: it only reaches the email your Resend account uses. Others go through EmailJS until a domain is verified.' };
-    if (d.ok) return { status: 'warn', note: 'Resend key not added yet · EmailJS sends instead' };
-    if (d.code === 'not_deployed') return { status: 'warn', note: 'send-email function not deployed · EmailJS sends instead' };
-    if (d.code === 'no_supabase') return { status: 'warn', note: 'Supabase not configured · EmailJS sends instead' };
-    return { status: 'warn', note: 'Resend unreachable (' + (d.error || d.code || 'offline') + ') · EmailJS sends instead' };
+    if (d.ok && d.configured) return { status: 'warn', note: 'Resend in test mode: it only reaches the email your Resend account uses until RESEND_FROM is an address on a verified domain.' };
+    if (d.ok) return { status: 'error', note: 'Resend key not added yet · no emails can be sent' };
+    if (d.code === 'not_deployed') return { status: 'error', note: 'send-email function not deployed · no emails can be sent' };
+    if (d.code === 'no_supabase') return { status: 'error', note: 'Supabase not configured · no emails can be sent' };
+    return { status: 'warn', note: 'Resend unreachable (' + (d.error || d.code || 'offline') + ') · emails wait until it answers' };
   }
   function adminEmail() { return typeof ADMIN_EMAIL !== 'undefined' ? ADMIN_EMAIL : ''; }
   window.twSendTestEmail = function (to) {

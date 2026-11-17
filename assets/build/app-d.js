@@ -4518,7 +4518,7 @@ const KEY_MARK='sandbox_teenwork_test';
 const NAMES={teen:'Demo Teen',parent:'Demo Parent',employer:'Demo Employer'};
 const AI_PER_DAY=5;
 const AI_KEY='tw_demo_ai_uses';
-const KEEP=k=>k===AI_KEY|| /^sb-/.test(k);
+const KEEP=k=>k===AI_KEY|| /^sb-/.test(k)||k==='tw_remember';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const later=(fn,ms)=>setTimeout(()=>{try{fn();}catch(e){console.warn('demo-sandbox-v49:',e);}},ms||0);

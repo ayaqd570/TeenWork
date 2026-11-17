@@ -55,8 +55,17 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
 `node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing), `node tests/profile-photo-v55.cjs`,
-`node tests/account-pages-v60.cjs` (page titles, bio, Work Log money),
+`node tests/account-pages-v60.cjs` (page titles, bio, Work Log money), `node tests/remember-me-v63.cjs` (staying signed in),
 `node --experimental-strip-types tests/delete-account-auth.mjs`, `node --experimental-strip-types tests/delete-account-photos.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
+
+## Staying signed in (v63)
+
+Aya, 2026-11-17: stay signed in when you leave and come back soon, with a "Remember me" box. `assets/js/remember-me-v63.js` (loaded right before `url-views-v50.js`, which does the signing back in):
+- Sign In has **Remember me for 30 days**, off every time the form opens (teens use shared and school computers). Ticked: this browser keeps the person signed in for 30 days from that sign-in. Not ticked: they stay signed in if they come back within 30 minutes of when TeenWork was last open (closed tab, another site, browser restart). An open TeenWork tab counts as "still here".
+- Coming back on the homepage or the Sign In address opens the dashboard; a dashboard address opens that section. The account comes back from this device's saved copy, like a refresh. The admin is remembered too; demos never are.
+- A cloud account only comes back while this browser is still signed in to Supabase as the same email, and Supabase is then asked whether that sign-in is still good. If not, the person is signed out and asked to sign in again. Offline, the saved copy still opens.
+- Sign out removes it at once and signs out every TeenWork tab in that browser. Signing out now ends only this device's Supabase sign-in (`scope: 'local'`), so one device's Sign out no longer signs out the others. When nobody comes back, the browser's leftover Supabase sign-in is dropped.
+- Saved as `localStorage` `tw_remember` (account key, type, the box, sign-in time, last seen); never a password or token. The demo sandbox leaves it alone when it puts storage back. Change the times with `SHORT` and `LONG` at the top of the file. Check with `node tests/remember-me-v63.cjs`.
 
 ## Search engines
 

@@ -100,6 +100,7 @@
       "file": "app-e",
       "from": [
         "assets/js/homepage-trust-v48.js",
+        "assets/js/remember-me-v63.js",
         "assets/js/url-views-v50.js",
         "assets/js/real-stats-v42.js",
         "assets/js/featpack-v39-cloud-js.js",

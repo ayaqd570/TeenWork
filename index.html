@@ -331,6 +331,21 @@
 #page-landing .tw59-wait{cursor:progress !important;opacity:.7}
 </style>
 <script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
+<!-- v61 (2026-11-17): on computers the headline and the big Sign Up Free button sit ON the picture, top right over the
+     house, so they are on the first screen. The picture itself is not touched: same size, whole, first. Sizes follow the
+     picture's width (--tw61-pw) so the card never reaches the teen or the parent. Phones and tablets: unchanged. -->
+<style id="tw61-hero-intro">
+@media (max-width:899.98px){#tw61-intro{display:contents}}
+@media (min-width:900px){
+#page-landing .landing-shell{--tw61-pw:min(1180px,calc(100vw - 2rem))}
+#page-landing #tw61-intro{position:absolute;z-index:2;box-sizing:border-box;top:calc(var(--tw61-pw) * .02);left:calc(50% - var(--tw61-pw) * .02);width:calc(var(--tw61-pw) * .52 - 20px);padding:calc(var(--tw61-pw) * .019) calc(var(--tw61-pw) * .022);text-align:left;background:rgba(255,253,247,.94);border:1px solid rgba(226,221,212,.9);border-radius:18px;box-shadow:0 10px 30px rgba(27,67,50,.22)}
+#page-landing #tw48-hero #tw61-intro #tw48-h1{max-width:none;margin:0 0 .35em !important;font-size:calc(var(--tw61-pw) * .0288) !important;line-height:1.14}
+#page-landing #tw48-hero #tw61-intro .landing-lead{max-width:none !important;margin:0 0 .9em !important;font-size:max(13px,calc(var(--tw61-pw) * .0131)) !important;line-height:1.5 !important}
+#page-landing #tw48-hero #tw61-intro > div{justify-content:flex-start !important;margin-bottom:0 !important}
+#page-landing #tw48-hero #tw61-intro button{min-height:44px;font-size:max(15px,calc(var(--tw61-pw) * .0152)) !important;padding:max(9px,calc(var(--tw61-pw) * .0115)) calc(var(--tw61-pw) * .023) !important}
+#page-landing #tw48-hero .landing-inner{-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+</style>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES
@@ -397,6 +412,8 @@
 
       <section class="landing-hero" id="tw48-hero">
         <div class="landing-inner" style="text-align:center;max-width:720px;margin:0 auto;">
+          <!-- v61: on computers this block sits on the picture (see the tw61-hero-intro style in the head); on phones it is under it, as before -->
+          <div id="tw61-intro">
           <h1 id="tw48-h1">The teen job app for safe local jobs, <span style="white-space:nowrap">ages 13–17</span></h1>
 
           <p class="landing-lead" style="margin:0 auto 1.4rem;max-width:540px;font-size:1.05rem;color:var(--muted);line-height:1.6">TeenWork is a free teen job finder for lawn care, pet sitting, snow shoveling and other neighborhood jobs. A parent approves every application, and chats with employers stay inside the app.</p>
@@ -405,6 +422,7 @@
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem">
             <button onclick="gotoPage('signup')" style="background:var(--green);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(45,106,79,0.3);touch-action:manipulation">Sign Up Free</button>
             <button onclick="gotoPage('login')" style="background:none;border:2px solid var(--green);color:var(--green);padding:12px 26px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Sign In</button>
+          </div>
           </div>
           <p class="tw51-trust" id="tw51-trust">Parents approve every application · Free · No cut of pay</p>
 

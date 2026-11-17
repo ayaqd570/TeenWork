@@ -37,16 +37,18 @@ async function home(browser, viewport) {
  assert(await visible(p, '#tw51-trust'));
  assert.equal((await p.locator('#tw48-hero button', {hasText: 'Sign Up'}).first().textContent()).trim(), 'Sign Up Free');
 
- // The picture: a small file, on top, whole (a square box, so nothing is cropped), with the title under it.
+ // The picture: a small file, on top, whole (a square box, so nothing is cropped).
  const hero = await p.evaluate(() => {
   const img = document.getElementById('tw-hero-img'), b = img.getBoundingClientRect(), h1 = document.getElementById('tw48-h1').getBoundingClientRect();
   const su = [...document.querySelectorAll('#tw48-hero button')].find(x => /Sign Up/.test(x.textContent)).getBoundingClientRect();
-  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgBottom: b.bottom, imgWidth: b.width, h1Top: h1.top, signupBottom: su.bottom, alt: img.alt};
+  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgTop: b.top, imgBottom: b.bottom, imgWidth: b.width, h1Top: h1.top, h1Bottom: h1.bottom, signupBottom: su.bottom, alt: img.alt};
  });
  assert.match(hero.src, /\/assets\/img\/hero-\d+\.(avif|webp)$/);
  assert(hero.loaded, w + ': hero picture did not load');
  assert(Math.abs(hero.ratio - hero.natural) < 0.02, w + ': hero picture is cropped (' + hero.ratio + ')');
- assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
+ // Phones and tablets: the title is under the picture. Computers (v61): it sits on the picture, on the first screen.
+ if (w < 900) assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
+ else assert(hero.h1Top >= hero.imgTop && hero.h1Bottom <= viewport.height && hero.signupBottom <= viewport.height, w + ': title and Sign Up Free are not on the first screen');
  assert.equal(hero.alt, 'TeenWork — safe teen jobs');
  // A big square across the page on every screen, never a small one in the middle (Aya, Oct 31).
  assert(hero.imgWidth >= Math.min(w, 1212) - 40, w + ': picture is not across the page (' + hero.imgWidth + 'px)');

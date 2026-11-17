@@ -1339,7 +1339,7 @@
         <div class="stat-card"><div class="stat-label">Jobs Near You</div><div class="stat-value" id="t-stat-jobs">0</div><div class="stat-sub" id="t-stat-jobs-sub">your area</div></div>
         <div class="stat-card amber"><div class="stat-label">Applied</div><div class="stat-value" id="t-stat-applied">0</div><div class="stat-sub" id="t-stat-applied-sub">none yet</div></div>
         <div class="stat-card blue"><div class="stat-label">Accepted</div><div class="stat-value" id="t-stat-accepted">0</div><div class="stat-sub" id="t-stat-accepted-sub">none yet</div></div>
-        <div class="stat-card purple"><div class="stat-label">Earned (Est.)</div><div class="stat-value" id="t-stat-earned">$0</div><div class="stat-sub" id="t-stat-earned-sub">this season</div></div>
+        <div class="stat-card purple"><div class="stat-label">Earned (Est.)</div><div class="stat-value" id="t-stat-earned">$0.00</div><div class="stat-sub" id="t-stat-earned-sub">this season</div></div>
       </div>
       <!-- SAVINGS GOAL PROGRESS (read-only, set by parent) -->
       <div id="teen-savings-banner" style="display:none;margin-bottom:1rem"></div>
@@ -1402,15 +1402,13 @@
         <div class="panel-body" id="teen-applications-list"></div>
       </div>
 
-      <!-- WEEKLY ACTIVITY DIGEST -->
-      <div class="panel" style="margin-top:1.2rem;border:2px solid var(--blue-pale)">
+      <!-- ACTIVITY DIGEST (v60: hidden until the teen has done something; renderWeeklyDigest in app-05.js shows it) -->
+      <div class="panel" id="teen-activity-digest" style="margin-top:1.2rem;border:2px solid var(--blue-pale);display:none">
         <div class="panel-head" style="background:var(--blue-pale)">
-          <h2 style="color:var(--blue)">📊 Weekly Activity Digest</h2>
+          <h2 style="color:var(--blue)">📊 Activity Digest</h2>
           <button class="btn-sm btn-ai" onclick="renderWeeklyDigest()" style="font-size:.75rem">🔄 Refresh</button>
         </div>
-        <div class="panel-body" id="weekly-digest-panel">
-          <span style="color:var(--muted);font-size:.85rem">Loading your weekly summary…</span>
-        </div>
+        <div class="panel-body" id="weekly-digest-panel"></div>
       </div>
     </div>
 
@@ -1466,6 +1464,38 @@
     <!-- PROFILE / RESUME -->
     <div id="ttab-resume" class="tab-panel">
 
+      <!-- v60 (Aya, Nov 15): the profile itself opens this page, with the bio right under the name. The parent link,
+           My Progress and everything else come after it. The bio box starts empty (it used to hold a sample bio) and
+           account-pages-v60.js saves what the teen writes to their account. -->
+      <div class="resume-card" id="teen-profile-card">
+        <h3 id="profile-name-display">Your name</h3>
+        <p id="profile-info-display"></p>
+        <p class="tw60-profile-todo" id="tw60-profile-todo" hidden></p>
+        <div class="tw60-bio">
+          <label class="tw60-bio-label" for="profile-bio-input">Your bio</label>
+          <p class="tw60-bio-todo" id="tw60-bio-todo" hidden></p>
+          <textarea id="profile-bio-input" maxlength="600" aria-describedby="tw60-bio-tip" placeholder="Two or three sentences about you: what you are good at and what work you have done (chores count)." style="width:100%;padding:8px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.15);color:#fff;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:vertical;min-height:88px;outline:none" oninput="saveBioInput(this.value)"></textarea>
+          <p class="tw60-bio-tip" id="tw60-bio-tip">Leave out your phone number, home address and school name.</p>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" onclick="saveBioBtn()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">💾 Save Bio</button>
+            <button type="button" onclick="aiRefreshMatches()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">🤖 Refresh AI Matches</button>
+            <span class="tw60-bio-saved" id="tw60-bio-saved" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <p style="margin-top:12px">Skills:</p>
+        <div style="margin-top:6px" id="profile-skills-display">
+          <span class="skill-pill">🌿 Lawn Care</span>
+          <span class="skill-pill">🐾 Pet Sitting</span>
+          <span class="skill-pill">❄️ Snow Shoveling</span>
+          <span class="skill-pill">🧹 Cleaning</span>
+        </div>
+        <p style="margin-top:10px;font-size:.82rem;opacity:.8">⭐⭐⭐⭐½ 4.5 avg · 4 completed jobs</p>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button onclick="openVideoIntro()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">🎥 Record Video Intro</button>
+          <span id="video-intro-status" style="font-size:.75rem;color:rgba(255,255,255,.6)">No video yet — stand out to employers!</span>
+        </div>
+      </div>
+
       <!-- SKILL PROGRESS REPORT -->
       <div class="panel" style="margin-bottom:1.4rem;border:2px solid var(--green-light)">
         <div class="panel-head" style="background:var(--green-pale)">
@@ -1479,30 +1509,7 @@
 
       <div class="section-grid">
         <div>
-          <div class="resume-card">
-            <h3 id="profile-name-display">Your name</h3>
-            <p id="profile-info-display"></p>
-            <p style="margin-top:8px">Skills:</p>
-            <div style="margin-top:6px" id="profile-skills-display">
-              <span class="skill-pill">🌿 Lawn Care</span>
-              <span class="skill-pill">🐾 Pet Sitting</span>
-              <span class="skill-pill">❄️ Snow Shoveling</span>
-              <span class="skill-pill">🧹 Cleaning</span>
-            </div>
-            <div style="margin-top:10px">
-              <textarea id="profile-bio-input" placeholder="Write a short bio about yourself — your work ethic, skills, and what makes you a great hire…" style="width:100%;padding:8px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.15);color:#fff;font-family:'DM Sans',sans-serif;font-size:.82rem;resize:vertical;min-height:64px;outline:none" oninput="saveBioInput(this.value)">Hardworking 16-year-old from Burlington, Vermont. Experienced with lawn care, pet sitting, snow shoveling, and light cleaning. Reliable, on time, and always professional.</textarea>
-            </div>
-            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-              <button onclick="saveBioBtn()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">💾 Save Bio</button>
-              <button onclick="aiRefreshMatches()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:5px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">🤖 Refresh AI Matches</button>
-            </div>
-            <p style="margin-top:10px;font-size:.82rem;opacity:.8">⭐⭐⭐⭐½ 4.5 avg · 4 completed jobs</p>
-            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button onclick="openVideoIntro()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer">🎥 Record Video Intro</button>
-              <span id="video-intro-status" style="font-size:.75rem;color:rgba(255,255,255,.6)">No video yet — stand out to employers!</span>
-            </div>
-          </div>
-          <div class="panel" style="margin-top:1rem">
+          <div class="panel">
             <div class="panel-head"><h2>Skills & Tags</h2></div>
             <div class="panel-body">
               <input type="text" id="skills-input" placeholder="Add skills, comma separated…" value="lawn care, pet sitting, snow shoveling, cleaning" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none" onchange="saveSkillsInput(this.value)" oninput="saveSkillsInput(this.value)">
@@ -2159,11 +2166,11 @@
           <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-top:2px;text-transform:uppercase">Total Hours</div>
         </div>
         <div style="background:var(--amber-pale);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:1.7rem;font-weight:900;color:var(--amber)" id="wl-total-earned">$0</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.7rem;font-weight:900;color:var(--amber)" id="wl-total-earned">$0.00</div>
           <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-top:2px;text-transform:uppercase">Total Earned</div>
         </div>
         <div style="background:var(--blue-pale);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-family:'Fraunces',serif;font-size:1.7rem;font-weight:900;color:var(--blue)" id="wl-avg-rate">$0</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.7rem;font-weight:900;color:var(--blue)" id="wl-avg-rate">$0.00</div>
           <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-top:2px;text-transform:uppercase">Avg $/hr</div>
         </div>
         <div style="background:var(--purple-pale);border-radius:14px;padding:12px 10px;text-align:center">
@@ -3426,12 +3433,12 @@
 </div>
 
 
-<script src="assets/js/app-04.js?v=56"></script>
+<script src="assets/js/app-04.js?v=60"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/js/app-05.js?v=59"></script>
+<script src="assets/js/app-05.js?v=60"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3674,7 +3681,7 @@
   </div>
 </div>
 
-<script id="featpack-js" src="assets/js/featpack-js.js?v=59"></script>
+<script id="featpack-js" src="assets/js/featpack-js.js?v=60"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3826,7 +3833,7 @@
 
 <script src="assets/js/app-19.js"></script>
 
-<script src="assets/js/app-20.js"></script>
+<script src="assets/js/app-20.js?v=60"></script>
 
 <link rel="stylesheet" href="assets/css/tw36-bottom-room.css">
 <script src="assets/js/app-21.js"></script>
@@ -3851,7 +3858,7 @@
 
 <script id="real-data-v43" src="assets/js/real-data-v43.js?v=59"></script>
 
-<script id="find-jobs-simple-v45" src="assets/js/find-jobs-simple-v45.js"></script>
+<script id="find-jobs-simple-v45" src="assets/js/find-jobs-simple-v45.js?v=60"></script>
 
 <script id="job-tiers-v45" src="assets/js/job-tiers-v45.js"></script>
 
@@ -3864,7 +3871,7 @@
 <script id="tab-refresh-v44" src="assets/js/tab-refresh-v44.js?v=56"></script>
 
 <script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=52"></script>
-<script id="money-hours-v44" src="assets/js/money-hours-v44.js?v=52"></script>
+<script id="money-hours-v44" src="assets/js/money-hours-v44.js?v=60"></script>
 
 <script id="ai-shift-finder-v44" src="assets/js/ai-shift-finder-v44.js"></script>
 
@@ -3906,7 +3913,7 @@
 <script id="home-v51" src="assets/js/home-v51.js?v=51"></script>
 <script id="app-fixes-v51" src="assets/js/app-fixes-v51.js?v=51"></script>
 <link rel="stylesheet" href="assets/css/share-v54.css?v=54">
-<script id="share-v54" src="assets/js/share-v54.js?v=59"></script>
+<script id="share-v54" src="assets/js/share-v54.js?v=60"></script>
 <!-- v57: Get the TeenWork app (Download the app button, the install pop-up, ?app=1 and ?unsub= links) -->
 <link rel="stylesheet" href="assets/css/get-app-v57.css?v=57">
 <script id="get-app-v57" src="assets/js/get-app-v57.js?v=59"></script>
@@ -3915,5 +3922,8 @@
 <script id="polish-v54" src="assets/js/polish-v54.js?v=54"></script>
 <!-- v56: the tree is TeenWork's only logo (headers, menu, weekly digest, icons, emails) -->
 <link rel="stylesheet" href="assets/css/tree-logo-v56.css?v=56">
+<!-- v60: each signed-in page has its own title; the teen's profile card and bio come first and the bio saves -->
+<link rel="stylesheet" href="assets/css/account-pages-v60.css?v=60">
+<script id="account-pages-v60" src="assets/js/account-pages-v60.js?v=60"></script>
 </body>
 </html>

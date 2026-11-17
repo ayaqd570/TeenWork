@@ -4115,31 +4115,37 @@ Keep it friendly, short, and encouraging. Under 180 words total.`;
 window.explainLaborLaw = explainLaborLaw;
 
 // ═══════════════════════════════════════════════════════
-//  FEATURE: WEEKLY ACTIVITY DIGEST (Teen Applications Tab)
+//  FEATURE: ACTIVITY DIGEST (Teen Applications Tab)
+//  v60: the card stays hidden until the teen has done something (it used to open as six zeros under
+//  "Week of Nov 15 — Nov 15"). These six numbers are the teen's totals, not one week's (nothing here
+//  is dated per week), so the card says "so far" instead of naming a week.
 // ═══════════════════════════════════════════════════════
 function renderWeeklyDigest() {
   const panel = document.getElementById('weekly-digest-panel');
   if (!panel) return;
+  const card = document.getElementById('teen-activity-digest') || panel.closest('.panel');
 
   const jobs     = typeof demoJobs !== 'undefined' ? demoJobs : [];
-  const ratings  = typeof demoRatings !== 'undefined' ? demoRatings : [];
   const contacts = (typeof MSG_CONTACTS !== 'undefined' && MSG_CONTACTS.teen) ? MSG_CONTACTS.teen : [];
   const lessons  = userActivity?.lessonsCompleted || [];
-  const hours    = (typeof teenGameState !== 'undefined' ? teenGameState.hoursWorked : 0) || 0;
+  let hours      = (typeof teenGameState !== 'undefined' ? teenGameState.hoursWorked : 0) || 0;
+  // teenGameState only learns the Work Log hours at sign-in, so hours logged today were missing here
+  try { const t = window._twMoneyHours && window._twMoneyHours.totals(); if (t && t.hours > hours) hours = t.hours; } catch (e) {}
+  const msgsOf   = c => Array.isArray(c && c.messages) ? c.messages : [];
 
   const applied   = jobs.length;
   const accepted  = jobs.filter(j => j.status === 'accepted').length;
   const pending   = jobs.filter(j => j.status === 'pending-approval').length;
-  const msgsSent  = contacts.reduce((s, c) => s + c.messages.filter(m => m.from === 'me').length, 0);
-  const blocked   = contacts.reduce((s, c) => s + c.messages.filter(m => m.blocked).length, 0);
+  const msgsSent  = contacts.reduce((s, c) => s + msgsOf(c).filter(m => m.from === 'me').length, 0);
+  const blocked   = contacts.reduce((s, c) => s + msgsOf(c).filter(m => m.blocked).length, 0);
 
-  const now   = new Date();
-  const start = new Date(now); start.setDate(now.getDate() - now.getDay());
-  const fmt   = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  const any = applied > 0 || msgsSent > 0 || blocked > 0 || hours > 0 || lessons.length > 0;
+  if (card) card.style.display = any ? '' : 'none';
+  if (!any) { panel.innerHTML = ''; return; }
 
   panel.innerHTML = `
     <div style="font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.8rem">
-      Week of ${fmt(start)} — ${fmt(now)}
+      Your totals so far
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem">
       ${[
@@ -4158,8 +4164,8 @@ function renderWeeklyDigest() {
           </div>
         </div>`).join('')}
     </div>
-    ${blocked > 0 ? `<div style="background:var(--red-pale);border:1px solid #f5b7b1;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.8rem;color:var(--red)">⚠️ <strong>${blocked} message${blocked>1?'s':''} blocked</strong> by the safety filter this week. Your parent has been notified.</div>` : ''}
-    ${accepted > 0 ? `<div style="background:var(--green-pale);border-left:4px solid var(--green);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.82rem;color:var(--green)">🎉 <strong>Great week!</strong> You got accepted for ${accepted} job${accepted>1?'s':''}. Keep it up!</div>` : ''}
+    ${blocked > 0 ? `<div style="background:var(--red-pale);border:1px solid #f5b7b1;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.8rem;color:var(--red)">⚠️ <strong>${blocked} message${blocked>1?'s':''} blocked</strong> by the safety filter. Your parent has been notified.</div>` : ''}
+    ${accepted > 0 ? `<div style="background:var(--green-pale);border-left:4px solid var(--green);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.82rem;color:var(--green)">🎉 <strong>Nice work!</strong> You got accepted for ${accepted} job${accepted>1?'s':''}. Keep it up!</div>` : ''}
   `;
 }
 window.renderWeeklyDigest = renderWeeklyDigest;
@@ -5401,6 +5407,9 @@ window.obAskQuestion   = obAskQuestion;
   const TASK_ICONS = {'yard work':'🌿','pet care':'🐾','cleaning':'🧹','babysitting':'👶','tech help':'💻','other':'🔧'};
 
   var wlShowAll = false;
+  // v60: every amount in the Work Log shows dollars and cents ($0.00, $1,243.75). It used to mix "$0" and "$0.00",
+  // and the whole-dollar ones rounded the cents away ($12.50 showed as $13).
+  var wlMoney = function(n){ n = parseFloat(n); if(!isFinite(n)) n = 0; return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 
   function renderWorkLogTab(){
     var allLog = getWorkLog();
@@ -5423,8 +5432,8 @@ window.obAskQuestion   = obAskQuestion;
     var e_th=document.getElementById('wl-total-hours'),e_te=document.getElementById('wl-total-earned'),
         e_ar=document.getElementById('wl-avg-rate'),e_ec=document.getElementById('wl-employer-count');
     if(e_th)e_th.textContent=totalHours.toFixed(1)+'h';
-    if(e_te)e_te.textContent='$'+totalPay.toFixed(0);
-    if(e_ar)e_ar.textContent='$'+avgRate.toFixed(2);
+    if(e_te)e_te.textContent=wlMoney(totalPay);
+    if(e_ar)e_ar.textContent=wlMoney(avgRate);
     if(e_ec)e_ec.textContent=employers;
 
     // ── Weekly bar chart ──────────────────────────────────
@@ -5507,11 +5516,11 @@ window.obAskQuestion   = obAskQuestion;
               <div style="font-size:.58rem;color:var(--muted)">hours</div>
             </div>
             <div style="background:var(--green-pale);border-radius:8px;padding:6px 3px">
-              <div style="font-weight:900;color:var(--green);font-size:.9rem">$${j.pay.toFixed(0)}</div>
+              <div style="font-weight:900;color:var(--green);font-size:.9rem">${wlMoney(j.pay)}</div>
               <div style="font-size:.58rem;color:var(--muted)">earned</div>
             </div>
             <div style="background:var(--amber-pale);border-radius:8px;padding:6px 3px">
-              <div style="font-weight:900;color:var(--amber);font-size:.9rem">${j.pay&&j.hours?'$'+(j.pay/j.hours).toFixed(2):'-'}</div>
+              <div style="font-weight:900;color:var(--amber);font-size:.9rem">${j.pay&&j.hours?wlMoney(j.pay/j.hours):'-'}</div>
               <div style="font-size:.58rem;color:var(--muted)">/hr</div>
             </div>
           </div>
@@ -5546,7 +5555,7 @@ window.obAskQuestion   = obAskQuestion;
           <div style="font-size:1.2rem;flex-shrink:0">${TASK_ICONS[e.task]||'🔧'}</div>
           <div style="min-width:0">
             <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.job}</div>
-            <div style="font-size:.72rem;color:var(--muted);margin-top:1px">${e.date||''} · <strong>${e.hours}h</strong>${e.pay?' · <strong style="color:var(--green)">$'+parseFloat(e.pay).toFixed(2)+'</strong>':''}${e.notes?' · <em>'+e.notes+'</em>':''}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:1px">${e.date||''} · <strong>${e.hours}h</strong>${e.pay?' · <strong style="color:var(--green)">'+wlMoney(e.pay)+'</strong>':''}${e.notes?' · <em>'+e.notes+'</em>':''}</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">

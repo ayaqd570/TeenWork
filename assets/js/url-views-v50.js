@@ -17,9 +17,13 @@
      password) and signs that account back in from this device's saved
      copy, the same way an offline sign-in works. It's for this tab only,
      for up to 12 hours after the tab was last open, and it ends with Sign
-     out. A refresh on the homepage or Sign In still signs out, like before.
-     The admin comes back to the admin panel; a demo starts a new empty
+     out. The admin comes back to the admin panel; a demo starts a new empty
      demo of the same kind (demos still keep nothing).
+   • Coming back (v63, remember-me-v63.js): someone who signed in on this
+     browser less than 30 minutes ago, or ticked "Remember me", is signed
+     back in on any address, in a new tab too. On the homepage or the Sign
+     In address they land on their dashboard. Otherwise a refresh on the
+     homepage or Sign In signs out, like before.
    • Back / Forward move between screens. A dashboard address with nobody
      signed in (a new tab, a shared link, after Sign out) opens Sign In
      and goes there after signing in. A screen the account type can't open
@@ -182,6 +186,17 @@
     if (!m || m.v !== 1 || !(Date.now() - Number(m.at) < MAX_AGE)) { if (m) ssSet(MARK, null); return null; }
     return m;
   }
+  // v63: someone this browser remembers (remember-me-v63.js): signed in less than 30 minutes ago, or "Remember me"
+  const remember = () => window.twRememberMe || null;
+  function comeBack() {
+    const r = remember();
+    if (!r || kindOf(me())) return false;
+    const m = r.take();
+    if (!m) return false;
+    const ok = restoreSession(m);
+    if (ok) r.restored(me()); else r.failed(m);
+    return ok;
+  }
   function hideAutoTour() {
     // a refreshed demo starts over, but its app tour was already shown in this tab
     try { const u = me(); if (u && u.email) localStorage.setItem('tw_tour34_' + u.email, '1'); } catch (e) {}
@@ -220,7 +235,7 @@
         // the sign-in log (Admin → Security) shows this as a refresh, not a new sign-in
         try {
           const log = JSON.parse(localStorage.getItem('tw_signin_log') || '[]');
-          if (ok && log[0] && log[0].event === 'login' && low(log[0].email) === low(rec.email)) { log[0].event = 'page-refresh'; localStorage.setItem('tw_signin_log', JSON.stringify(log)); }
+          if (ok && log[0] && log[0].event === 'login' && low(log[0].email) === low(rec.email)) { log[0].event = m.via === 'remember' ? 'remembered' : 'page-refresh'; localStorage.setItem('tw_signin_log', JSON.stringify(log)); }
         } catch (e) {}
         return !!ok && kindOf(me()) === 'real';
       }
@@ -310,7 +325,10 @@
       t = { view: '__first', tab: '', job: '' };
     }
     let u = me();
-    if (!kindOf(u)) { if (restoreSession(readMark())) u = me(); else ssSet(MARK, null); }
+    if (!kindOf(u)) {
+      if (restoreSession(readMark())) u = me();
+      else { ssSet(MARK, null); if (comeBack()) u = me(); }
+    }
     if (!kindOf(u)) { toLogin(t, how === 'load' || how === 'pop' ? '🔒 Please sign in to open that page.' : ''); return done(); }
     if (u.isAdmin) {                                                  // the admin's only screen is the admin panel
       if (!$('tw-admin-panel') && typeof window.launchAdminPanel === 'function') window.launchAdminPanel();
@@ -435,7 +453,8 @@
   // a refresh on a dashboard address shouldn't flash the homepage first
   const first = parse();
   const dashAddress = t => !!t.view && (t.view === 'admin' || isDashSlug(t.view));
-  if (dashAddress(first) && readMark()) {
+  const homeOrAuth = t => !t.view || AUTH.indexOf(t.view) >= 0;
+  if ((dashAddress(first) && readMark()) || ((dashAddress(first) || homeOrAuth(first)) && remember() && remember().peek())) {
     document.documentElement.classList.add('twu-boot');
     setTimeout(() => document.documentElement.classList.remove('twu-boot'), 2500);
   }
@@ -448,9 +467,16 @@
     watchList();
     setInterval(() => { watchList(); if (!applying) record(); }, 2000);
     const t = parse();
-    if (!dashAddress(t)) ssSet(MARK, null);   // a refresh on the homepage or Sign In signs out, like before
+    if (!dashAddress(t)) ssSet(MARK, null);   // a refresh on the homepage or Sign In doesn't use this tab's mark …
+    let back = false;
+    const tabMark = dashAddress(t) && !!readMark();
     try {
-      if (t.view) go(t, 'load');
+      if (!tabMark) back = comeBack();          // … but someone this browser remembers comes back on any address (v63)
+      if (!tabMark && !kindOf(me()) && remember()) remember().forgetCloud();   // nobody to bring back: drop the old Supabase sign-in
+    } catch (e) { console.warn('url-views-v50: remember', e); }
+    try {
+      if (back && homeOrAuth(t)) { applying = false; record(); }   // the homepage or Sign In: stay on the dashboard
+      else if (t.view) go(t, 'load');
       else { applying = false; record(); }
     } catch (e) { console.warn('url-views-v50: start', e); applying = false; }
     later(() => document.documentElement.classList.remove('twu-boot'), 0);

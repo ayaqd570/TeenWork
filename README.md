@@ -96,15 +96,16 @@ Check with `node tests/first-screen-v59.cjs`.
 From a review Aya pasted on 2026-11-16 ("One huge page: about 300 KB of HTML, 74 script files and about 3,800 elements").
 
 **What changed.** The home page used to download 71 script files and 23 style sheets, one by one. Now it downloads
-4 scripts and 2 style sheets from `assets/build/`, and 5 tiny start-up scripts (about 4 KB, the ones that must run
+7 scripts and 2 style sheets from `assets/build/`, and 5 tiny start-up scripts (about 4 KB, the ones that must run
 before anything else) are written into `index.html`. They are made by `node tools/build.cjs` from the same source
 files in `assets/js` and `assets/css`, which stay the files to edit.
 
 - `assets/build/app-04.js` and `app-05.js`: the two big base files, each on its own (they declare global names, so
   joining them could change when those names exist).
-- `assets/build/app-a.js` (2 files) and `app-b.js` (the other 62, from `featpack-v25-js.js` to `polish-v54.js`):
-  the feature files, joined in the same order. Each one runs inside its own `try`, so an error in one still lets
-  the next one run, as before.
+- `assets/build/app-a.js` (2 files), then `app-b.js` to `app-e.js` (the other 62, from `featpack-v25-js.js` to
+  `polish-v54.js`, in four parts of about 300 KB): the feature files, joined in the same order. Four parts instead of
+  one so a slow phone isn't frozen by one long run (measured: about a third less blocked time while loading). Each
+  source file runs inside its own `try`, so an error in one still lets the next one run, as before.
 - `assets/build/base.css` (the head style sheet) and `app.css` (the other 22, in order).
 - Comments, indentation and spaces the language doesn't need are removed. Line breaks, names and code stay exactly
   as written: for every file the build parses the smaller copy again and stops unless it reads exactly the same.

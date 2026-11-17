@@ -1,5 +1,6 @@
 /* Offline checks for v59 (Aya's pasted review, 2026-11-15): the first screen, the fake quotes, the small logo,
    taps while the page is still loading, and the hero picture staying big and whole.
+   v61 (2026-11-17) moved the headline onto the picture on computers; the top-bar line checks follow that.
    No real accounts or network calls. Run: node tests/first-screen-v59.cjs */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -53,23 +54,29 @@ async function firstScreen(browser, viewport) {
       framed: getComputedStyle(document.querySelector('#page-landing > nav img')).borderTopWidth,
     };
   });
-  // Sign Up is on the first screen on every size (the top bar stays put).
+  // Sign Up is on the first screen on every size (in the top bar).
   assert(s.signup, w + ': Sign Up is not on the first screen');
-  // The picture: big, whole, first, with the headline under it — as Aya wants.
+  // The picture: big, whole and first — as Aya wants.
   assert(Math.abs(s.img.width / s.img.height - s.natural) < 0.02, w + ': hero picture is cropped');
   assert(s.img.width >= Math.min(w, 1212) - 40, w + ': hero picture got smaller (' + s.img.width + ')');
-  assert(s.img.bottom <= s.h1.top, w + ': headline is not under the picture');
-  // Computers: the short line next to the logo says what TeenWork is.
   if (w >= 900) {
-    assert(s.tag, w + ': the top-bar line is not on the first screen');
-    assert.equal(s.tagText, 'Safe local jobs for teens 13–17 A parent approves every application · Free to join');
+    // Computers, since v61: the headline sits ON the picture, on the first screen (tests/hero-intro-v61.cjs has the details)...
+    assert(s.h1.top >= s.img.top && s.h1.bottom <= viewport.height, w + ': headline is not on the first screen');
+    // ...so the short line next to the logo, which says the same thing, stays quiet while the headline is on screen
+    // (the top bar scrolls away with the page: html and body have overflow-x:hidden, so "sticky" never sticks).
+    assert.equal(s.tag, false, w + ': top-bar line shows next to the headline');
     assert.equal(s.tagHidden, 'true');
-    // ...and fades out while the real headline is on screen, then comes back.
-    await p.evaluate(() => document.getElementById('tw48-h1').scrollIntoView({ block: 'center' })); await p.waitForTimeout(500);
-    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), true, w + ': top-bar line shows next to the headline');
+    await p.evaluate(() => scrollTo(0, 700)); await p.waitForTimeout(500);
+    const later = await p.evaluate(() => { const t = document.getElementById('tw59-tag'); return { quiet: t.classList.contains('tw59-quiet'), text: t.innerText.replace(/\s+/g, ' ').trim() }; });
+    assert.equal(later.quiet, false, w + ': the top-bar line does not come back after the headline');
+    assert.equal(later.text, 'Safe local jobs for teens 13–17 A parent approves every application · Free to join');
     await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
-    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), false);
-  } else assert.equal(s.tag, false, w + ': top-bar line should be hidden on small screens');
+    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), true);
+  } else {
+    // Phones and tablets: the headline is under the picture, and there is no top-bar line.
+    assert(s.img.bottom <= s.h1.top, w + ': headline is not under the picture');
+    assert.equal(s.tag, false, w + ': top-bar line should be hidden on small screens');
+  }
   // Logos: the small file, still in its cream frame; the 100 KB logo.png isn't downloaded.
   assert(s.logos.length > 0 && s.logos.every(x => x === 'assets/img/small-logo.png'), w + ': ' + s.logos.join());
   assert.equal(s.bigLogoLoaded, false, w + ': logo.png was downloaded');

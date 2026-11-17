@@ -47,7 +47,7 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 3. Deploy `supabase/functions/delete-account/` (Verify JWT off). The `ADMIN_PW_SALT` / `ADMIN_PW_HASH` secrets, if set, are no longer used.
 4. Sign in again as the admin, so the new sign-in carries the role.
 
-Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
+Checks, all offline: `node tests/home-v51.cjs`, `node tests/hero-intro-v61.cjs`, `node tests/first-screen-v59.cjs`, `node tests/search-text.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
 `node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing), `node tests/profile-photo-v55.cjs`,
 `node tests/account-pages-v60.cjs` (page titles, bio, Work Log money),
 `node --experimental-strip-types tests/delete-account-auth.mjs`, `node --experimental-strip-types tests/delete-account-photos.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
@@ -85,6 +85,15 @@ From a review Aya pasted on 2026-11-15.
 - **Speed, measured** (home page, cold cache, gzip, outside sites blocked; phone = 4× slower CPU, 1.6 Mbps, 150 ms; median of 3): before 1,002 KB in 94 requests (images 201 KB), first paint 0.81 s, picture 2.3 s, buttons ready 6.1 s; after 914 KB (images 110 KB), first paint 0.61 s, picture 2.35 s, buttons ready 5.7 s, and taps before that are kept. Laptop (10 Mbps): buttons ready 1.26 s both times.
 - **Left alone on purpose:** the home page still loads all 69 scripts (2.4 MB, about 700 KB compressed). They patch each other in a fixed order (later files wrap functions from earlier ones), so loading the dashboard scripts only after sign-in, or adding `defer`/`async`, would change that order and could break sign-in or the demos. Doing it safely is a separate job: a small build step that minifies the files, or moving dashboard-only code out of the layered files one by one with tests. Also check that the web server compresses `.js` and `.css` (gzip); without it the phone download is about three times bigger.
 Check with `node tests/first-screen-v59.cjs`.
+
+## Headline on the picture (v61)
+
+From Aya's review of 2026-11-16: on a laptop the picture was still 1,180px tall, so the headline started about 1,320px down and the big Sign Up button about 1,630px down.
+- **Computers (900px and wider):** the headline, the short intro and the **Sign Up Free** / **Sign In** buttons now sit in a cream card *on* the picture, in its top right corner over the house (`#tw61-intro`, styled by `<style id="tw61-hero-intro">` in the head, so it is in place from the first paint and never jumps). On a 1366×650 laptop the headline starts 106px down and Sign Up Free 279px down. The card's sizes follow the picture's width (`--tw61-pw`), so it stays clear of the teen and of the parent on the porch on every computer size.
+- **The picture is not touched:** same files, same size (1,180px square at 1280px and wider), whole, first under the top bar. Never crop it or make it smaller to fit things on the first screen (Aya, Oct 30–31).
+- **Phones and tablets (under 900px):** exactly as before, the headline and buttons under the picture (`#tw61-intro` is `display:contents` there).
+- The trust line ("Parents approve every application…") and the demo box stay under the picture on every screen. The v59 top-bar line now stays hidden while the headline is on screen, so on computers it shows only after scrolling past the picture.
+Pictures: `docs/hero-intro-v61/`. Check with `node tests/hero-intro-v61.cjs` (computer sizes 900–1920 wide and 600–950 tall, phones and tablets unchanged, nothing moves while the page loads).
 
 ## Signed-in pages (v60)
 

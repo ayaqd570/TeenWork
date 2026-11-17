@@ -245,7 +245,7 @@
     const e = (stateData() || {})[state]; if (!e || e.__tw52) return '';
     let n = String(e.notes || '');
     if (e.permitNote) n = n.split(e.permitNote).join(' ');
-    return n.split(/(?<=\.)\s+/).filter(s => s && !PERMIT_SENTENCE.test(s)).join(' ').replace(/\s{2,}/g, ' ').trim();
+    return n.replace(/\.\s+/g, '.\u0000').split('\u0000').filter(s => s && !PERMIT_SENTENCE.test(s)).join(' ').replace(/\s{2,}/g, ' ').trim();
   }
 
   /* ── the teen's own weekly goal (not a law) and a parent's limit ──── */

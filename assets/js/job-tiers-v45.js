@@ -146,7 +146,7 @@
       e.permitUnder = row[0];
       e.permitNote = p.note;
       if (!e.permitRequired) e.permitUrl = e.permitUrl || '';
-      const kept = String(e.notes || '').split(/(?<=\.)\s+/).filter(s => s && !PERMIT_SENTENCE.test(s)).join(' ');
+      const kept = String(e.notes || '').replace(/\.\s+/g, '.\u0000').split('\u0000').filter(s => s && !PERMIT_SENTENCE.test(s)).join(' ');
       e.notes = (kept + ' ' + p.note).trim();
       e.__twjt = true;
     });

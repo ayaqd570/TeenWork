@@ -1,0 +1,162 @@
+{
+  "about": "Which source files go into which built file, in the order the page runs them. After changing this file or anything in assets/js or assets/css, run: node tools/build.cjs",
+  "scripts": [
+    {
+      "inline": "assets/js/demo-guard-v49.js"
+    },
+    {
+      "inline": "assets/js/resend-mailer-v57.js"
+    },
+    {
+      "inline": "assets/js/app-01.js"
+    },
+    {
+      "inline": "assets/js/first-screen-v59.js"
+    },
+    {
+      "inline": "assets/js/app-02.js"
+    },
+    {
+      "inline": "assets/js/app-03.js"
+    },
+    {
+      "file": "app-04",
+      "from": [
+        "assets/js/app-04.js"
+      ]
+    },
+    {
+      "file": "app-05",
+      "from": [
+        "assets/js/app-05.js"
+      ]
+    },
+    {
+      "file": "app-a",
+      "from": [
+        "assets/js/featpack-js.js",
+        "assets/js/featpack-v24-js.js"
+      ]
+    },
+    {
+      "file": "app-b",
+      "from": [
+        "assets/js/featpack-v25-js.js",
+        "assets/js/app-09.js",
+        "assets/js/navfix-js.js",
+        "assets/js/app-11.js",
+        "assets/js/app-12.js",
+        "assets/js/app-13.js",
+        "assets/js/app-14.js",
+        "assets/js/app-15.js",
+        "assets/js/app-16.js",
+        "assets/js/app-17.js",
+        "assets/js/app-18.js",
+        "assets/js/app-19.js",
+        "assets/js/app-20.js",
+        "assets/js/app-21.js",
+        "assets/js/featpack-v39-admin-js.js"
+      ]
+    },
+    {
+      "file": "app-c",
+      "from": [
+        "assets/js/support-email-v39.js",
+        "assets/js/featpack-v39-nodemo-js.js",
+        "assets/js/plan-limits-v40.js",
+        "assets/js/branded-email-v41.js",
+        "assets/js/support-reply-email-v42.js",
+        "assets/js/resend-email-v42.js",
+        "assets/js/address-autocomplete-v42.js",
+        "assets/js/clean-menu-v43.js",
+        "assets/js/real-data-v43.js",
+        "assets/js/find-jobs-simple-v45.js",
+        "assets/js/job-tiers-v45.js",
+        "assets/js/tester-accounts-v44.js",
+        "assets/js/first-job-checklist-v44.js",
+        "assets/js/calendar-first-open-v44.js",
+        "assets/js/tab-refresh-v44.js",
+        "assets/js/job-map-landmarks-v44.js"
+      ]
+    },
+    {
+      "file": "app-d",
+      "from": [
+        "assets/js/money-hours-v44.js",
+        "assets/js/ai-shift-finder-v44.js",
+        "assets/js/message-safety-v45.js",
+        "assets/js/gemini-safety-v45.js",
+        "assets/js/parent-consent-v44.js",
+        "assets/js/permit-check-v45.js",
+        "assets/js/job-board-v45.js",
+        "assets/js/contacts-v47.js",
+        "assets/js/permit-ask-v47.js",
+        "assets/js/accounts-v47.js",
+        "assets/js/permit-signup-v48.js",
+        "assets/js/demo-sandbox-v49.js"
+      ]
+    },
+    {
+      "file": "app-e",
+      "from": [
+        "assets/js/homepage-trust-v48.js",
+        "assets/js/remember-me-v63.js",
+        "assets/js/url-views-v50.js",
+        "assets/js/real-stats-v42.js",
+        "assets/js/featpack-v39-cloud-js.js",
+        "assets/js/homepage-v49.js",
+        "assets/js/phone-fit-v51.js",
+        "assets/js/trust-usability.js",
+        "assets/js/work-rules-v52.js",
+        "assets/js/parent-hours-v52.js",
+        "assets/js/practice-v52.js",
+        "assets/js/onboarding-v53.js",
+        "assets/js/profile-photo-v55.js",
+        "assets/js/dob-start-v50.js",
+        "assets/js/home-v51.js",
+        "assets/js/app-fixes-v51.js",
+        "assets/js/share-v54.js",
+        "assets/js/get-app-v57.js",
+        "assets/js/billing-v54.js",
+        "assets/js/polish-v54.js",
+        "assets/js/account-pages-v60.js"
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "file": "base",
+      "from": [
+        "assets/css/styles-01.css"
+      ]
+    },
+    {
+      "file": "app",
+      "from": [
+        "assets/css/featpack-css.css",
+        "assets/css/featpack-v24-css.css",
+        "assets/css/featpack-v25-css.css",
+        "assets/css/navfix-css.css",
+        "assets/css/styles-06.css",
+        "assets/css/styles-07.css",
+        "assets/css/styles-08.css",
+        "assets/css/styles-09.css",
+        "assets/css/styles-10.css",
+        "assets/css/styles-11.css",
+        "assets/css/tw36-bottom-room.css",
+        "assets/css/homepage-v49.css",
+        "assets/css/trust-usability.css",
+        "assets/css/phone-fit-v51.css",
+        "assets/css/practice-v52.css",
+        "assets/css/onboarding-v53.css",
+        "assets/css/profile-photo-v55.css",
+        "assets/css/home-v51.css",
+        "assets/css/share-v54.css",
+        "assets/css/get-app-v57.css",
+        "assets/css/polish-v54.css",
+        "assets/css/tree-logo-v56.css",
+        "assets/css/account-pages-v60.css"
+      ]
+    }
+  ]
+}

@@ -306,17 +306,84 @@
 
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"></noscript>
-<script id="demo-guard-v49" src="assets/js/demo-guard-v49.js"></script>
+<script id="demo-guard-v49" data-tw-inline="assets/js/demo-guard-v49.js">
+(function(){
+if(window.__twDemoGuard)return;
+window.__twDemoGuard=true;
+var BLOCK= /\.supabase\.co\/(rest|auth|storage|realtime|graphql)\/|\.supabase\.co\/functions\/v1\/(?!groq-chat\b)|api\.emailjs\.com/i;
+var on=function(){return!!window.__twDemoSandbox;};
+var urlOf=function(x){try{return typeof x==='string'?x:(x&&x.url)||String(x||'');}catch(e){return'';}};
+var f=window.fetch;
+if(typeof f==='function'){
+window.fetch=function(input){
+if(on()&&BLOCK.test(urlOf(input))){
+try{return Promise.resolve(new Response(JSON.stringify({error:'demo',message:'The demo does not save or send anything.'}),{status:503,headers:{'Content-Type':'application/json'}}));}
+catch(e){return Promise.reject(new TypeError('Failed to fetch (demo)'));}
+}
+return f.apply(this,arguments);
+};
+}
+var X=window.XMLHttpRequest&&window.XMLHttpRequest.prototype;
+if(X){
+var open=X.open,send=X.send;
+X.open=function(m,url){this.__twUrl=urlOf(url);return open.apply(this,arguments);};
+X.send=function(){
+if(on()&&BLOCK.test(this.__twUrl||'')){
+var x=this;
+setTimeout(function(){try{x.dispatchEvent(new ProgressEvent('error'));}catch(e){}},0);
+return;
+}
+return send.apply(this,arguments);
+};
+}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
 <!-- v57: no EmailJS any more; every email goes through Resend (send-email function) -->
-<script id="resend-mailer-v57" src="assets/js/resend-mailer-v57.js?v=57"></script>
+<script id="resend-mailer-v57" data-tw-inline="assets/js/resend-mailer-v57.js">
+(function(){
+'use strict';
+if(window.emailjs&&window.emailjs.__twMailer)return;
+function viaResend(params){
+var deliver=typeof window.twDeliverEmail==='function'?window.twDeliverEmail:null;
+if(deliver)return deliver('','',params||{});
+if(typeof window.twSendViaResend==='function')return window.twSendViaResend(params||{});
+return Promise.reject({status:0,text:'TeenWork email is still loading. Try again in a moment.',code:'not_ready'});
+}
+var mailer={
+init:function(){},
+send:function(service,template,params){return viaResend(params);},
+sendForm:function(){return Promise.reject({status:0,text:'TeenWork does not send forms by email',code:'bad_request'});}
+};
+Object.defineProperty(mailer,'__twMailer',{value:true});
+window.emailjs=mailer;
+})();
+</script>
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TeenWork">
 <meta name="theme-color" content="#2d6a4f">
-<script src="assets/js/app-01.js"></script>
-<link rel="stylesheet" href="assets/css/styles-01.css">
+<script data-tw-inline="assets/js/app-01.js">
+(function(){
+function makeStub(name){
+var q=[];
+window[name]=function(){
+var args=Array.prototype.slice.call(arguments);
+if(window['_real_'+name])window['_real_'+name].apply(window,args);
+else q.push(args);
+};
+window['_drain_'+name]=function(fn){
+window['_real_'+name]=fn;
+window[name]=fn;
+q.forEach(function(a){fn.apply(window,a);});
+};
+}
+makeStub('gotoPage');
+makeStub('demoLogin');
+})();
+</script>
+<link rel="stylesheet" href="assets/build/base.css?v=56da5f7cf4">
 <!-- v51 (H3): the picture is in its final place from the first paint; homepage-v49.css, which loads last, says the same.
      The picture is a big square across the page on every screen, as before (Aya, Oct 31: a smaller one in the middle looked tiny). -->
 <style id="tw51-first-paint">#page-landing .landing{padding-top:0}</style>
@@ -331,7 +398,49 @@
 @media (min-width:900px){.tw59-tag{display:block}}
 #page-landing .tw59-wait{cursor:progress !important;opacity:.7}
 </style>
-<script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
+<script id="first-screen-v59" data-tw-inline="assets/js/first-screen-v59.js">
+(function(){
+'use strict';
+if(window.__twFirstScreenV59)return;
+window.__twFirstScreenV59=true;
+var pending=null;
+function unmark(el){if(el){el.classList.remove('tw59-wait');el.removeAttribute('aria-busy');}}
+document.addEventListener('click',function(e){
+if(document.readyState!=='loading')return;
+var t=e.target&&e.target.closest?e.target.closest('#page-landing button, #page-landing a[onclick]'):null;
+if(!t)return;
+e.preventDefault();
+e.stopImmediatePropagation();
+if(pending!==t)unmark(pending);
+pending=t;
+t.classList.add('tw59-wait');
+t.setAttribute('aria-busy','true');
+},true);
+document.addEventListener('DOMContentLoaded',function(){
+setTimeout(function(){
+var t=pending;pending=null;
+if(!t)return;
+unmark(t);
+if(document.contains(t)&&t.getClientRects().length)t.click();
+},60);
+});
+function watchHeadline(){
+var tag=document.getElementById('tw59-tag'),h1=document.getElementById('tw48-h1');
+if(!tag|| !h1)return false;
+if(!('IntersectionObserver'in window))return true;
+new IntersectionObserver(function(entries){
+var e=entries[entries.length-1];
+tag.classList.toggle('tw59-quiet',!!(e&&e.isIntersecting));
+},{rootMargin:'-58px 0px 0px 0px'}).observe(h1);
+return true;
+}
+if(!watchHeadline()){
+var tries=0,timer=setInterval(function(){
+if(watchHeadline()|| ++tries>200)clearInterval(timer);
+},50);
+}
+})();
+</script>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES
@@ -343,7 +452,24 @@
      ═══════════════════════════════════════════════════════ -->
 </head>
 <body>
-<script src="assets/js/app-02.js"></script>
+<script data-tw-inline="assets/js/app-02.js">
+(function(){
+function enforcePage(){
+var pages=document.querySelectorAll('.page');
+var hasActive=false;
+pages.forEach(function(p){if(p.classList.contains('active'))hasActive=true;});
+if(!hasActive){
+var landing=document.getElementById('page-landing');
+if(landing)landing.classList.add('active');
+}
+}
+if(document.readyState==='loading'){
+document.addEventListener('DOMContentLoaded',enforcePage);
+}else{
+enforcePage();
+}
+})();
+</script>
 
 
 <!-- ─────────────────────────────────────────────────────
@@ -419,7 +545,12 @@
             </div>
             <p class="tw48-demo-note">Each demo is an empty practice account, just like a new one. Nothing you do there is saved or sent.</p>
           </div>
-          <script src="assets/js/app-03.js"></script>
+          <script data-tw-inline="assets/js/app-03.js">
+function _directDemo(type){
+if(typeof window.twStartDemo==='function')return window.twStartDemo(type);
+setTimeout(function(){_directDemo(type);},250);
+}
+</script>
         </div>
       </section>
 
@@ -3434,12 +3565,22 @@
 </div>
 
 
-<script src="assets/js/app-04.js?v=61"></script>
+<!-- THE APP'S SCRIPTS AND STYLES ARE BUILT FILES.
+     This page loads assets/build/*.js and *.css, plus a few small scripts written into the page
+     (the script tags marked data-tw-inline). They are made from the files in assets/js and assets/css by
+         node tools/build.cjs
+     and tools/bundles.json says which source file goes where, in which order.
+     To change the app: edit the file in assets/js or assets/css, run the build, commit both.
+     Never edit assets/build or the inside of a data-tw-inline script by hand.
+     fetchpriority="low" on the built files lets the home page picture download first, so it shows before the
+     scripts start running (on a laptop it showed up to a second later without it). It only changes the download
+     order, never when or in which order the scripts run. -->
+<script src="assets/build/app-04.js?v=4c6b17c247" fetchpriority="low"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/js/app-05.js?v=61"></script>
+<script src="assets/build/app-05.js?v=3c6f25c99c" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3460,7 +3601,8 @@
      Everything here is additive — it patches existing globals
      after DOM ready so the base app stays intact.
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/featpack-css.css">
+<!-- a built file: which style sheets are in it, and in which order, is in tools/bundles.json -->
+<link rel="stylesheet" href="assets/build/app.css?v=27baef9735" fetchpriority="low">
 
 <!-- ══ FLOATING CONTROLS (install, emergency, keyboard help) ══ -->
 <button id="featpack-emergency" onclick="openFeelsWrong()" style="display:none;position:fixed;right:14px;bottom:84px;z-index:700;background:var(--red);color:#fff;border:none;width:56px;height:56px;border-radius:50%;font-size:1.4rem;box-shadow:0 6px 20px rgba(192,57,43,.4);cursor:pointer" aria-label="Something feels wrong">🆘</button>
@@ -3682,7 +3824,8 @@
   </div>
 </div>
 
-<script id="featpack-js" src="assets/js/featpack-js.js?v=60"></script>
+<!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
+<script src="assets/build/app-a.js?v=cd73bfc1fc" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3699,9 +3842,7 @@
        • "Why this match" explainability chips injected
          onto each browse card after render
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/featpack-v24-css.css">
 
-<script id="featpack-v24-js" src="assets/js/featpack-v24-js.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v25 — Judges Edition
@@ -3714,7 +3855,6 @@
        • Download my data (JSON export) — privacy/portability
        • Service worker registration for real offline PWA
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/featpack-v25-css.css">
 
 <div id="page-safety-lab" class="page">
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem">
@@ -3736,13 +3876,16 @@
   </div>
 </div>
 
-<script id="featpack-v25-js" src="assets/js/featpack-v25-js.js?v=54"></script>
+<!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
+<script src="assets/build/app-b.js?v=fbdfa51404" fetchpriority="low"></script>
+<script src="assets/build/app-c.js?v=9d0b2d1764" fetchpriority="low"></script>
+<script src="assets/build/app-d.js?v=30115b96c7" fetchpriority="low"></script>
+<script src="assets/build/app-e.js?v=4571ae7ed5" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FINAL FIX SCRIPT — runs last, overrides all previous
      demoLogin / doLogin wrappers with direct implementations.
      ═══════════════════════════════════════════════════════ -->
-<script src="assets/js/app-09.js"></script>
 
 <!-- ═══════════════════════════════════════════════════
      NAV FIX — final authority. Replaces all prior nav patches.
@@ -3750,13 +3893,9 @@
      • Working tab switching (panels show/hide properly)
      • Clean "More" drawer — consolidated categories, no white borders
      ═══════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/navfix-css.css">
 
-<script id="navfix-js" src="assets/js/navfix-js.js"></script>
 
 <!-- ══ FINAL FIXES: kill old More-drawer borders, unify openMobileMoreDrawer ══ -->
-<link rel="stylesheet" href="assets/css/styles-06.css">
-<script src="assets/js/app-11.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v14 PATCH
@@ -3764,9 +3903,7 @@
      admin login error, plan choice (no auto-select),
      global feedback/review widget, support AI notice above
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/styles-07.css">
 
-<script src="assets/js/app-12.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v16 PATCH
@@ -3775,9 +3912,7 @@
        NEW: Sign In/Sign Up/Sign Out — bulletproof nav
        NEW: More drawer trimmed to 5 items
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/styles-08.css">
 
-<script src="assets/js/app-13.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v17 PATCH
@@ -3789,9 +3924,7 @@
        5. Reviews — users & admin can both view all reviews
        6. Support FAB — always visible & draggable
      ═══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/styles-09.css">
 
-<script src="assets/js/app-14.js"></script>
 
 
 <!-- ══════════════════════════════════════════════════════
@@ -3810,9 +3943,7 @@
      11. Support label changed from SOS to Help
      12. Sign Up Free button — works
 ══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/styles-10.css">
 
-<script src="assets/js/app-15.js?v=54"></script>
 
 <!-- ══════════════════════════════════════════════════════
      TEENWORK v18b LANDING PAGE PATCH
@@ -3825,107 +3956,37 @@
      5. Rate App modal: adds "Share with a friend" prompt
         that feeds into the "What the community says" section
 ══════════════════════════════════════════════════════ -->
-<link rel="stylesheet" href="assets/css/styles-11.css">
 
-<script src="assets/js/app-16.js?v=54"></script>
-<script src="assets/js/app-17.js?v=54"></script>
 
-<script src="assets/js/app-18.js"></script>
 
-<script src="assets/js/app-19.js"></script>
 
-<script src="assets/js/app-20.js?v=60"></script>
 
-<link rel="stylesheet" href="assets/css/tw36-bottom-room.css">
-<script src="assets/js/app-21.js"></script>
 
-<script id="featpack-v39-admin-js" src="assets/js/featpack-v39-admin-js.js?v=51"></script>
 
-<script id="support-email-v39" src="assets/js/support-email-v39.js"></script>
 
-<script id="featpack-v39-nodemo-js" src="assets/js/featpack-v39-nodemo-js.js?v=59"></script>
 
-<script id="plan-limits-v40" src="assets/js/plan-limits-v40.js?v=54"></script>
 
-<script id="branded-email-v41" src="assets/js/branded-email-v41.js?v=61"></script>
 
-<script id="support-reply-email-v42" src="assets/js/support-reply-email-v42.js"></script>
 
-<script id="resend-email-v42" src="assets/js/resend-email-v42.js?v=57"></script>
 
-<script id="address-autocomplete-v42" src="assets/js/address-autocomplete-v42.js"></script>
 
-<script id="clean-menu-v43" src="assets/js/clean-menu-v43.js?v=59"></script>
 
-<script id="real-data-v43" src="assets/js/real-data-v43.js?v=59"></script>
 
-<script id="find-jobs-simple-v45" src="assets/js/find-jobs-simple-v45.js?v=60"></script>
 
-<script id="job-tiers-v45" src="assets/js/job-tiers-v45.js"></script>
 
-<script id="tester-accounts-v44" src="assets/js/tester-accounts-v44.js?v=53"></script>
 
-<script id="first-job-checklist-v44" src="assets/js/first-job-checklist-v44.js"></script>
 
-<script id="calendar-first-open-v44" src="assets/js/calendar-first-open-v44.js"></script>
 
-<script id="tab-refresh-v44" src="assets/js/tab-refresh-v44.js?v=56"></script>
 
-<script id="job-map-landmarks-v44" src="assets/js/job-map-landmarks-v44.js?v=52"></script>
-<script id="money-hours-v44" src="assets/js/money-hours-v44.js?v=60"></script>
 
-<script id="ai-shift-finder-v44" src="assets/js/ai-shift-finder-v44.js"></script>
 
-<script id="message-safety-v45" src="assets/js/message-safety-v45.js"></script>
-<script id="gemini-safety-v45" src="assets/js/gemini-safety-v45.js"></script>
-<script id="parent-consent-v44" src="assets/js/parent-consent-v44.js?v=53"></script>
 
-<script id="permit-check-v45" src="assets/js/permit-check-v45.js"></script>
 
-<script id="job-board-v45" src="assets/js/job-board-v45.js"></script>
 
-<script id="contacts-v47" src="assets/js/contacts-v47.js"></script>
-<script id="permit-ask-v47" src="assets/js/permit-ask-v47.js"></script>
-<script id="accounts-v47" src="assets/js/accounts-v47.js?v=51"></script>
-<script id="permit-signup-v48" src="assets/js/permit-signup-v48.js"></script>
-<script id="demo-sandbox-v49" src="assets/js/demo-sandbox-v49.js?v=63"></script>
-<script id="homepage-trust-v48" src="assets/js/homepage-trust-v48.js?v=51"></script>
-<script id="remember-me-v63" src="assets/js/remember-me-v63.js?v=63"></script>
-<script id="url-views-v50" src="assets/js/url-views-v50.js?v=63"></script>
-<script id="real-stats-v42" src="assets/js/real-stats-v42.js?v=56"></script>
 
-<script id="featpack-v39-cloud-js" src="assets/js/featpack-v39-cloud-js.js"></script>
 
-<link rel="stylesheet" href="assets/css/homepage-v49.css?v=55">
-<script src="assets/js/homepage-v49.js?v=55"></script>
-<link rel="stylesheet" href="assets/css/trust-usability.css?v=55">
-<link rel="stylesheet" href="assets/css/phone-fit-v51.css">
-<script id="phone-fit-v51" src="assets/js/phone-fit-v51.js?v=51"></script>
-<script src="assets/js/trust-usability.js"></script>
-<link rel="stylesheet" href="assets/css/practice-v52.css?v=52">
-<script id="work-rules-v52" src="assets/js/work-rules-v52.js?v=52"></script>
-<script id="parent-hours-v52" src="assets/js/parent-hours-v52.js?v=52"></script>
-<script id="practice-v52" src="assets/js/practice-v52.js?v=52"></script>
-<link rel="stylesheet" href="assets/css/onboarding-v53.css?v=59">
-<script id="onboarding-v53" src="assets/js/onboarding-v53.js?v=59"></script>
-<link rel="stylesheet" href="assets/css/profile-photo-v55.css?v=58">
-<script id="profile-photo-v55" src="assets/js/profile-photo-v55.js?v=58"></script>
-<script id="dob-start-v50" src="assets/js/dob-start-v50.js"></script>
-<link rel="stylesheet" href="assets/css/home-v51.css?v=51">
-<script id="home-v51" src="assets/js/home-v51.js?v=51"></script>
-<script id="app-fixes-v51" src="assets/js/app-fixes-v51.js?v=51"></script>
-<link rel="stylesheet" href="assets/css/share-v54.css?v=54">
-<script id="share-v54" src="assets/js/share-v54.js?v=60"></script>
 <!-- v57: Get the TeenWork app (Download the app button, the install pop-up, ?app=1 and ?unsub= links) -->
-<link rel="stylesheet" href="assets/css/get-app-v57.css?v=57">
-<script id="get-app-v57" src="assets/js/get-app-v57.js?v=59"></script>
-<script id="billing-v54" src="assets/js/billing-v54.js?v=54"></script>
-<link rel="stylesheet" href="assets/css/polish-v54.css?v=54">
-<script id="polish-v54" src="assets/js/polish-v54.js?v=54"></script>
 <!-- v56: the tree is TeenWork's only logo (headers, menu, weekly digest, icons, emails) -->
-<link rel="stylesheet" href="assets/css/tree-logo-v56.css?v=56">
 <!-- v60: each signed-in page has its own title; the teen's profile card and bio come first and the bio saves -->
-<link rel="stylesheet" href="assets/css/account-pages-v60.css?v=60">
-<script id="account-pages-v60" src="assets/js/account-pages-v60.js?v=60"></script>
 </body>
 </html>

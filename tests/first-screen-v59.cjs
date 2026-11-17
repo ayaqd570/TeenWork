@@ -107,7 +107,7 @@ async function oldSamples(browser) {
 // A slow phone: one late script takes 2.5 s, so the page is on screen while the app is still loading.
 async function earlyTap(browser, label, button, check) {
   const context = await ctxFor(browser, { width: 390, height: 844 });
-  await context.route('**/assets/js/real-stats-v42.js*', async r => { await new Promise(x => setTimeout(x, 2500)); r.continue(); });
+  await context.route('**/assets/build/app-b.js*', async r => { await new Promise(x => setTimeout(x, 2500)); r.continue(); });
   const p = await context.newPage(), errors = []; p.setDefaultTimeout(10000); p.on('pageerror', e => errors.push(e.message));
   await p.goto(URL0, { waitUntil: 'commit' });
   await p.locator(button).first().waitFor({ state: 'visible' });

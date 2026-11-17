@@ -9,4 +9,4 @@
 - No regex lookbehind (`(?<=` or `(?<!`) and nothing newer than ES2020: older iPhones can't read it, and in a built
   file that would stop every script in the file.
 - Checks: `node tests/build-same.cjs` (the built page behaves like the separate files) plus the other files in `tests/`
-  (the README lists them). More in README.md, "Build step (v61)".
+  (the README lists them). More in README.md, "Build step (v62)".

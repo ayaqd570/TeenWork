@@ -1,4 +1,4 @@
-# TeenWork build step (v61). The page loads assets/build/*, made from assets/js and assets/css by tools/build.cjs.
+# TeenWork build step (v62). The page loads assets/build/*, made from assets/js and assets/css by tools/build.cjs.
 # - On main: runs the build and commits the result if someone changed a source file without building
 #   (for example an edit made on github.com), so the change reaches teenwork.ayaqd.com.
 # - On pull requests: only checks that the built files are up to date, and says how to fix it if not.

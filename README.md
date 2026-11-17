@@ -3,8 +3,8 @@
 The TeenWork app uses `index.html` plus the scripts and styles in `assets/`.
 
 > **After editing anything in `assets/js` or `assets/css`, run `node tools/build.cjs` and commit what it changes.**
-> Since v61 the page loads a few built files (`assets/build/`) made from those source files, so an edit that is not
-> built does not reach the site. On `main`, a GitHub Action runs the build by itself (see "Build step (v61)").
+> Since v62 the page loads a few built files (`assets/build/`) made from those source files, so an edit that is not
+> built does not reach the site. On `main`, a GitHub Action runs the build by itself (see "Build step (v62)").
 The app lives only at https://teenwork.ayaqd.com (Aya's own domain), which serves this repo's `main` branch. Netlify is no longer used.
 
 ## What's here
@@ -37,7 +37,7 @@ Never commit Groq, Stripe or Resend keys, the Supabase service-role key, or the 
 
 https://teenwork.ayaqd.com shows the `main` branch.
 To ship a new app version, update the relevant markup, scripts and styles, run `node tools/build.cjs`, commit and push.
-If you forget the build, the GitHub Action does it on `main` a minute after the push (see "Build step (v61)").
+If you forget the build, the GitHub Action does it on `main` a minute after the push (see "Build step (v62)").
 
 ## The admin sign-in (v51)
 
@@ -89,7 +89,7 @@ From a review Aya pasted on 2026-11-15.
 - **Small logo.** Page logos use `assets/img/small-logo.png` (160px, 14 KB) instead of the 512px `logo.png` (105 KB). `logo.png` stays for search engines (structured data), the service worker and the icon maker. The name still ends in `logo.png`, so the cream-frame CSS in `trust-usability.css` still applies.
 - **Empty job list.** Teens with no jobs nearby see "Know someone who could use a hand?" with **Ask someone to post a job**, which opens the share window aimed at employers (`twShare({ audience: 'employer' })`: its own title, message and email subject; the member's link and code stay the same).
 - **Speed, measured** (home page, cold cache, gzip, outside sites blocked; phone = 4× slower CPU, 1.6 Mbps, 150 ms; median of 3): before 1,002 KB in 94 requests (images 201 KB), first paint 0.81 s, picture 2.3 s, buttons ready 6.1 s; after 914 KB (images 110 KB), first paint 0.61 s, picture 2.35 s, buttons ready 5.7 s, and taps before that are kept. Laptop (10 Mbps): buttons ready 1.26 s both times.
-- **Left alone on purpose (done in v61, see "Build step (v61)"):** the home page still loads all 69 scripts (2.4 MB, about 700 KB compressed). They patch each other in a fixed order (later files wrap functions from earlier ones), so loading the dashboard scripts only after sign-in, or adding `defer`/`async`, would change that order and could break sign-in or the demos. Doing it safely is a separate job: a small build step that minifies the files, or moving dashboard-only code out of the layered files one by one with tests. Also check that the web server compresses `.js` and `.css` (gzip); without it the phone download is about three times bigger.
+- **Left alone on purpose (done in v62, see "Build step (v62)"):** the home page still loads all 69 scripts (2.4 MB, about 700 KB compressed). They patch each other in a fixed order (later files wrap functions from earlier ones), so loading the dashboard scripts only after sign-in, or adding `defer`/`async`, would change that order and could break sign-in or the demos. Doing it safely is a separate job: a small build step that minifies the files, or moving dashboard-only code out of the layered files one by one with tests. Also check that the web server compresses `.js` and `.css` (gzip); without it the phone download is about three times bigger.
 Check with `node tests/first-screen-v59.cjs`.
 
 ## Signed-in pages (v60)
@@ -104,22 +104,22 @@ From Aya's list of 2026-11-15, looking at a real teen account. Pictures: `docs/a
 
 Check with `node tests/account-pages-v60.cjs`.
 
-## Build step (v61)
+## Build step (v62)
 
 From a review Aya pasted on 2026-11-16 ("One huge page: about 300 KB of HTML, 74 script files and about 3,800 elements").
 
-**What changed.** The home page used to download 71 script files and 23 style sheets, one by one. Now it downloads
+**What changed.** The home page used to download 72 script files and 24 style sheets, one by one. Now it downloads
 7 scripts and 2 style sheets from `assets/build/`, and 5 tiny start-up scripts (about 4 KB, the ones that must run
 before anything else) are written into `index.html`. They are made by `node tools/build.cjs` from the same source
 files in `assets/js` and `assets/css`, which stay the files to edit.
 
 - `assets/build/app-04.js` and `app-05.js`: the two big base files, each on its own (they declare global names, so
   joining them could change when those names exist).
-- `assets/build/app-a.js` (2 files), then `app-b.js` to `app-e.js` (the other 62, from `featpack-v25-js.js` to
-  `polish-v54.js`, in four parts of about 300 KB): the feature files, joined in the same order. Four parts instead of
+- `assets/build/app-a.js` (2 files), then `app-b.js` to `app-e.js` (the other 63, from `featpack-v25-js.js` to
+  `account-pages-v60.js`, in four parts of about 300 KB): the feature files, joined in the same order. Four parts instead of
   one so a slow phone isn't frozen by one long run (measured: about a third less blocked time while loading). Each
   source file runs inside its own `try`, so an error in one still lets the next one run, as before.
-- `assets/build/base.css` (the head style sheet) and `app.css` (the other 22, in order).
+- `assets/build/base.css` (the head style sheet) and `app.css` (the other 23, in order).
 - Comments, indentation and spaces the language doesn't need are removed. Line breaks, names and code stay exactly
   as written: for every file the build parses the smaller copy again and stops unless it reads exactly the same.
   Nothing is renamed, because the demo AI limit reads function names (`demo-sandbox-v49.js`).
@@ -150,23 +150,41 @@ GitHub emails the owner, and the site keeps the last good build.
 **How we know it behaves the same.** `node tests/build-same.cjs` opens the page twice, offline: once as built and once
 with every source file on its own tag. A probe runs before and after each source file and records every global name
 and function, the page content, the listeners and timers that were set, local and session storage, and where each
-`<style>` sits among the style sheets. Both runs must match at all 142 probes, after loading, and after each flow
+`<style>` sits among the style sheets. Both runs must match at all 144 probes, after loading, and after each flow
 (the three demos, Sign In, Sign Up, plans, `?view=jobs` and `?view=admin` signed out, and a refresh inside the teen and
-employer demos), and the screenshots must be identical. With `--against 328e924` it compares with `index.html` as it was
-just before this change (main at that commit): 1,294 states and 16 screenshots matched. The only difference while loading: the job map's page
-watcher (`job-map-landmarks-v44.js`) sets its 60 ms timer after the joined file instead of in the middle of it.
-One more difference that can't be seen in a test: on a slow phone the old page ran its 71 files spread over several
+employer demos), and so must the screenshots (a few pixels on an edge may be 1 or 2 shades apart: that is how the
+browser happened to smooth a rounded corner; in the case seen, all 3,964 elements had the same size, place and
+styles). With `--against 8a605e8` it compares with `index.html` as it was just before this change (main with v60):
+1,312 states and 16 screenshots matched. The only difference while loading: the job map's page watcher (`job-map-landmarks-v44.js`) sets its
+60 ms timer after the joined file instead of in the middle of it.
+One more difference that can't be seen in a test: on a slow phone the old page ran its 72 files spread over several
 seconds, so timers sometimes fired between two files (for example `plan-limits-v40.js` wraps the sign-up function again
 1.5 s after it loads). Now all joined files run one after the other, always in the order a fast computer had.
 
 **Speed, measured** (`node tools/build.cjs --stats` for sizes; home page, cold cache, gzip, outside sites blocked;
-phone = 4× slower CPU, 1.6 Mbps, 150 ms; median of 7):
+phone = 4× slower CPU, 1.6 Mbps, 150 ms; laptop = 10 Mbps, 40 ms; median of 7; before = main at 8a605e8):
 
-SPEED_TABLE
+| Home page, signed out | Phone before | Phone after | Laptop before | Laptop after |
+|---|---:|---:|---:|---:|
+| Files downloaded | 99 | **12** | 99 | **12** |
+| Script files / style sheets | 72 / 24 | **7 / 2** | 72 / 24 | **7 / 2** |
+| Downloaded, compressed | 897 KB | **687 KB** | 960 KB | **749 KB** |
+| … of it scripts | 716 KB | **524 KB** | 716 KB | **524 KB** |
+| First paint | **0.60 s** | 0.76 s | 0.20 s | 0.18 s |
+| Picture on screen | 1.50 s | **0.93 s** | 0.52 s | **0.44 s** |
+| Page read, every button works | 5.40 s | **3.93 s** | **1.41 s** | 1.50 s |
+| Blocked time while loading (long scripts) | **61 ms** | 175 ms | 259 ms | **119 ms** |
+
+The page itself: 315,105 → 314,206 bytes of HTML (63 KB compressed both times), 3,801 → 3,719 elements, `<script>`
+tags 75 → 15 (7 built files, 5 small ones written into the page, Supabase, EmailJS and the search-engine data).
+Trade-offs: on a phone the first paint comes about 0.15 s later, because the 5 small start-up scripts
+are now inside the page; the picture comes 0.57 s sooner and the buttons work 1.5 s sooner. On a phone the joined
+files run in fewer, longer pieces (175 ms frozen in all, while loading) instead of 72 short ones spread over 5 s.
+On a laptop the page is read 0.1 s later, because the scripts wait for the picture.
 
 **Left alone on purpose** (each would need many files changed one by one):
 - **Loading the dashboards only after sign-in.** The dashboards' markup (parent, teen, employer, verification) is
-  205 KB of the 313 KB HTML and 2,300 of the 3,700 elements, but only 37 KB compressed. 40 of the 71 scripts look up
+  205 KB of the 314 KB HTML and 2,300 of the 3,700 elements, but only 37 KB compressed. 40 of the scripts look up
   412 of its elements by id while the page loads, and 11 of the 21 scripts that set up the home page also set up
   dashboard parts. Taking that markup out of the page would make those lookups find nothing, so each of those 40
   files would have to be changed and tested. The same goes for loading dashboard scripts later: home page and
@@ -176,8 +194,8 @@ SPEED_TABLE
 - **Renaming variables to shorter names (full minifying):** only about 6% smaller compressed, and it would break the
   demo AI limit, which reads function names.
 
-Checks: `node tools/build.cjs --check` and `node tests/build-same.cjs` (add `--against 328e924` for the comparison with
-the page before v61). The slow-phone test in `tests/first-screen-v59.cjs` now holds back `assets/build/app-b.js`.
+Checks: `node tools/build.cjs --check` and `node tests/build-same.cjs` (add `--against 8a605e8` for the comparison with
+the page before v62). The slow-phone test in `tests/first-screen-v59.cjs` now holds back `assets/build/app-b.js`.
 
 ## Sharing (v54)
 
@@ -230,7 +248,7 @@ The page now loads its scripts from `assets/js/` and styles from `assets/css/`.
 Each block stays in its original position and order, including the existing feature
 patches. Edit these source files directly; replacing only `index.html` with an old
 single-file export will discard the refactor. Deploy the page and assets together.
-Since v61 there is a small build step (`node tools/build.cjs`, see "Build step (v61)"). Serve the repository
+Since v62 there is a small build step (`node tools/build.cjs`, see "Build step (v62)"). Serve the repository
 root with a static web server for local development (for example `python -m http.server 8000`).
 
 Before publishing this frontend update:

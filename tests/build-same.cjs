@@ -10,7 +10,7 @@
       (the three demos, Sign In, Sign Up, page addresses, the admin address). Screenshots must match too.
 
    Run: node tests/build-same.cjs                    (compares with the separate source files)
-        node tests/build-same.cjs --against 328e924  (compares with index.html from that commit, where every script and
+        node tests/build-same.cjs --against 8a605e8  (compares with index.html from that commit, where every script and
                                                       style sheet still had its own tag: main just before the build step) */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -171,9 +171,14 @@ function firstDiff(a, b) {
   const [s1, s2] = [await serve(sepDir), await serve(builtDir)];
   const urls = { separate: 'http://127.0.0.1:' + s1.address().port, built: 'http://127.0.0.1:' + s2.address().port };
   const browser = await chromium.launch();
-  const problems = [], duringLoad = [];
+  const problems = [], duringLoad = [], smoothing = [];
   let compared = 0, pixels = 0;
 
+  // Run the page clock, give the browser a moment for what the clock does not drive (pictures arriving, observers
+  // that watch what is on screen), then run the clock once more so timers those started have fired before the
+  // snapshot. Without the last step a short timer (account-pages-v60 repaints 40 ms after a class changes) could be
+  // still waiting in one run and done in the other, depending on when the browser got round to it.
+  async function settle(page, ms) { await page.clock.runFor(ms); await page.waitForTimeout(300); await page.clock.runFor(1000); }
   async function open(mode, viewport, addr, session) {
     const context = await browser.newContext({ viewport, isMobile: viewport.width < 600, hasTouch: viewport.width < 600, serviceWorkers: 'block' });
     await context.route('**/*', r => new URL(r.request().url()).hostname === '127.0.0.1' ? r.continue() : r.abort());
@@ -188,12 +193,32 @@ function firstDiff(a, b) {
     await page.clock.install({ time: new Date('2026-11-17T12:00:00Z') });
     await page.clock.pauseAt(new Date('2026-11-17T12:00:00Z'));
     await page.goto(urls[mode] + addr, { waitUntil: 'load' });
-    await page.clock.runFor(4000);
-    await page.waitForTimeout(300);
+    await settle(page, 4000);
     return { context, page, errors };
   }
   const shot = async p => { await p.evaluate(() => { document.querySelectorAll('*').forEach(e => { e.style.setProperty('animation', 'none', 'important'); e.style.setProperty('transition', 'none', 'important'); e.style.setProperty('caret-color', 'transparent', 'important'); }); }); await p.waitForTimeout(150); return p.screenshot({ fullPage: false }); };
   const snap = p => p.evaluate(() => window.__twProbeSnap());
+  // Screenshots: the same, or at most a few edge pixels off by 1 or 2 (of 255). That is how the browser happens to
+  // smooth a rounded corner, not a change: in the one case seen (employer demo refresh, phone) all 3,964 elements had
+  // the same size, place and every computed style in both pages, and 18 pixels on one box edge were 1 apart.
+  const cmpPage = await browser.newPage();
+  async function sameShot(name, label, x, y) {
+    pixels++;
+    if (x.equals(y)) return;
+    const d = await cmpPage.evaluate(async ([u, v]) => {
+      const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+      const [i, j] = await Promise.all([load(u), load(v)]);
+      if (i.width !== j.width || i.height !== j.height) return { size: true };
+      const data = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const p = data(i), q = data(j); let n = 0, max = 0;
+      for (let k = 0; k < p.length; k += 4) { const m = Math.max(Math.abs(p[k] - q[k]), Math.abs(p[k + 1] - q[k + 1]), Math.abs(p[k + 2] - q[k + 2])); if (m) { n++; if (m > max) max = m; } }
+      return { n, max };
+    }, ['data:image/png;base64,' + x.toString('base64'), 'data:image/png;base64,' + y.toString('base64')]);
+    if (!d.size && d.max <= 2 && d.n <= 200) { smoothing.push(name + ' — ' + label + ': ' + d.n + ' pixels differ by ' + d.max + ' of 255'); return; }
+    problems.push(name + ' — ' + label + ': the screenshots differ (' + (d.size ? 'other size' : d.n + ' pixels, by up to ' + d.max + ' of 255') + ')');
+    const base = path.join(tmp, (name + ' ' + label).replace(/\W+/g, '-'));
+    fs.writeFileSync(base + '-separate.png', x); fs.writeFileSync(base + '-built.png', y);
+  }
 
   async function scenario(name, viewport, addr, flow, session) {
     const runs = {};
@@ -205,7 +230,7 @@ function firstDiff(a, b) {
       r.shot = await shot(r.page);
       r.flows = [];
       for (const [label, act] of flow || []) {
-        await act(r.page); await r.page.clock.runFor(3000); await r.page.waitForTimeout(300);
+        await act(r.page); await settle(r.page, 3000);
         r.flows.push({ label, snap: await snap(r.page), shot: await shot(r.page) });
       }
       runs[mode] = r;
@@ -227,13 +252,18 @@ function firstDiff(a, b) {
       }
     }
     for (const e of seen.values()) duringLoad.push(name + ' — ' + e.k + ' differs from ' + e.from + ' to ' + e.to + ' (' + e.n + ' probes): ' + JSON.stringify(e.v));
-    const check = (label, x, y) => { compared++; const d = firstDiff(x, y); if (d) problems.push(name + ' — ' + label + ': ' + JSON.stringify(d, null, 1)); };
+    // After loading, timers count once each: how often a repaint timer that waits for a quiet moment gets started
+    // (account-pages-v60 repaints 40 ms after the last class change) depends on when the browser draws a frame, which
+    // the page clock doesn't control: loading the separate files 8 times gave 93 or 94 starts, the built page 94.
+    const once = x => Object.assign({}, x, { timers: [...new Set(x.timers)].sort() });
+    const check = (label, x, y) => { compared++; const d = firstDiff(once(x), once(y)); if (d) problems.push(name + ' — ' + label + ': ' + JSON.stringify(d, null, 1)); };
     check('after loading', a.loaded, b.loaded);
-    pixels++; if (!a.shot.equals(b.shot)) { problems.push(name + ' — after loading: the screenshots differ'); fs.writeFileSync(path.join(tmp, name.replace(/\W+/g, '-') + '-separate.png'), a.shot); fs.writeFileSync(path.join(tmp, name.replace(/\W+/g, '-') + '-built.png'), b.shot); }
-    a.flows.forEach((f, i) => {
+    await sameShot(name, 'after loading', a.shot, b.shot);
+    for (let i = 0; i < a.flows.length; i++) {
+      const f = a.flows[i];
       check(f.label, f.snap, b.flows[i].snap);
-      pixels++; if (!f.shot.equals(b.flows[i].shot)) { problems.push(name + ' — ' + f.label + ': the screenshots differ'); fs.writeFileSync(path.join(tmp, (name + ' ' + f.label).replace(/\W+/g, '-') + '-separate.png'), f.shot); fs.writeFileSync(path.join(tmp, (name + ' ' + f.label).replace(/\W+/g, '-') + '-built.png'), b.flows[i].shot); }
-    });
+      await sameShot(name, f.label, f.shot, b.flows[i].shot);
+    }
     assert.deepEqual(b.errors, a.errors, name + ': different page errors');
     console.log((problems.length ? '…' : 'ok') + ' ' + name + ' (' + a.log.length + ' probes, ' + (a.flows.length + 1) + ' states)');
   }
@@ -262,6 +292,7 @@ function firstDiff(a, b) {
 
   await browser.close(); s1.close(); s2.close();
   if (duringLoad.length) console.log('\nWhile loading (each source file in the built page runs right after the one before it, with no\nmicrotask break between them; the end state is what has to match):\n' + duringLoad.join('\n'));
+  if (smoothing.length) console.log('\nScreenshots off by edge smoothing only (allowed: at most 2 of 255, at most 200 pixels):\n' + smoothing.join('\n'));
   if (problems.length) { console.error('\n' + problems.join('\n\n') + '\n\nScreenshots and copies: ' + tmp); process.exit(1); }
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log('Built page = separate files: ' + compared + ' states and ' + pixels + ' screenshots match' + (AGAINST ? ' (compared with index.html from ' + AGAINST + ')' : '') + '.');

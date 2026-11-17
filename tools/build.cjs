@@ -191,7 +191,8 @@ function loadManifest() {
   return m;
 }
 
-/* opts.probe (tests only): calls window.__twProbe(file, 0) before and (file, 1) after each source file. */
+/* opts.probe (tests only): inside a joined file, calls window.__twProbe(file, 0) before and (file, 1) after each source
+   file. (Files that are not joined have their own tag, so a test puts its probes around that tag.) */
 function build(opts) {
   opts = opts || {};
   const manifest = loadManifest();
@@ -205,7 +206,7 @@ function build(opts) {
   for (const u of manifest.scripts) {
     if (u.inline) {
       const s = stripJs(take(u.inline), u.inline);
-      const body = probe(u.inline, 0) + s.code + probe(u.inline, 1);
+      const body = s.code;
       if (/<\/script|<!--/i.test(body)) fail(u.inline + ': contains "</script" or "<!--", so it cannot sit inside the page. List it under "file" in ' + MANIFEST + ' instead.');
       lexicalNames.push(...topLevel(s.ast).declares.lexical);
       units.push({ kind: 'inline', src: u.inline, code: body.replace(/\n$/, '') });
@@ -217,7 +218,7 @@ function build(opts) {
     for (const f of u.from) {
       const s = stripJs(take(f), f), top = topLevel(s.ast);
       lexicalNames.push(...top.declares.lexical);
-      if (u.from.length === 1) { text += '/* ' + f + ' */\n' + probe(f, 0) + s.code + probe(f, 1); continue; }
+      if (u.from.length === 1) { text += '/* ' + f + ' */\n' + s.code; continue; }
       if (!top.joinable) fail(f + ' has ' + top.why + ', so it cannot be joined with other files (the names it declares would exist earlier than they do now). Give it its own "file" entry in ' + MANIFEST + ', or wrap its code in a function.');
       text += '/* ' + f + ' */\ntry{\n' + probe(f, 0) + s.code + probe(f, 1) + CATCH;
     }

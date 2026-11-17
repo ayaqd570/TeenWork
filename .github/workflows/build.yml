@@ -1,0 +1,38 @@
+# TeenWork build step (v61). The page loads assets/build/*, made from assets/js and assets/css by tools/build.cjs.
+# - On main: runs the build and commits the result if someone changed a source file without building
+#   (for example an edit made on github.com), so the change reaches teenwork.ayaqd.com.
+# - On pull requests: only checks that the built files are up to date, and says how to fix it if not.
+name: Build
+on:
+  push:
+    branches: [main]
+    paths: ['assets/js/**', 'assets/css/**', 'index.html', 'tools/**']
+  pull_request:
+    paths: ['assets/js/**', 'assets/css/**', 'index.html', 'tools/**']
+permissions:
+  contents: write
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check that the built files are up to date
+        if: github.event_name == 'pull_request'
+        run: node tools/build.cjs --check
+      - name: Build and commit
+        if: github.event_name == 'push'
+        run: |
+          node tools/build.cjs
+          if [ -n "$(git status --porcelain -- assets/build index.html)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A -- assets/build index.html
+            git commit -m "Rebuild assets/build from assets/js and assets/css (node tools/build.cjs)"
+            git push
+          fi

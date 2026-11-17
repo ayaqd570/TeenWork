@@ -3541,7 +3541,7 @@ setTimeout(function(){_directDemo(type);},250);
 
 <!-- THE APP'S SCRIPTS AND STYLES ARE BUILT FILES.
      This page loads assets/build/*.js and *.css, plus a few small scripts written into the page
-     (the <script data-tw-inline="…"> tags). They are made from the files in assets/js and assets/css by
+     (the script tags marked data-tw-inline). They are made from the files in assets/js and assets/css by
          node tools/build.cjs
      and tools/bundles.json says which source file goes where, in which order.
      To change the app: edit the file in assets/js or assets/css, run the build, commit both.
@@ -3572,7 +3572,7 @@ setTimeout(function(){_directDemo(type);},250);
      Everything here is additive — it patches existing globals
      after DOM ready so the base app stays intact.
      ═══════════════════════════════════════════════════════ -->
-<!-- built from featpack-css.css and every style sheet after it (the list is in tools/bundles.json) -->
+<!-- a built file: which style sheets are in it, and in which order, is in tools/bundles.json -->
 <link rel="stylesheet" href="assets/build/app.css?v=d3f0782e20">
 
 <!-- ══ FLOATING CONTROLS (install, emergency, keyboard help) ══ -->
@@ -3795,7 +3795,7 @@ setTimeout(function(){_directDemo(type);},250);
   </div>
 </div>
 
-<!-- built from featpack-js.js and featpack-v24-js.js -->
+<!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
 <script src="assets/build/app-a.js?v=5aee2e422d"></script>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -3847,7 +3847,7 @@ setTimeout(function(){_directDemo(type);},250);
   </div>
 </div>
 
-<!-- built from featpack-v25-js.js and every script after it (the list is in tools/bundles.json) -->
+<!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
 <script src="assets/build/app-b.js?v=04ab8ad7b1"></script>
 
 <!-- ═══════════════════════════════════════════════════════

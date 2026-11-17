@@ -1176,38 +1176,36 @@ throw{status:d.httpStatus||0,text:d.error||'Resend send failed',code:d.code||'er
 });
 };
 function remember(entry){state.log.push(entry);if(state.log.length>30)state.log.shift();}
-window.twDeliverEmail=function(service,template,params,key,emailJS){
-function viaEmailJS(){
-try{if(!key&&typeof EMAILJS_PUBKEY!=='undefined'&&window.emailjs&&typeof window.emailjs.init==='function')window.emailjs.init(EMAILJS_PUBKEY);}catch(e){}
-return emailJS();
+window.twDeliverEmail=function(service,template,params){
+var p=params||{},at=new Date().toISOString();
+var base={at:at,to:p.to_email,subject:p.subject,team:isTeam(p.to_email)};
+if(!isEmail(p.to_email)||typeof p.message!=='string'|| !p.message.trim()){
+remember(Object.assign({via:'not sent',error:'bad_request'},base));
+return Promise.reject({status:0,text:'An email needs one valid address and a message',code:'bad_request'});
 }
 try{
-var p=params||{};
-if(!mainTemplate()||template!==mainTemplate()|| !isEmail(p.to_email)||typeof p.message!=='string')return viaEmailJS();
-if(isTeam(p.to_email)){remember({at:new Date().toISOString(),to:p.to_email,subject:p.subject,via:'emailjs',why:'team inbox'});return viaEmailJS();}
-var at=new Date().toISOString();
 return window.twSendViaResend(p).then(function(r){
-remember({at:at,to:p.to_email,subject:p.subject,via:'resend',id:r.id});
+remember(Object.assign({via:'resend',id:r.id},base));
 return r;
 },function(err){
-remember({at:at,to:p.to_email,subject:p.subject,via:'emailjs',resendError:err&&(err.code+': '+err.text)});
-if(err&&err.code!=='off')console.info('TeenWork: Resend could not send ('+(err.code||'')+'), using EmailJS instead.',err.text||'');
-return viaEmailJS();
+remember(Object.assign({via:'not sent',error:err&&(err.code+': '+err.text)},base));
+if(err&&err.code!=='off')console.warn('TeenWork: Resend could not send this email ('+(err.code||'')+').',err.text||'');
+throw err;
 });
 }catch(e){
-console.warn('TeenWork Resend hook failed, using EmailJS:',e);
-return viaEmailJS();
+console.warn('TeenWork email failed:',e);
+return Promise.reject({status:0,text:String((e&&e.message)||e),code:'error'});
 }
 };
 window.twEmailStatus=function(){return{resendOff:state.off,reason:state.offReason,functionUrl:fnUrl(),recent:state.log.slice()};};
 window.twPingEmailFunction=function(){return callFn({ping:true});};
 function healthNote(d){
 if(d.ok&&d.configured&& !d.testing)return{status:'ok',note:'Resend ready · sending from '+(d.from_domain||'your domain')};
-if(d.ok&&d.configured)return{status:'warn',note:'Resend in test mode: it only reaches the email your Resend account uses. Others go through EmailJS until a domain is verified.'};
-if(d.ok)return{status:'warn',note:'Resend key not added yet · EmailJS sends instead'};
-if(d.code==='not_deployed')return{status:'warn',note:'send-email function not deployed · EmailJS sends instead'};
-if(d.code==='no_supabase')return{status:'warn',note:'Supabase not configured · EmailJS sends instead'};
-return{status:'warn',note:'Resend unreachable ('+(d.error||d.code||'offline')+') · EmailJS sends instead'};
+if(d.ok&&d.configured)return{status:'warn',note:'Resend in test mode: it only reaches the email your Resend account uses until RESEND_FROM is an address on a verified domain.'};
+if(d.ok)return{status:'error',note:'Resend key not added yet · no emails can be sent'};
+if(d.code==='not_deployed')return{status:'error',note:'send-email function not deployed · no emails can be sent'};
+if(d.code==='no_supabase')return{status:'error',note:'Supabase not configured · no emails can be sent'};
+return{status:'warn',note:'Resend unreachable ('+(d.error||d.code||'offline')+') · emails wait until it answers'};
 }
 function adminEmail(){return typeof ADMIN_EMAIL!=='undefined'?ADMIN_EMAIL:'';}
 window.twSendTestEmail=function(to){

@@ -3,15 +3,11 @@
 const SUPABASE_URL='https://qocmpwimsfcnqijtfmki.supabase.co';
 const SUPABASE_KEY='sb_publishable_wleBRg_z-KSBxjc5vDovWg_7IEBbXO8';
 const EMAILJS_SERVICE='TeenWork';
-const EMAILJS_TEMPLATE='template_t4l4tz9';
-const EMAILJS_PUBKEY='4ac7YlFuqZILXmSnV';
+const EMAILJS_TEMPLATE='teenwork-main';
+const EMAILJS_PUBKEY='';
 const ADMIN_EMAIL='ayaquarrierdraper@gmail.com';
 const ADMIN_LOGIN_ALIASES=['admin','admin@teenwork.com','admin@teenwork.app'];
 const TW_ADMIN_ROLE='admin';
-(function(){
-try{if(typeof emailjs!=='undefined')emailjs.init(EMAILJS_PUBKEY);}
-catch(e){console.warn('EmailJS not ready:',e);}
-})();
 let sbClient=null;
 try{
 if(window.supabase&&SUPABASE_KEY!=='YOUR_SUPABASE_ANON_KEY'){
@@ -1765,25 +1761,25 @@ document.body.appendChild(modal);
 modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
 }
 let _emailjsQuotaExceeded=false;
+const _TW_MAIL_DOWN=['off','not_configured','not_deployed','bad_key','limits_unavailable','no_supabase','limit','resend_limit','not_ready'];
 async function sendVerificationEmailJS(toEmail,toName){
 if(_emailjsQuotaExceeded){
-console.warn('EmailJS quota exceeded — skipping send.');
+console.warn('Email limit reached — skipping send.');
 showToast('📬 Email quota reached for now. Your code is shown below — enter it to continue.','info');
 _showInAppCode();
 return false;
 }
 if(typeof emailjs==='undefined'){
-console.error('EmailJS library not loaded. Check script tag in HTML head.');
+console.error('TeenWork mailer (resend-mailer-v57.js) not loaded.');
 showToast('Email service unavailable — please contact support.','error');
 return false;
 }
 if(EMAILJS_SERVICE==='YOUR_EMAILJS_SERVICE_ID'||EMAILJS_TEMPLATE==='YOUR_EMAILJS_TEMPLATE_ID'||EMAILJS_PUBKEY==='YOUR_EMAILJS_PUBLIC_KEY'){
-console.error('EmailJS not configured. Set EMAILJS_SERVICE, EMAILJS_TEMPLATE, and EMAILJS_PUBKEY in the CONFIG section.');
-showToast('Email not configured — running in demo mode. In production, configure EmailJS credentials.','error');
+console.error('Email not configured.');
+showToast('Email not configured — running in demo mode.','error');
 return true;
 }
 try{
-emailjs.init(EMAILJS_PUBKEY);
 const code=_pendingVerifyCode||generateVerifyCode();
 await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
 to_email:toEmail,
@@ -1808,11 +1804,13 @@ console.warn('Admin notification email failed (user email sent OK):',adminErr);
 }
 return true;
 }catch(e){
-console.error('EmailJS send failed:',e,'Service:',EMAILJS_SERVICE,'Template:',EMAILJS_TEMPLATE);
+console.error('Verification email failed:',e);
 const msg=(e?.text||e?.message||String(e)).toLowerCase();
-if(e?.status===429||msg.includes('quota')||msg.includes('limit')||msg.includes('exceeded')||msg.includes('too many')){
-_emailjsQuotaExceeded=true;
-showToast('📬 Monthly email limit reached. Your code is displayed below — enter it to finish signing up.','info');
+const limited=e?.status===429||msg.includes('quota')||msg.includes('limit')||msg.includes('exceeded')||msg.includes('too many');
+if(limited||_TW_MAIL_DOWN.includes(e?.code)){
+if(limited)_emailjsQuotaExceeded=true;
+showToast(limited?'📬 TeenWork has sent a lot of emails today. Your code is displayed below — enter it to finish signing up.'
+:'📬 We couldn’t email your code right now. It’s displayed below — enter it to finish signing up.','info');
 _showInAppCode();
 }else{
 showToast('📬 Email delivery failed — check your spam folder, or tap Support to contact us','error');
@@ -1826,7 +1824,7 @@ if(!code)return;
 const alertEl=document.getElementById('verify-code-alert')||document.getElementById('resend-alert');
 if(alertEl){
 alertEl.className='alert alert-success show';
-alertEl.innerHTML=`<strong>Your verification code:</strong> <span style="font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--green);font-family:monospace">${code}</span><br><span style="font-size:.8rem">Enter this code in the boxes above. (Email quota reached — code shown here instead.)</span>`;
+alertEl.innerHTML=`<strong>Your verification code:</strong> <span style="font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--green);font-family:monospace">${code}</span><br><span style="font-size:.8rem">Enter this code in the boxes above. (We couldn’t email it, so it’s shown here instead.)</span>`;
 }
 for(let i=0;i<6;i++){
 const inp=document.getElementById('verify-code-'+(i+1));

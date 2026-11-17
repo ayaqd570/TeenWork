@@ -339,7 +339,26 @@ return send.apply(this,arguments);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" async></script>
+<!-- v57: no EmailJS any more; every email goes through Resend (send-email function) -->
+<script id="resend-mailer-v57" data-tw-inline="assets/js/resend-mailer-v57.js">
+(function(){
+'use strict';
+if(window.emailjs&&window.emailjs.__twMailer)return;
+function viaResend(params){
+var deliver=typeof window.twDeliverEmail==='function'?window.twDeliverEmail:null;
+if(deliver)return deliver('','',params||{});
+if(typeof window.twSendViaResend==='function')return window.twSendViaResend(params||{});
+return Promise.reject({status:0,text:'TeenWork email is still loading. Try again in a moment.',code:'not_ready'});
+}
+var mailer={
+init:function(){},
+send:function(service,template,params){return viaResend(params);},
+sendForm:function(){return Promise.reject({status:0,text:'TeenWork does not send forms by email',code:'bad_request'});}
+};
+Object.defineProperty(mailer,'__twMailer',{value:true});
+window.emailjs=mailer;
+})();
+</script>
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -3556,12 +3575,12 @@ setTimeout(function(){_directDemo(type);},250);
      fetchpriority="low" on the built files lets the home page picture download first, so it shows before the
      scripts start running (on a laptop it showed up to a second later without it). It only changes the download
      order, never when or in which order the scripts run. -->
-<script src="assets/build/app-04.js?v=efa010d9b5" fetchpriority="low"></script>
+<script src="assets/build/app-04.js?v=4c6b17c247" fetchpriority="low"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/build/app-05.js?v=5905a8a065" fetchpriority="low"></script>
+<script src="assets/build/app-05.js?v=3c6f25c99c" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3859,7 +3878,7 @@ setTimeout(function(){_directDemo(type);},250);
 
 <!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
 <script src="assets/build/app-b.js?v=fbdfa51404" fetchpriority="low"></script>
-<script src="assets/build/app-c.js?v=791e5a8ebd" fetchpriority="low"></script>
+<script src="assets/build/app-c.js?v=9d0b2d1764" fetchpriority="low"></script>
 <script src="assets/build/app-d.js?v=af75ae736f" fetchpriority="low"></script>
 <script src="assets/build/app-e.js?v=8923dcd52d" fetchpriority="low"></script>
 

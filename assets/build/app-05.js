@@ -1052,9 +1052,6 @@ const online=navigator.onLine;
 checks.push({label:'Internet Connected',note:online?'Online':'Offline — no network detected',status:online?'ok':'error'});
 try{localStorage.setItem('tw_health_test','1');localStorage.removeItem('tw_health_test');checks.push({label:'LocalStorage',note:'Read/write OK',status:'ok'});}
 catch(e){checks.push({label:'LocalStorage',note:'Failed: '+e.message,status:'error'});}
-checks.push(typeof emailjs!=='undefined'
-?{label:'EmailJS SDK',note:'Loaded',status:'ok'}
-:{label:'EmailJS SDK',note:'Not loaded',status:'warn'});
 checks.push(sbClient
 ?{label:'Supabase',note:'Connected',status:'ok'}
 :{label:'Supabase',note:'Demo mode (no live DB)',status:'warn'});

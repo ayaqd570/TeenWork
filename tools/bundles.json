@@ -5,6 +5,9 @@
       "inline": "assets/js/demo-guard-v49.js"
     },
     {
+      "inline": "assets/js/resend-mailer-v57.js"
+    },
+    {
       "inline": "assets/js/app-01.js"
     },
     {

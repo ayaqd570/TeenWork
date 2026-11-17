@@ -3545,13 +3545,16 @@ setTimeout(function(){_directDemo(type);},250);
          node tools/build.cjs
      and tools/bundles.json says which source file goes where, in which order.
      To change the app: edit the file in assets/js or assets/css, run the build, commit both.
-     Never edit assets/build or the inside of a data-tw-inline script by hand. -->
-<script src="assets/build/app-04.js?v=34cc31574d"></script>
+     Never edit assets/build or the inside of a data-tw-inline script by hand.
+     fetchpriority="low" on the built files lets the home page picture download first, so it shows before the
+     scripts start running (on a laptop it showed up to a second later without it). It only changes the download
+     order, never when or in which order the scripts run. -->
+<script src="assets/build/app-04.js?v=34cc31574d" fetchpriority="low"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
      ══════════════════════════════════════════════════════════════════ -->
-<script src="assets/build/app-05.js?v=41b3c6e6ad"></script>
+<script src="assets/build/app-05.js?v=41b3c6e6ad" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v23 — adds the remaining items from
@@ -3573,7 +3576,7 @@ setTimeout(function(){_directDemo(type);},250);
      after DOM ready so the base app stays intact.
      ═══════════════════════════════════════════════════════ -->
 <!-- a built file: which style sheets are in it, and in which order, is in tools/bundles.json -->
-<link rel="stylesheet" href="assets/build/app.css?v=d3f0782e20">
+<link rel="stylesheet" href="assets/build/app.css?v=d3f0782e20" fetchpriority="low">
 
 <!-- ══ FLOATING CONTROLS (install, emergency, keyboard help) ══ -->
 <button id="featpack-emergency" onclick="openFeelsWrong()" style="display:none;position:fixed;right:14px;bottom:84px;z-index:700;background:var(--red);color:#fff;border:none;width:56px;height:56px;border-radius:50%;font-size:1.4rem;box-shadow:0 6px 20px rgba(192,57,43,.4);cursor:pointer" aria-label="Something feels wrong">🆘</button>
@@ -3796,7 +3799,7 @@ setTimeout(function(){_directDemo(type);},250);
 </div>
 
 <!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
-<script src="assets/build/app-a.js?v=5aee2e422d"></script>
+<script src="assets/build/app-a.js?v=5aee2e422d" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FEATURES PACK v24 — Consolidation & Background Features
@@ -3848,10 +3851,10 @@ setTimeout(function(){_directDemo(type);},250);
 </div>
 
 <!-- a built file: which source files are in it, and in which order, is in tools/bundles.json -->
-<script src="assets/build/app-b.js?v=1214bbb971"></script>
-<script src="assets/build/app-c.js?v=34963aa7ca"></script>
-<script src="assets/build/app-d.js?v=66d6b82562"></script>
-<script src="assets/build/app-e.js?v=cb65165baf"></script>
+<script src="assets/build/app-b.js?v=1214bbb971" fetchpriority="low"></script>
+<script src="assets/build/app-c.js?v=34963aa7ca" fetchpriority="low"></script>
+<script src="assets/build/app-d.js?v=66d6b82562" fetchpriority="low"></script>
+<script src="assets/build/app-e.js?v=cb65165baf" fetchpriority="low"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      FINAL FIX SCRIPT — runs last, overrides all previous

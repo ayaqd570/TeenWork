@@ -112,6 +112,10 @@ files in `assets/js` and `assets/css`, which stay the files to edit.
   Nothing is renamed, because the demo AI limit reads function names (`demo-sandbox-v49.js`).
 - Each built file's address ends in `?v=` plus a fingerprint of its content, so browsers fetch it again only when it
   changed (no more `?v=` numbers to bump by hand).
+- The built files' tags in `index.html` carry `fetchpriority="low"`: the home page picture downloads first, so it is on
+  screen before the scripts start running. Without it, on a laptop the scripts arrived together with the picture and
+  ran in one go, and the picture showed up to a second later. It only changes the download order, never when or in
+  which order the scripts run. Keep it on any new built file's tag.
 - Two sentence splits used a regex lookbehind (`(?<=\.)`), which iPhones before iOS 16.4 can't read: on those phones
   `job-tiers-v45.js` and `work-rules-v52.js` didn't run at all. They are now written another way (same result,
   checked on 300,000 random texts), and the build refuses lookbehind and anything newer than ES2020 from now on.

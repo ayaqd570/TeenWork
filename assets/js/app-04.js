@@ -2607,7 +2607,7 @@ function renderTeenDashboard() {
     if (appSubEl) appSubEl.textContent = 'none yet';
     if (accEl) accEl.textContent = '0';
     if (accSubEl) accSubEl.textContent = 'none yet';
-    if (earnEl) earnEl.textContent = '$0';
+    if (earnEl) earnEl.textContent = '$0.00';
     if (earnSubEl) earnSubEl.textContent = 'this season';
   }
 

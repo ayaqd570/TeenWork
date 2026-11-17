@@ -196,7 +196,12 @@
   function ensureCard() {
     var panel = document.getElementById('ttab-resume'), c = document.getElementById('tw-link-card');
     if (!isTeen() || !panel) { if (c) c.remove(); return; }
-    if (!c) { c = document.createElement('div'); c.id = 'tw-link-card'; c.className = 'tw35-card'; panel.insertBefore(c, panel.firstChild); }
+    if (!c) {
+      c = document.createElement('div'); c.id = 'tw-link-card'; c.className = 'tw35-card';
+      // v60: the profile card opens this page; the parent link comes right after it
+      var prof = document.getElementById('teen-profile-card');
+      if (prof && prof.parentNode === panel) panel.insertBefore(c, prof.nextSibling); else panel.insertBefore(c, panel.firstChild);
+    }
     c.innerHTML = '<h3>👪 Parent link</h3>' + panelHTML('c');
   }
   function refreshUI(force) {

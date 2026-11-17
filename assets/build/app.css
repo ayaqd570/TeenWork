@@ -1047,3 +1047,19 @@ vertical-align: middle;
 .tw-tree-mark-lg { width: 40px; height: 40px; padding: 3px; border-radius: 10px; }
 .twm-logo { display: inline-flex; align-items: center; gap: 8px; }
 .twm-logo .tw-tree-mark { width: 30px; height: 30px; }
+/* assets/css/account-pages-v60.css */
+.dash-header p.tw60-off,
+.dash-header p.tw60-line[hidden]{display:none !important}
+#teen-profile-card{margin-bottom:1.2rem}
+#teen-profile-card .tw60-profile-todo{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.18);font-size:.8rem;font-weight:600;opacity:1}
+#teen-profile-card .tw60-profile-todo[hidden]{display:none}
+#teen-profile-card .tw60-bio{margin-top:12px}
+#teen-profile-card .tw60-bio-label{display:block;margin-bottom:5px;font-size:.8rem;font-weight:700;color:#fff}
+#teen-profile-card .tw60-bio-tip{margin-top:4px;font-size:.76rem;opacity:.9}
+#teen-profile-card .tw60-bio-saved{font-size:.78rem;font-weight:600;color:#fff}
+#profile-bio-input::placeholder{color:rgba(255,255,255,.8);opacity:1}
+#profile-bio-input:focus-visible{border-color:#fff !important;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+@media (max-width:600px){
+#worklog-stat-strip{grid-template-columns:repeat(2,1fr) !important}
+#worklog-stat-strip>div>div:first-child{font-size:1.45rem !important;overflow-wrap:anywhere}
+}

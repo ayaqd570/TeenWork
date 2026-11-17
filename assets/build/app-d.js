@@ -357,7 +357,7 @@ function drawHomeCard(){
 const u=me();if(!isReal(u)|| !isTeen(u))return;
 const v=$('t-stat-earned'),sub=$('t-stat-earned-sub');if(!v)return;
 const t=totals(),w=week();
-const a=money(t.earned).replace(/\.00$/,''),b=fmtH(w.worked)+' this week · '+money(t.left).replace(/\.00$/,'')+' left';
+const a=money(t.earned),b=fmtH(w.worked)+' this week · '+money(t.left)+' left';
 if(v.textContent!==a)v.textContent=a;
 if(sub&&sub.textContent!==b)sub.textContent=b;
 }

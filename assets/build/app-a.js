@@ -683,6 +683,12 @@ tools.innerHTML=`
         <button onclick="openSafeWord()" title="Safe word" style="flex:1;padding:6px 8px;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;font-size:.76rem;font-weight:600;cursor:pointer">🔐 Safe</button>`;
 head.appendChild(tools);
 }
+const tools=document.getElementById('msg-sidebar-tools'),area=document.getElementById('msg-main-area');
+if(tools&&area){
+const showTools=()=>{const open= !!area.querySelector('.msg-input-bar');tools.style.display=open?'flex':'none';};
+new MutationObserver(showTools).observe(area,{childList:true});
+showTools();
+}
 const fab=document.getElementById('featpack-emergency');
 new MutationObserver(()=>{fab.style.display=modal.classList.contains('open')?'flex':'none';}).observe(modal,{attributes:true,attributeFilter:['class']});
 }

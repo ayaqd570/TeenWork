@@ -3277,9 +3277,11 @@ box=document.createElement('div');
 box.id='fjs-progress';
 box.innerHTML='<div class="fjs-title">📊 My Progress</div>';
 }
-var link=$('tw-link-card');
+var link=$('tw-link-card'),prof=$('teen-profile-card');
 if(link&&link.parentNode===tab){if(link.nextSibling!==box)link.after(box);}
-else if(box.parentNode!==tab)tab.insertBefore(box,tab.firstChild);
+else if(box.parentNode!==tab){
+if(prof&&prof.parentNode===tab)prof.after(box);else tab.insertBefore(box,tab.firstChild);
+}
 return box;
 }
 function addToProgress(el){

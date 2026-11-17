@@ -44,7 +44,7 @@
     '@keyframes fjsFlash{0%,40%{box-shadow:0 0 0 4px var(--green-light)}100%{box-shadow:none}}';
   document.head.appendChild(css);
 
-  // "📊 My Progress" box in Profile & Settings, right under the parent link card.
+  // "📊 My Progress" box in Profile & Settings, right under the parent link card (which sits under the profile card).
   function progressBox() {
     var box = $('fjs-progress');
     var tab = $('ttab-resume');
@@ -54,9 +54,12 @@
       box.id = 'fjs-progress';
       box.innerHTML = '<div class="fjs-title">📊 My Progress</div>';
     }
-    var link = $('tw-link-card');
+    var link = $('tw-link-card'), prof = $('teen-profile-card');
     if (link && link.parentNode === tab) { if (link.nextSibling !== box) link.after(box); }
-    else if (box.parentNode !== tab) tab.insertBefore(box, tab.firstChild);
+    else if (box.parentNode !== tab) {
+      // v60: the profile card opens this page, so the box goes after it
+      if (prof && prof.parentNode === tab) prof.after(box); else tab.insertBefore(box, tab.firstChild);
+    }
     return box;
   }
 

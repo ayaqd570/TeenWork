@@ -381,7 +381,10 @@
     } catch (e) { return ''; }
   };
 
-  /* ── 9. a one-time note on the dashboard ────────────────────────── */
+  /* ── 9. a one-time note on the dashboard ──────────────────────────
+     v60 (Aya, Nov 15: "follows you everywhere; show it once or only on the home view"): the note sits
+     inside the dashboard's home section (Find Jobs, Overview, Post a Job: the first section of each
+     dashboard), so it is not on Work Log, Profile, Applied or any other page. */
   function nudgeKey(u) { return 'tw54_share_nudge_' + acctKey(u).replace(/[^a-z0-9]/g, '_'); }
   function maybeNudge() {
     var u = user(); if (!isMember(u)) return;
@@ -391,7 +394,8 @@
     if (st.visits < NUDGE_AFTER_VISITS) return;
     setTimeout(function () {
       var page = document.querySelector('.page.active'), dash = page && page.querySelector('.dashboard');
-      if (!dash || dash.querySelector(':scope > .tw54-share-note')) return;
+      var home = dash && dash.querySelector(':scope > .tab-panel');
+      if (!home || dash.querySelector('.tw54-share-note')) return;
       var note = document.createElement('div');
       note.className = 'tw54-share-note';
       note.setAttribute('role', 'note');
@@ -401,8 +405,7 @@
       function finish() { var s = lsGet(k) || {}; s.done = true; lsSet(k, s); note.remove(); }
       note.querySelector('.tw54-note-share').onclick = function () { finish(); window.twShare({ source: 'nudge' }); };
       note.querySelector('.tw54-note-x').onclick = finish;
-      var head = dash.querySelector(':scope > .dash-header');
-      if (head && head.nextSibling) dash.insertBefore(note, head.nextSibling); else dash.insertBefore(note, dash.firstChild);
+      home.insertBefore(note, home.firstChild);
     }, 2500);
   }
   (function wrapLaunch() {

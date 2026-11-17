@@ -114,7 +114,8 @@
         "assets/js/share-v54.js",
         "assets/js/get-app-v57.js",
         "assets/js/billing-v54.js",
-        "assets/js/polish-v54.js"
+        "assets/js/polish-v54.js",
+        "assets/js/account-pages-v60.js"
       ]
     }
   ],
@@ -149,7 +150,8 @@
         "assets/css/share-v54.css",
         "assets/css/get-app-v57.css",
         "assets/css/polish-v54.css",
-        "assets/css/tree-logo-v56.css"
+        "assets/css/tree-logo-v56.css",
+        "assets/css/account-pages-v60.css"
       ]
     }
   ]

@@ -10,7 +10,7 @@
       (the three demos, Sign In, Sign Up, page addresses, the admin address). Screenshots must match too.
 
    Run: node tests/build-same.cjs                    (compares with the separate source files)
-        node tests/build-same.cjs --against 34038bd  (compares with index.html from that commit, where every script and
+        node tests/build-same.cjs --against 16ff591  (compares with index.html from that commit, where every script and
                                                       style sheet still had its own tag: main just before the build step) */
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');

@@ -117,14 +117,14 @@ Check with `node tests/account-pages-v60.cjs`.
 
 From a review Aya pasted on 2026-11-16 ("One huge page: about 300 KB of HTML, 74 script files and about 3,800 elements").
 
-**What changed.** The home page used to download 73 script files and 24 style sheets, one by one. Now it downloads
+**What changed.** The home page used to download 74 script files and 24 style sheets, one by one. Now it downloads
 7 scripts and 2 style sheets from `assets/build/`, and 6 tiny start-up scripts (about 4 KB, the ones that must run
 before anything else) are written into `index.html`. They are made by `node tools/build.cjs` from the same source
 files in `assets/js` and `assets/css`, which stay the files to edit.
 
 - `assets/build/app-04.js` and `app-05.js`: the two big base files, each on its own (they declare global names, so
   joining them could change when those names exist).
-- `assets/build/app-a.js` (2 files), then `app-b.js` to `app-e.js` (the other 63, from `featpack-v25-js.js` to
+- `assets/build/app-a.js` (2 files), then `app-b.js` to `app-e.js` (the other 64, from `featpack-v25-js.js` to
   `account-pages-v60.js`, in four parts of about 300 KB): the feature files, joined in the same order. Four parts instead of
   one so a slow phone isn't frozen by one long run (measured: about a third less blocked time while loading). Each
   source file runs inside its own `try`, so an error in one still lets the next one run, as before.
@@ -159,36 +159,36 @@ GitHub emails the owner, and the site keeps the last good build.
 **How we know it behaves the same.** `node tests/build-same.cjs` opens the page twice, offline: once as built and once
 with every source file on its own tag. A probe runs before and after each source file and records every global name
 and function, the page content, the listeners and timers that were set, local and session storage, and where each
-`<style>` sits among the style sheets. Both runs must match at all 146 probes, after loading, and after each flow
+`<style>` sits among the style sheets. Both runs must match at all 148 probes, after loading, and after each flow
 (the three demos, Sign In, Sign Up, plans, `?view=jobs` and `?view=admin` signed out, and a refresh inside the teen and
 employer demos), and so must the screenshots (a few pixels on an edge may be 1 or 2 shades apart: that is how the
 browser happened to smooth a rounded corner; in the case seen, all 3,964 elements had the same size, place and
-styles). With `--against 34038bd` it compares with `index.html` as it was just before this change (main with v60 and
-the Resend-only email): 1,330 states and 16 screenshots matched. The only difference while loading: the job map's page watcher (`job-map-landmarks-v44.js`) sets its
+styles). With `--against 16ff591` it compares with `index.html` as it was just before this change (main with v63):
+1,348 states and 16 screenshots matched. The only difference while loading: the job map's page watcher (`job-map-landmarks-v44.js`) sets its
 60 ms timer after the joined file instead of in the middle of it.
-One more difference that can't be seen in a test: on a slow phone the old page ran its 73 files spread over several
+One more difference that can't be seen in a test: on a slow phone the old page ran its 74 files spread over several
 seconds, so timers sometimes fired between two files (for example `plan-limits-v40.js` wraps the sign-up function again
 1.5 s after it loads). Now all joined files run one after the other, always in the order a fast computer had.
 
 **Speed, measured** (`node tools/build.cjs --stats` for sizes; home page, cold cache, gzip, outside sites blocked;
-phone = 4× slower CPU, 1.6 Mbps, 150 ms; laptop = 10 Mbps, 40 ms; median of 7; before = main at 34038bd):
+phone = 4× slower CPU, 1.6 Mbps, 150 ms; laptop = 10 Mbps, 40 ms; median of 7; before = main at 16ff591):
 
 | Home page, signed out | Phone before | Phone after | Laptop before | Laptop after |
 |---|---:|---:|---:|---:|
-| Files downloaded | 100 | **12** | 100 | **12** |
-| Script files / style sheets | 73 / 24 | **7 / 2** | 73 / 24 | **7 / 2** |
-| Downloaded, compressed | 898 KB | **687 KB** | 961 KB | **749 KB** |
-| … of it scripts | 718 KB | **524 KB** | 718 KB | **524 KB** |
-| First paint | **0.62 s** | 0.80 s | 0.22 s | **0.20 s** |
-| Picture on screen | 1.60 s | **0.92 s** | 0.54 s | **0.46 s** |
-| Page read, every button works | 5.39 s | **3.98 s** | 1.66 s | **1.50 s** |
-| Blocked time while loading (long scripts) | **52 ms** | 160 ms | 127 ms | 127 ms |
+| Files downloaded | 101 | **12** | 101 | **12** |
+| Script files / style sheets | 74 / 24 | **7 / 2** | 74 / 24 | **7 / 2** |
+| Downloaded, compressed | 904 KB | **689 KB** | 967 KB | **752 KB** |
+| … of it scripts | 723 KB | **526 KB** | 723 KB | **526 KB** |
+| First paint | **0.62 s** | 0.83 s | 0.22 s | **0.19 s** |
+| Picture on screen | 1.53 s | **0.93 s** | 0.55 s | **0.46 s** |
+| Page read, every button works | 5.43 s | **4.07 s** | 1.52 s | **1.40 s** |
+| Blocked time while loading (long scripts) | **67 ms** | 204 ms | 130 ms | **113 ms** |
 
-The page itself: 315,181 → 315,038 bytes of HTML (63 → 64 KB compressed), 3,800 → 3,718 elements, `<script>`
-tags 75 → 15 (7 built files, 6 small ones written into the page, Supabase and the search-engine data).
+The page itself: 315,260 → 315,038 bytes of HTML (63 → 64 KB compressed), 3,807 → 3,724 elements, `<script>`
+tags 76 → 15 (7 built files, 6 small ones written into the page, Supabase and the search-engine data).
 Trade-offs: on a phone the first paint comes about 0.2 s later, because the 6 small start-up scripts are now inside
-the page; the picture comes 0.7 s sooner and the buttons work 1.4 s sooner. On a phone the joined files run in
-fewer, longer pieces (160 ms frozen in all, while loading) instead of 73 short ones spread over 5 s.
+the page; the picture comes 0.6 s sooner and the buttons work 1.4 s sooner. On a phone the joined files run in
+fewer, longer pieces (about 0.2 s frozen in all, while loading) instead of 74 short ones spread over 5 s.
 
 **Left alone on purpose** (each would need many files changed one by one):
 - **Loading the dashboards only after sign-in.** The dashboards' markup (parent, teen, employer, verification) is
@@ -202,7 +202,7 @@ fewer, longer pieces (160 ms frozen in all, while loading) instead of 73 short o
 - **Renaming variables to shorter names (full minifying):** only about 6% smaller compressed, and it would break the
   demo AI limit, which reads function names.
 
-Checks: `node tools/build.cjs --check` and `node tests/build-same.cjs` (add `--against 34038bd` for the comparison with
+Checks: `node tools/build.cjs --check` and `node tests/build-same.cjs` (add `--against 16ff591` for the comparison with
 the page before v62). The slow-phone test in `tests/first-screen-v59.cjs` now holds back `assets/build/app-b.js`.
 
 ## Sharing (v54)

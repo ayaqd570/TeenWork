@@ -33,7 +33,7 @@ async function home(browser, viewport) {
  // H2: no rotating headlines or Pause button. H3: the trust line under the buttons. No emoji on Sign Up.
  assert.equal(await visible(p, '#tw-slogan-wrap'), false, w + ': rotating headlines still show');
  assert.equal(await p.locator('#tw51-pause').count(), 0);
- assert.equal((await p.locator('#tw51-trust').textContent()).trim(), 'Parents approve every application · Free · No cut of pay');
+ assert.equal((await p.locator('#tw51-trust').textContent()).trim(), 'Free to join · No cut of pay · Chats stay in the app');
  assert(await visible(p, '#tw51-trust'));
  assert.equal((await p.locator('#tw48-hero button', {hasText: 'Sign Up'}).first().textContent()).trim(), 'Sign Up Free');
 
@@ -41,15 +41,21 @@ async function home(browser, viewport) {
  const hero = await p.evaluate(() => {
   const img = document.getElementById('tw-hero-img'), b = img.getBoundingClientRect(), h1 = document.getElementById('tw48-h1').getBoundingClientRect();
   const su = [...document.querySelectorAll('#tw48-hero button')].find(x => /Sign Up/.test(x.textContent)).getBoundingClientRect();
-  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgBottom: b.bottom, imgWidth: b.width, h1Top: h1.top, signupBottom: su.bottom, alt: img.alt};
+  return {src: img.currentSrc, loaded: img.complete && img.naturalWidth > 0, ratio: b.width / b.height, natural: img.naturalWidth / img.naturalHeight, imgBottom: b.bottom, imgWidth: b.width, imgHeight: b.height, imgRight: b.right, h1Top: h1.top, h1Left: h1.left, signupBottom: su.bottom, alt: img.alt};
  });
  assert.match(hero.src, /\/assets\/img\/hero-\d+\.(avif|webp)$/);
  assert(hero.loaded, w + ': hero picture did not load');
  assert(Math.abs(hero.ratio - hero.natural) < 0.02, w + ': hero picture is cropped (' + hero.ratio + ')');
- assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
  assert.equal(hero.alt, 'TeenWork — safe teen jobs');
- // A big square across the page on every screen, never a small one in the middle (Aya, Oct 31).
- assert(hero.imgWidth >= Math.min(w, 1212) - 40, w + ': picture is not across the page (' + hero.imgWidth + 'px)');
+ if (w >= 900) {
+  // Computers since v64 (Aya, 2026-11-18): about half the screen tall, with the title and Sign Up beside it on the first screen.
+  assert(hero.imgHeight <= viewport.height * 0.6, w + ': picture is taller than about half the screen (' + hero.imgHeight + 'px)');
+  assert(hero.imgRight <= hero.h1Left && hero.signupBottom <= viewport.height, w + ': title and Sign Up are not beside the picture on the first screen');
+ } else {
+  // Phones and tablets: a big square across the page with the title under it (Aya, Oct 31).
+  assert(hero.imgBottom <= hero.h1Top, w + ': title is not under the picture');
+  assert(hero.imgWidth >= Math.min(w, 1212) - 40, w + ': picture is not across the page (' + hero.imgWidth + 'px)');
+ }
 
  // H6: "For employers" in the top bar goes to the employer card. Schools is in the footer.
  assert.equal(await p.locator('#page-landing > nav').getByRole('button', {name: 'Schools'}).count(), 0);

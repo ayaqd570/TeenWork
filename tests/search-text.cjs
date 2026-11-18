@@ -38,7 +38,7 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8');
      geo: document.querySelectorAll('meta[name^="geo."], meta[name="ICBM"]').length,
      canonical: document.querySelector('link[rel="canonical"]').href,
      h1s: [...document.querySelectorAll('#page-landing h1')].filter(visible).map(h => h.textContent.trim()),
-     heroAboveH1: hero.bottom <= document.getElementById('tw48-h1').getBoundingClientRect().top + 1,
+     heroFirst: innerWidth >= 900 ? hero.right <= document.getElementById('tw48-h1').getBoundingClientRect().left + 1 : hero.bottom <= document.getElementById('tw48-h1').getBoundingClientRect().top + 1,
      lead: document.querySelector('#tw48-hero .landing-lead').textContent.trim(),
      faq: [...document.querySelectorAll('details.tw50-faq')].map(d => [d.querySelector('summary').textContent.trim(), d.querySelector('p').textContent.trim()]),
      ld: [...document.querySelectorAll('script[type="application/ld+json"]')].map(s => s.textContent),
@@ -53,9 +53,9 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8');
    assert.ok(seo.description.length <= 200, 'description too long: ' + seo.description.length);
    assert.equal(seo.ogTitle, seo.title);
    assert.match(seo.twTitle, /Teen Job App/);
-   assert.deepEqual(seo.h1s, ['The teen job app for safe local jobs, ages 13–17'], 'one visible H1' + where);
+   assert.deepEqual(seo.h1s, ['The teen job app where parents say yes first'], 'one visible H1' + where);
    assert.match(seo.lead, /^TeenWork is a free teen job finder/);
-   assert.ok(seo.heroAboveH1, 'hero picture should stay above the headline' + where);
+   assert.ok(seo.heroFirst, 'hero picture should come first: above the headline on phones, beside it on computers' + where);
    assert.equal(seo.canonical, 'https://teenwork.ayaqd.com/');
 
    // Vermont stays a second mention, never the lead.

@@ -619,7 +619,7 @@
       '<div class="tw64-card-top"><div class="tw64-av" aria-hidden="true">' + esc((l.first || '?').charAt(0).toUpperCase()) + '</div>' +
       '<div class="tw64-who"><div class="tw64-name">' + esc(l.first) + (l.initial ? ' ' + esc(l.initial) + '.' : '') + esc(age) + '</div>' +
       '<div class="tw64-place">📍 ' + esc([l.city, l.state].filter(Boolean).join(', ') || 'Town not set') + '</div></div>' +
-      (o.badge ? '<span class="tw64-ok">' + o.badge + '</span>' : '') + '</div>' +
+      (o.badge ? '<span class="tw64-ok' + (o.wait ? ' wait' : '') + '">' + o.badge + '</span>' : '') + '</div>' +
       '<div class="tw64-chips">' + l.services.map(s => '<span class="tw64-chip">' + iconOf(s) + ' ' + esc(s) + '</span>').join('') + '</div>' +
       (l.about ? '<p class="tw64-about">' + esc(l.about) + '</p>' : '') +
       '<div class="tw64-facts"><span>💵 ' + esc(rate) + '</span>' +
@@ -633,7 +633,7 @@
   function teenFormHTML(u) {
     const town = townOf(u);
     return '<div class="tw64">' +
-      '<div class="tw64-intro"><h2 class="tw64-h">Offer your services</h2>' +
+      '<div class="tw64-intro">' +
       '<p>List what you can do for neighbors and local businesses. <b>Your parent approves your listing from their own account</b> before any employer can see it. ' +
       'Employers see your first name, last initial, age and town, never your email, phone or address.</p></div>' +
       '<div id="tw64-t-status" class="tw64-status" role="status"></div>' +
@@ -677,7 +677,8 @@
     const u = realAs('teen'), box = $('tw64-preview'); if (!u || !box) return;
     const f = readForm(u), l = normListing(f), n = $('tw64-about-n');
     if (n) n.textContent = String((($('tw64-about') || {}).value || '').length);
-    const html = cardHTML(l, { age: teenAge(u), badge: '👪 Parent approved' });
+    const j = teenJudge(u), approved = !!(l && j.listed && (j.solo || (j.live && j.live.sig === sigOf(l))));
+    const html = cardHTML(l, { age: teenAge(u), badge: j.solo ? '🧪 Tester listing' : approved ? '👪 Parent approved' : '⏳ Needs your parent\u2019s OK', wait: !approved });
     if (box._h !== html) { box.innerHTML = html; box._h = html; }
     const rate = $('tw64-rate'), rt = $('tw64-rate-type'); if (rate && rt) rate.disabled = rt.value === 'ask';
   }
@@ -761,12 +762,13 @@
       if (n.review) {
         waiting++;
         items.push('<div class="tw64-pitem"><div class="tw64-ptitle"><b>' + esc(who) + ' wants to offer services.</b> This is exactly what employers will see:</div>' +
-          cardHTML(d.prof.listing, { age: d.prof.age, badge: '👪 Needs your OK' }) +
+          cardHTML(d.prof.listing, { age: d.prof.age, badge: '👪 Needs your OK', wait: true }) +
           (j.live ? '<p class="tw64-small">Employers see the version you approved on ' + esc(fmtDate(j.live.at)) + ' until you approve this one.</p>' : '') +
           '<p class="tw64-small">Approving shows ' + esc(who) + '’s first name, last initial, age, town and this text to employers on TeenWork. Their email, phone and address are never shown. ' +
           'Any request from an employer comes to you for an OK before they can message each other.</p>' +
           '<div class="tw64-acts"><button type="button" class="tw64-btn primary" data-tw64="p-ok" data-t="' + ti + '" data-k="' + esc(t.key) + '">✅ Approve listing</button>' +
-          '<button type="button" class="tw64-btn" data-tw64="p-changes" data-t="' + ti + '" data-k="' + esc(t.key) + '">✏️ Ask for changes</button></div>' +
+          '<button type="button" class="tw64-btn" data-tw64="p-changes" data-t="' + ti + '" data-k="' + esc(t.key) + '">✏️ Ask for changes</button>' +
+          (j.live ? '<button type="button" class="tw64-btn" data-tw64="p-down" data-t="' + ti + '" data-k="' + esc(t.key) + '">Take down the live listing</button>' : '') + '</div>' +
           '<div class="tw64-chg" id="tw64-chg-' + ti + '" hidden><label class="tw64-lab" for="tw64-chg-in-' + ti + '">What should ' + esc(who) + ' change?</label>' +
           '<textarea id="tw64-chg-in-' + ti + '" class="tw64-in" rows="2" maxlength="' + NOTE_MAX + '"></textarea>' +
           '<button type="button" class="tw64-btn primary" data-tw64="p-changes-send" data-t="' + ti + '" data-k="' + esc(t.key) + '">Send to ' + esc(who) + '</button></div></div>');
@@ -787,7 +789,7 @@
         else st = '<span class="tw64-tag no">Cancelled by the employer</span>';
         items.push('<div class="tw64-req"><div class="tw64-req-top"><b>' + emp + '</b> asked ' + esc(who) + st + '</div><div class="tw64-req-what">' + reqWhat(r) + '</div>' +
           (r.note ? '<p class="tw64-note">“' + esc(r.note) + '”</p>' : '') +
-          (r.status === 'waiting-parent' ? '<p class="tw64-small">If you approve, ' + esc(who) + ' and ' + emp + ' are added to each other’s contacts and can message in TeenWork (you can read along in Messages).</p>' : '') +
+          (r.status === 'waiting-parent' ? '<p class="tw64-small">If you approve, ' + esc(who) + ' and ' + emp + ' are added to each other’s contacts and can message in TeenWork.</p>' : '') +
           (btns ? '<div class="tw64-acts">' + btns + '</div>' : '') + '</div>');
       });
     });
@@ -805,7 +807,7 @@
   /* ── employer ── */
   function employerHTML() {
     return '<div class="tw64">' +
-      '<div class="tw64-intro"><h2 class="tw64-h">Teens offering services</h2>' +
+      '<div class="tw64-intro">' +
       '<p>Every listing here was <b>approved by the teen’s parent</b> from their own account. Ask a teen to help: the teen says yes, then their parent says OK, and then you can message each other in TeenWork.</p></div>' +
       '<div class="tw64-filters">' +
       '<label class="tw64-sr" for="tw64-f-svc">Service</label><select id="tw64-f-svc" class="tw64-in"><option value="">All services</option>' + SERVICES.map(s => '<option>' + esc(s[1]) + '</option>').join('') + '</select>' +

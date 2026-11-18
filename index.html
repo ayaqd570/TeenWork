@@ -321,18 +321,6 @@
      Phones and tablets: a big square across the page, as before. Computers: since v64 about half the screen tall with the
      headline beside it (Aya asked for that on 2026-11-18; on Oct 31 a smaller one alone in the middle looked tiny). -->
 <style id="tw51-first-paint">#page-landing .landing{padding-top:0}</style>
-<!-- v59 (2026-11-15): on computers the top bar says what TeenWork is next to the logo, so the first screen is not
-     only the picture (the picture stays big, whole and first). Taps on the home page while the app is still loading
-     are kept and run when it is ready (first-screen-v59.js). -->
-<style id="tw59-first-screen">
-.tw59-tag{display:none;flex:0 1 auto;min-width:0;margin:0 auto 0 14px;line-height:1.2;text-align:left;transition:opacity .2s,visibility .2s}
-.tw59-tag b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Fraunces',Georgia,serif;font-size:1.15rem;font-weight:700;color:var(--green,#2d6a4f)}
-.tw59-tag span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;font-family:'DM Sans',system-ui,sans-serif;font-size:.84rem;color:var(--muted,#6b7280)}
-.tw59-tag.tw59-quiet{opacity:0;visibility:hidden}
-@media (min-width:900px){.tw59-tag{display:block}}
-#page-landing .tw59-wait{cursor:progress !important;opacity:.7}
-</style>
-<script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
 <!-- v64 (Aya, 2026-11-18: "capping it at roughly half the screen ... do this fix"): on computers the picture is about
      half the screen tall (--tw64-p), still whole and square (never cropped), on the left; the headline, the line under
      it and Sign Up Free / Sign In sit beside it, so they are on the first screen. The trust line, the demos and
@@ -364,6 +352,18 @@ body #page-landing .landing-shell > #tw64-top{--tw64-p:min(clamp(300px,52vh,600p
 #page-landing #tw64-top .tw50-scroll{grid-row:4}
 }
 </style>
+<!-- v59 (2026-11-15): on computers the top bar says what TeenWork is next to the logo, so the first screen is not
+     only the picture (the picture stays big, whole and first). Taps on the home page while the app is still loading
+     are kept and run when it is ready (first-screen-v59.js). -->
+<style id="tw59-first-screen">
+.tw59-tag{display:none;flex:0 1 auto;min-width:0;margin:0 auto 0 14px;line-height:1.2;text-align:left;transition:opacity .2s,visibility .2s}
+.tw59-tag b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:'Fraunces',Georgia,serif;font-size:1.15rem;font-weight:700;color:var(--green,#2d6a4f)}
+.tw59-tag span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;font-family:'DM Sans',system-ui,sans-serif;font-size:.84rem;color:var(--muted,#6b7280)}
+.tw59-tag.tw59-quiet{opacity:0;visibility:hidden}
+@media (min-width:900px){.tw59-tag{display:block}}
+#page-landing .tw59-wait{cursor:progress !important;opacity:.7}
+</style>
+<script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES

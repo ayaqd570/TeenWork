@@ -86,7 +86,7 @@ Messages is a labeled dialog with a Close button and a "Something feels wrong" b
 ## First screen, made-up quotes and speed (v59)
 
 From a review Aya pasted on 2026-11-15.
-- **First screen.** The hero picture stays big, whole and first (Aya, Oct 30–31). On computers (900px and wider) the top bar now says what TeenWork is next to the logo: "Safe local jobs for teens 13–17 / A parent approves every application · Free to join" (`#tw59-tag`, styled by `<style id="tw59-first-screen">` in the head so it is right from the first paint). It fades out while the real headline under the picture is on screen. Sign Up was already in the sticky top bar. Phones and tablets already show the headline on the first screen, so the line is hidden there.
+- **First screen.** The hero picture stays big, whole and first (Aya, Oct 30–31). On computers (900px and wider) the top bar now says what TeenWork is next to the logo: "Parent-approved jobs for teens 13–17 / No application goes out without a parent’s OK · Free to join" since v64 (`#tw59-tag`, styled by `<style id="tw59-first-screen">` in the head so it is right from the first paint). It fades out while the real headline under the picture is on screen. Sign Up was already in the sticky top bar. Phones and tablets already show the headline on the first screen, so the line is hidden there.
 - **Made-up quotes.** The hidden "Loved by teens, parents & employers" block (`featpack-js.js`), the sample reviews and their review markup (`app-12.js`) and the sample stories are deleted. Copies that older versions saved in visitors' browsers are recognised by a short fingerprint (`window.twIsOldSample` in `app-05.js`), so the quotes are not in the code any more. Never add sample quotes, names or ratings back.
 - **Taps while loading** (`assets/js/first-screen-v59.js`, in the head). On a slow phone the home page shows up seconds before the app's scripts finish. A tap on a home page button in that time used to do nothing; now the button dims and the tap runs as soon as the app is ready.
 - **Small logo.** Page logos use `assets/img/small-logo.png` (160px, 14 KB) instead of the 512px `logo.png` (105 KB). `logo.png` stays for search engines (structured data), the service worker and the icon maker. The name still ends in `logo.png`, so the cream-frame CSS in `trust-usability.css` still applies.
@@ -106,6 +106,15 @@ From Aya's list of 2026-11-15, looking at a real teen account. Pictures: `docs/a
 - **Money.** Work Log amounts always show dollars and cents with a comma for thousands (`wlMoney` in `app-05.js`: "$0.00", "$1,243.75"), like the Earnings page; the Earned box on the profile does the same. On phones the four Work Log numbers sit two by two so the longer amounts fit.
 
 Check with `node tests/account-pages-v60.cjs`.
+
+## Parent-first home page and one Work Log title (v64)
+
+From Aya's review of 2026-11-18 (items 7 and 8). Pictures: `docs/parent-first-v64/`.
+- **Work Log has one title.** The dashboard header already says "Work Log" (v60), so the page no longer starts with a second title ("⏱️ Hours & Work Record"). The line "Track every shift, see your progress, and build your work record." and the Export and Log Hours buttons stay where they were.
+- **The home page leads with parent approval**, because parents decide whether a teen can apply. Headline: "The teen job app where parents say yes first" (still starts with "teen job app" for search). The line under it says a teen can't apply until a parent links accounts and agrees, and each application waits for the parent's OK. The trust line is now "Free to join · No cut of pay · Chats stay in the app" (parent approval is already said twice above it). "How it works" is now "How parent approval works", the For parents card comes first, the Parent demo is the first demo button, and the last call says how the teen and parent sign up.
+- The picture, the order of the page and the safety wording are untouched. The page title, meta description, FAQ and structured data didn't change. The headline did, so once it is live, Request indexing for the home page in Search Console.
+- Keep the headline and the line under it about this length: on computers PR #27 (v61) puts them in a card on the picture, sized to stay clear of the teen and the parent.
+Check with `node tests/parent-first-v64.cjs` (add `--scan` to list every dashboard page's title next to its first heading).
 
 ## Sharing (v54)
 

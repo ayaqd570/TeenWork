@@ -62,7 +62,7 @@ async function firstScreen(browser, viewport) {
   // Computers: the short line next to the logo says what TeenWork is.
   if (w >= 900) {
     assert(s.tag, w + ': the top-bar line is not on the first screen');
-    assert.equal(s.tagText, 'Safe local jobs for teens 13–17 A parent approves every application · Free to join');
+    assert.equal(s.tagText, 'Parent-approved jobs for teens 13–17 No application goes out without a parent’s OK · Free to join');
     assert.equal(s.tagHidden, 'true');
     // ...and fades out while the real headline is on screen, then comes back.
     await p.evaluate(() => document.getElementById('tw48-h1').scrollIntoView({ block: 'center' })); await p.waitForTimeout(500);

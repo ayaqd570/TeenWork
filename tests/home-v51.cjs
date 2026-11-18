@@ -33,7 +33,7 @@ async function home(browser, viewport) {
  // H2: no rotating headlines or Pause button. H3: the trust line under the buttons. No emoji on Sign Up.
  assert.equal(await visible(p, '#tw-slogan-wrap'), false, w + ': rotating headlines still show');
  assert.equal(await p.locator('#tw51-pause').count(), 0);
- assert.equal((await p.locator('#tw51-trust').textContent()).trim(), 'Parents approve every application · Free · No cut of pay');
+ assert.equal((await p.locator('#tw51-trust').textContent()).trim(), 'Free to join · No cut of pay · Chats stay in the app');
  assert(await visible(p, '#tw51-trust'));
  assert.equal((await p.locator('#tw48-hero button', {hasText: 'Sign Up'}).first().textContent()).trim(), 'Sign Up Free');
 

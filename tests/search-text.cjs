@@ -53,7 +53,7 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8');
    assert.ok(seo.description.length <= 200, 'description too long: ' + seo.description.length);
    assert.equal(seo.ogTitle, seo.title);
    assert.match(seo.twTitle, /Teen Job App/);
-   assert.deepEqual(seo.h1s, ['The teen job app for safe local jobs, ages 13–17'], 'one visible H1' + where);
+   assert.deepEqual(seo.h1s, ['The teen job app where parents say yes first'], 'one visible H1' + where);
    assert.match(seo.lead, /^TeenWork is a free teen job finder/);
    assert.ok(seo.heroAboveH1, 'hero picture should stay above the headline' + where);
    assert.equal(seo.canonical, 'https://teenwork.ayaqd.com/');

@@ -46,19 +46,19 @@ const tab = (p, id) => p.evaluate(id => switchDashTab(document.querySelector('[d
       const w = viewport.width;
       assert(await noOverflow(p), w + ': homepage overflows');
       const demos = await p.evaluate(() => [...document.querySelectorAll('#tw48-demo button[onclick^="_directDemo"]')].map(b => { const r = b.getBoundingClientRect(); return { name: b.getAttribute('aria-label'), text: b.innerText.trim(), top: r.top, bottom: r.bottom, h: r.height, left: r.left, right: r.right }; }));
-      assert.deepEqual(demos.map(d => d.name), ['Teen demo', 'Parent demo', 'Employer demo']);
+      assert.deepEqual(demos.map(d => d.name), ['Parent demo', 'Teen demo', 'Employer demo']);
       assert(demos.every(d => d.h >= 44 && d.left >= 0 && d.right <= w), w + ': a demo button is too small or off screen');
       if (w <= 600) {
         if (w === 390) assert(demos.every(d => d.bottom <= viewport.height), w + ': demo buttons start below the first screen (' + demos.map(d => Math.round(d.bottom)).join(',') + ')');
         if (w >= 360) assert(demos.every(d => d.top === demos[0].top), w + ': demo buttons are not in one row');
-        assert.deepEqual(demos.map(d => d.text), ['Teen', 'Parent', 'Employer']);
-      } else assert.deepEqual(demos.map(d => d.text), ['Teen Demo', 'Parent Demo', 'Employer Demo']);
+        assert.deepEqual(demos.map(d => d.text), ['Parent', 'Teen', 'Employer']);
+      } else assert.deepEqual(demos.map(d => d.text), ['Parent Demo', 'Teen Demo', 'Employer Demo']);
       // Sign Up stays first, the trust line is still there with the same words.
       const order = await p.evaluate(() => { const y = s => document.querySelector(s).getBoundingClientRect().top; const su = [...document.querySelectorAll('#tw48-hero button')].find(b => /Sign Up Free/.test(b.textContent)); return { signup: su.getBoundingClientRect().top, demo: y('#tw48-demo'), trust: y('#tw51-trust') }; });
       assert(order.signup < order.demo, w + ': demos above Sign Up');
       if (w <= 600) assert(order.demo < order.trust, w + ': trust line still pushes the demos down');
       else assert(order.trust < order.demo, w + ': desktop order changed');
-      assert.equal(await text(p, '#tw51-trust'), 'Parents approve every application · Free · No cut of pay');
+      assert.equal(await text(p, '#tw51-trust'), 'Free to join · No cut of pay · Chats stay in the app');
       assert.deepEqual(errors, []);
       await context.close();
     }

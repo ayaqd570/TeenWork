@@ -367,7 +367,7 @@
   <nav style="position:sticky;top:0;z-index:100;background:rgba(255,253,247,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--border);padding:0 1.5rem;">
     <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px;">
       <a href="#" onclick="gotoPage('landing');return false" aria-label="TeenWork home" style="display:flex;align-items:center;flex-shrink:0;"><img src="assets/img/small-logo.png" alt="TeenWork" width="42" height="42" style="object-fit:contain;"></a>
-      <p class="tw59-tag" id="tw59-tag" aria-hidden="true"><b>Safe local jobs for teens 13–17</b><span>A parent approves every application · Free to join</span></p>
+      <p class="tw59-tag" id="tw59-tag" aria-hidden="true"><b>Parent-approved jobs for teens 13–17</b><span>No application goes out without a parent’s OK · Free to join</span></p>
       <div style="display:flex;gap:10px;align-items:center;">
         <button type="button" id="tw51-nav-employers" onclick="twGoEmployers()" style="background:none;border:none;color:var(--muted);padding:8px 14px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--muted)'">For employers</button>
         <button onclick="gotoPage('login')" style="background:none;border:2px solid var(--green);color:var(--green);padding:8px 20px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='var(--green-pale)'" onmouseout="this.style.background='none'">Sign In</button>
@@ -398,23 +398,23 @@
 
       <section class="landing-hero" id="tw48-hero">
         <div class="landing-inner" style="text-align:center;max-width:720px;margin:0 auto;">
-          <h1 id="tw48-h1">The teen job app for safe local jobs, <span style="white-space:nowrap">ages 13–17</span></h1>
+          <h1 id="tw48-h1">The teen job app where parents <span style="white-space:nowrap">say yes first</span></h1>
 
-          <p class="landing-lead" style="margin:0 auto 1.4rem;max-width:540px;font-size:1.05rem;color:var(--muted);line-height:1.6">TeenWork is a free teen job finder for lawn care, pet sitting, snow shoveling and other neighborhood jobs. A parent approves every application, and chats with employers stay inside the app.</p>
+          <p class="landing-lead" style="margin:0 auto 1.4rem;max-width:540px;font-size:1.05rem;color:var(--muted);line-height:1.6">TeenWork is a free teen job finder for ages 13–17. A teen can’t apply until a parent links accounts and agrees, and each application waits for the parent’s OK before an employer sees it.</p>
 
           <!-- Auth CTA buttons -->
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem">
             <button onclick="gotoPage('signup')" style="background:var(--green);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(45,106,79,0.3);touch-action:manipulation">Sign Up Free</button>
             <button onclick="gotoPage('login')" style="background:none;border:2px solid var(--green);color:var(--green);padding:12px 26px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Sign In</button>
           </div>
-          <p class="tw51-trust" id="tw51-trust">Parents approve every application · Free · No cut of pay</p>
+          <p class="tw51-trust" id="tw51-trust">Free to join · No cut of pay · Chats stay in the app</p>
 
           <!-- Demo buttons: everything in the demo is sample data -->
           <div id="tw48-demo" style="background:rgba(255,253,247,.9);border:1.5px solid var(--border);border-radius:14px;padding:.9rem 1rem;max-width:480px;margin:0 auto">
             <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.6rem">Try a demo, no signup needed</div>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button type="button" aria-label="Teen demo" onclick="_directDemo('teen')" style="background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Teen<span class="tw53-long"> Demo</span></button>
               <button type="button" aria-label="Parent demo" onclick="_directDemo('parent')" style="background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Parent<span class="tw53-long"> Demo</span></button>
+              <button type="button" aria-label="Teen demo" onclick="_directDemo('teen')" style="background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Teen<span class="tw53-long"> Demo</span></button>
               <button type="button" aria-label="Employer demo" onclick="_directDemo('employer')" style="background:var(--amber);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-family:'DM Sans',system-ui,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Employer<span class="tw53-long"> Demo</span></button>
             </div>
             <p class="tw48-demo-note">Each demo is an empty practice account, just like a new one. Nothing you do there is saved or sent.</p>
@@ -426,25 +426,25 @@
       <!-- HOW IT WORKS: who it's for and how parent approval works -->
       <section class="landing-section" id="tw48-how" aria-label="How TeenWork works">
         <div class="landing-section-head"><div>
-          <h2>How it works</h2>
-          <p>A teen can look at jobs right away, but can't apply for any of them until a parent is linked and agrees.</p>
+          <h2>How parent approval works</h2>
+          <p>Parents say yes twice: once before their teen can apply for anything, and again for each job. An employer only sees an application after a parent approves it.</p>
         </div></div>
         <div class="landing-steps">
-          <div class="landing-step"><div class="landing-step-number">01</div><h3>The teen signs up</h3><p>Teens 13–17 make a free account with their age, town and skills, then browse jobs near them.</p></div>
+          <div class="landing-step"><div class="landing-step-number">01</div><h3>The teen signs up</h3><p>Teens 13–17 make a free account with their age, town and skills. They can browse jobs near them, but can’t apply yet.</p></div>
           <div class="landing-step"><div class="landing-step-number">02</div><h3>A parent links and agrees</h3><p>The teen shares a code. A parent makes their own account, links to the teen and agrees to let them apply.</p></div>
           <div class="landing-step"><div class="landing-step-number">03</div><h3>The parent approves each application</h3><p>Every application waits for the parent. The employer only sees it after the parent taps Approve.</p></div>
           <div class="landing-step"><div class="landing-step-number">04</div><h3>Chat, work, get paid</h3><p>Teen and employer plan the job in TeenWork's chat. Pay is between them, and TeenWork doesn't take a cut.</p></div>
         </div>
         <div class="landing-audience-grid" style="margin-top:12px">
           <div class="landing-audience-card">
+            <div class="landing-audience-tag" style="background:#dbeafe;color:var(--blue)">For parents</div>
+            <p style="margin-top:.6rem">You decide. Link to your teen, agree to let them apply, and approve or turn down each application from your own account.</p>
+            <button class="tw48-link" onclick="_directDemo('parent')">Try the parent demo →</button>
+          </div>
+          <div class="landing-audience-card">
             <div class="landing-audience-tag" style="background:var(--green-pale);color:var(--green)">For teens</div>
             <p style="margin-top:.6rem">Find jobs that fit your age, keep a log of your hours and earnings, and take short lessons on doing a job well.</p>
             <button class="tw48-link" onclick="_directDemo('teen')">Try the teen demo →</button>
-          </div>
-          <div class="landing-audience-card">
-            <div class="landing-audience-tag" style="background:#dbeafe;color:var(--blue)">For parents</div>
-            <p style="margin-top:.6rem">Link to your teen, agree to let them apply, and approve or turn down each application from your own account.</p>
-            <button class="tw48-link" onclick="_directDemo('parent')">Try the parent demo →</button>
           </div>
           <div class="landing-audience-card" id="tw-for-employers" tabindex="-1">
             <div class="landing-audience-tag" style="background:var(--amber-pale);color:var(--amber)">For employers</div>
@@ -534,7 +534,7 @@
         <div class="landing-final-copy">
           <div style="font-size:2rem;margin-bottom:.5rem">🚀</div>
           <h2>Ready to get started?</h2>
-          <p>Free for teens and parents. Quick setup.</p>
+          <p>Free for parents and teens. The teen signs up, then shares a code so a parent can link and approve.</p>
         </div>
         <div class="landing-cta" style="justify-content:center;margin-bottom:1rem;gap:12px;">
           <button class="btn-primary" onclick="gotoPage('signup')" style="font-size:1rem;padding:14px 32px;">Sign Up — It's Free</button>
@@ -2148,11 +2148,10 @@
 
     <!-- ══ WORK LOG ══ -->
     <div id="ttab-worklog" class="tab-panel">
-      <!-- Header -->
+      <!-- Intro + buttons. The page title ("Work Log") is the dashboard header above (account-pages-v60), so no second title here (v64) -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
         <div>
-          <h2 style="font-family:'Fraunces',serif;font-size:1.4rem;color:var(--green);margin-bottom:3px">⏱️ Hours &amp; Work Record</h2>
-          <p style="font-size:.85rem;color:var(--muted)">Track every shift, see your progress, and build your work record.</p>
+          <p style="font-size:.95rem;color:var(--muted)">Track every shift, see your progress, and build your work record.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn-sm btn-secondary" onclick="exportWorkLogCSV()" style="font-size:.78rem">⬇ Export</button>

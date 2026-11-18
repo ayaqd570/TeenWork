@@ -258,7 +258,7 @@
         const t = m.querySelector('.tw64-star[data-n="' + pick + '"]'); if (t) t.focus();
       });
     });
-    ta.addEventListener('input', paint);
+    ta.addEventListener('input', () => { if (status.classList.contains('tw64-bad')) { status.textContent = ''; status.className = 'tw64-status'; } paint(); });
     m.querySelector('.tw64-x').onclick = closeReview;
     m.querySelector('.tw64-cancel').onclick = closeReview;
     m.addEventListener('click', e => { if (e.target === m) closeReview(); });
@@ -427,7 +427,7 @@
     const badge = $('tw64-emp-badge');
     const confirmed = !!(d && d.phone);
     if (badge) { badge.textContent = confirmed ? '📱 Phone confirmed' : 'Phone not confirmed'; badge.className = 'badge ' + (confirmed ? 'badge-green' : 'badge-amber'); }
-    let html = '<p class="tw64-title"><span aria-hidden="true">📱</span> Confirm your phone number</p>';
+    let html = '<p class="tw64-title"><span aria-hidden="true">📱</span> ' + (confirmed && ph.step !== 'change' ? 'Your phone number' : 'Confirm your phone number') + '</p>';
     const msg = ph.msg ? '<p class="tw64-status ' + (ph.msgKind === 'bad' ? 'tw64-bad' : ph.msgKind === 'good' ? 'tw64-ok' : '') + '" role="status" aria-live="polite">' + esc(ph.msg) + '</p>' : '<p class="tw64-status" role="status" aria-live="polite"></p>';
     const privacy = '<p class="tw64-small">US and Canadian mobile numbers. Your number stays private: parents and teens only see that it was confirmed, never the number. Message and data rates may apply.</p>';
     if (practice) {

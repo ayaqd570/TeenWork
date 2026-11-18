@@ -40,7 +40,7 @@ async function firstScreen(browser, viewport) {
   await p.goto(URL0, { waitUntil: 'load' }); await p.waitForTimeout(500);
   const w = viewport.width;
   const s = await p.evaluate(() => {
-    const box = el => { const b = el.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, width: b.width, height: b.height }; };
+    const box = el => { const b = el.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: b.width, height: b.height }; };
     const tag = document.getElementById('tw59-tag'), img = document.getElementById('tw-hero-img'), h1 = document.getElementById('tw48-h1');
     const navSignup = [...document.querySelectorAll('#page-landing > nav button')].find(b => /^Sign Up/.test(b.textContent.trim()));
     const shown = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).opacity !== '0';
@@ -55,21 +55,29 @@ async function firstScreen(browser, viewport) {
   });
   // Sign Up is on the first screen on every size (the top bar stays put).
   assert(s.signup, w + ': Sign Up is not on the first screen');
-  // The picture: big, whole, first, with the headline under it — as Aya wants.
+  // The picture: whole (never cropped) and first.
   assert(Math.abs(s.img.width / s.img.height - s.natural) < 0.02, w + ': hero picture is cropped');
-  assert(s.img.width >= Math.min(w, 1212) - 40, w + ': hero picture got smaller (' + s.img.width + ')');
-  assert(s.img.bottom <= s.h1.top, w + ': headline is not under the picture');
-  // Computers: the short line next to the logo says what TeenWork is.
   if (w >= 900) {
-    assert(s.tag, w + ': the top-bar line is not on the first screen');
-    assert.equal(s.tagText, 'Parent-approved jobs for teens 13–17 No application goes out without a parent’s OK · Free to join');
+    // Computers, since v64 (Aya, 2026-11-18): the picture is about half the screen tall and the headline sits beside it,
+    // on the first screen...
+    assert(s.img.height <= viewport.height * 0.6 && s.img.height >= Math.min(300, viewport.height * 0.5), w + ': picture is not about half the screen (' + s.img.height + ')');
+    assert(s.h1.top >= s.img.top - 1 && s.h1.bottom <= viewport.height, w + ': headline is not on the first screen beside the picture');
+    // ...so the top-bar line, which says the same thing, stays quiet while the headline is on screen
+    // and comes back once the page is scrolled past it.
+    assert.equal(s.tag, false, w + ': top-bar line shows next to the headline');
     assert.equal(s.tagHidden, 'true');
-    // ...and fades out while the real headline is on screen, then comes back.
-    await p.evaluate(() => document.getElementById('tw48-h1').scrollIntoView({ block: 'center' })); await p.waitForTimeout(500);
-    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), true, w + ': top-bar line shows next to the headline');
+    await p.evaluate(() => scrollTo(0, 800)); await p.waitForTimeout(500);
+    const later = await p.evaluate(() => { const t = document.getElementById('tw59-tag'); return { quiet: t.classList.contains('tw59-quiet'), text: t.innerText.replace(/\s+/g, ' ').trim() }; });
+    assert.equal(later.quiet, false, w + ': the top-bar line does not come back after the headline');
+    assert.equal(later.text, 'Parent-approved jobs for teens 13–17 No application goes out without a parent’s OK · Free to join');
     await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
-    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), false);
-  } else assert.equal(s.tag, false, w + ': top-bar line should be hidden on small screens');
+    assert.equal(await p.evaluate(() => document.getElementById('tw59-tag').classList.contains('tw59-quiet')), true);
+  } else {
+    // Phones and tablets: a big square across the page with the headline under it, and no top-bar line.
+    assert(s.img.width >= Math.min(w, 1212) - 40, w + ': hero picture got smaller (' + s.img.width + ')');
+    assert(s.img.bottom <= s.h1.top, w + ': headline is not under the picture');
+    assert.equal(s.tag, false, w + ': top-bar line should be hidden on small screens');
+  }
   // Logos: the small file, still in its cream frame; the 100 KB logo.png isn't downloaded.
   assert(s.logos.length > 0 && s.logos.every(x => x === 'assets/img/small-logo.png'), w + ': ' + s.logos.join());
   assert.equal(s.bigLogoLoaded, false, w + ': logo.png was downloaded');

@@ -3,6 +3,8 @@
       starts with a second title ("⏱️ Hours & Work Record"). The intro line, Export and Log Hours stay.
    8. The home page leads with parent approval: the headline, the line under it, the top-bar line on computers,
       "How parent approval works", the For parents card first and the Parent demo first.
+   1. (asked the same day) On computers the hero picture is about half the screen tall, whole, with the headline and
+      Sign Up beside it on the first screen. Phones and tablets keep the big picture with the headline under it.
    Nothing real is called: Supabase is faked and every outside request is blocked.
    Run: node tests/parent-first-v64.cjs   (add --scan to print every dashboard page's title and first heading) */
 const { chromium } = require('playwright');
@@ -97,7 +99,7 @@ const titles = (p, role, id) => p.evaluate(([role, id]) => {
   const ok = (cond, what) => { assert(cond, what); n++; };
   try {
     /* ── 8. the home page leads with parent approval ─────────────────── */
-    for (const vp of [{ width: 1440, height: 900 }, { width: 1366, height: 650 }, { width: 768, height: 1024 }, { width: 390, height: 844 }, { width: 320, height: 640 }]) {
+    for (const vp of [{ width: 1920, height: 960 }, { width: 1440, height: 900 }, { width: 1366, height: 650 }, { width: 1024, height: 700 }, { width: 900, height: 600 }, { width: 768, height: 1024 }, { width: 390, height: 844 }, { width: 320, height: 640 }]) {
       const w = vp.width + ': ';
       const { context, p, errors } = await open(browser, vp);
       const home = await p.evaluate(() => {
@@ -112,6 +114,9 @@ const titles = (p, role, id) => p.evaluate(([role, id]) => {
           demos: [...document.querySelectorAll('#tw48-demo button[onclick^="_directDemo"]')].map(b => b.getAttribute('aria-label')),
           finalLine: t('.landing-final-copy p'),
           img: { w: img.width, h: img.height }, natural: document.getElementById('tw-hero-img').naturalWidth,
+          beside: (h => img.right <= h.left && h.top >= img.top && h.bottom <= img.bottom)(document.getElementById('tw48-h1').getBoundingClientRect()),
+          under: img.bottom <= document.getElementById('tw48-h1').getBoundingClientRect().top,
+          signupOnScreen: [...document.querySelectorAll('#tw48-hero button')].some(b => /Sign Up Free/.test(b.textContent) && b.getBoundingClientRect().bottom <= innerHeight),
           h1Visible: vis(document.getElementById('tw48-h1')),
           wide: document.documentElement.scrollWidth > innerWidth + 1,
         };
@@ -125,8 +130,11 @@ const titles = (p, role, id) => p.evaluate(([role, id]) => {
       ok(home.cards.join('|') === 'For parents|For teens|For employers', w + 'cards ' + home.cards);
       ok(home.demos.join('|') === 'Parent demo|Teen demo|Employer demo', w + 'demos ' + home.demos);
       ok(/^Free for parents and teens\./.test(home.finalLine), w + 'last call ' + home.finalLine);
-      // The picture is not touched: square, whole, as wide as before.
-      ok(Math.abs(home.img.w - home.img.h) <= 2 && home.img.w >= Math.min(vp.width, 1212) - 40, w + 'hero picture ' + JSON.stringify(home.img));
+      // The picture: square and whole. Computers: about half the screen tall, headline and Sign Up beside it on the
+      // first screen. Phones and tablets: across the page, as before.
+      ok(Math.abs(home.img.w - home.img.h) <= 2, w + 'hero picture is square ' + JSON.stringify(home.img));
+      if (vp.width >= 900) ok(home.img.h <= vp.height * 0.6 && home.img.h >= Math.min(300, vp.height * 0.45) && home.beside && home.signupOnScreen, w + 'half-screen picture with the headline beside it ' + JSON.stringify(home));
+      else ok(home.img.w >= Math.min(vp.width, 1212) - 40 && home.under, w + 'picture across the page, headline under it ' + JSON.stringify(home.img));
       ok(home.h1Visible && !home.wide, w + 'headline shows and nothing is wider than the screen');
       // Honesty: no new safety promises.
       const page = await p.evaluate(() => document.getElementById('page-landing').innerText);

@@ -318,7 +318,8 @@
 <script src="assets/js/app-01.js"></script>
 <link rel="stylesheet" href="assets/css/styles-01.css">
 <!-- v51 (H3): the picture is in its final place from the first paint; homepage-v49.css, which loads last, says the same.
-     The picture is a big square across the page on every screen, as before (Aya, Oct 31: a smaller one in the middle looked tiny). -->
+     Phones and tablets: a big square across the page, as before. Computers: since v64 about half the screen tall with the
+     headline beside it (Aya asked for that on 2026-11-18; on Oct 31 a smaller one alone in the middle looked tiny). -->
 <style id="tw51-first-paint">#page-landing .landing{padding-top:0}</style>
 <!-- v59 (2026-11-15): on computers the top bar says what TeenWork is next to the logo, so the first screen is not
      only the picture (the picture stays big, whole and first). Taps on the home page while the app is still loading
@@ -332,6 +333,37 @@
 #page-landing .tw59-wait{cursor:progress !important;opacity:.7}
 </style>
 <script id="first-screen-v59" src="assets/js/first-screen-v59.js?v=59"></script>
+<!-- v64 (Aya, 2026-11-18: "capping it at roughly half the screen ... do this fix"): on computers the picture is about
+     half the screen tall (--tw64-p), still whole and square (never cropped), on the left; the headline, the line under
+     it and Sign Up Free / Sign In sit beside it, so they are on the first screen. The trust line, the demos and
+     "See how TeenWork works" stay under them. Under 900px wide #tw64-top, #tw48-hero and #tw64-intro add nothing
+     (display:contents and the old width rule), so phones and tablets are exactly as before. -->
+<style id="tw64-hero-cap">
+#page-landing #tw64-top{display:contents}
+#page-landing #tw64-intro{display:contents}
+#page-landing #tw64-top > #tw-hero-outer{width:calc(100% - 2rem) !important;max-width:1180px;box-sizing:border-box;margin-left:auto !important;margin-right:auto !important}
+@media (min-width:900px){
+#page-landing .landing{padding-left:0;padding-right:0}
+#page-landing .landing-shell{max-width:none}
+body #page-landing .landing-shell > #tw64-top{--tw64-p:min(clamp(300px,52vh,600px),46vw);--tw64-gap:clamp(24px,3.5vw,56px);display:grid;grid-template-columns:var(--tw64-p) minmax(0,calc(min(1180px,100%) - var(--tw64-p) - var(--tw64-gap)));column-gap:var(--tw64-gap);row-gap:1rem;justify-content:center;align-items:center;width:100% !important;max-width:none;box-sizing:border-box;margin:0 !important;padding:clamp(1rem,3vh,2.2rem) 1rem clamp(1.2rem,4vh,2.8rem);background:linear-gradient(135deg,rgba(216,243,220,.65),rgba(255,253,247,.9) 55%,rgba(255,237,213,.65))}
+#page-landing #tw64-top > #tw-hero-outer{grid-column:1;grid-row:1;width:var(--tw64-p) !important;max-width:none;margin:0 !important}
+#page-landing #tw64-top #tw-hero-outer > div{min-height:0 !important;border-radius:18px}
+#page-landing #tw64-top #tw-hero-img{width:var(--tw64-p) !important;height:var(--tw64-p) !important;max-height:none !important;object-fit:contain !important;border-radius:18px}
+#page-landing #tw64-top #tw-hero-outer > div > div{padding:calc(var(--tw64-p) * .03) calc(var(--tw64-p) * .04) !important;gap:calc(var(--tw64-p) * .03) !important;border-radius:18px 18px 0 0}
+#page-landing #tw64-top #tw-hero-outer > div > div > img{width:min(68px,calc(var(--tw64-p) * .12)) !important;height:min(68px,calc(var(--tw64-p) * .12)) !important}
+#page-landing #tw64-top #tw-hero-outer > div > div > span{font-size:min(2.4rem,calc(var(--tw64-p) * .075)) !important}
+#page-landing #tw64-top #tw48-hero,#page-landing #tw64-top #tw48-hero .landing-inner{display:contents}
+#page-landing #tw64-top #tw64-intro{display:block;grid-column:2;grid-row:1;text-align:left}
+#page-landing #tw64-top #tw64-intro #tw48-h1{max-width:none;margin:0 0 .45em !important;font-family:'Fraunces',Georgia,serif;font-weight:900;letter-spacing:-.01em;color:var(--green,#2d6a4f);font-size:clamp(2rem,3.1vw,3.4rem) !important;line-height:1.12}
+#page-landing #tw64-top #tw64-intro .landing-lead{max-width:36em !important;margin:0 0 1.3em !important;font-size:clamp(1.02rem,1.25vw,1.25rem) !important;line-height:1.6 !important}
+#page-landing #tw64-top #tw64-intro > div{justify-content:flex-start !important;margin-bottom:0 !important}
+#page-landing #tw64-top #tw64-intro button{min-height:44px;font-size:clamp(1rem,1.3vw,1.2rem) !important;padding:14px 28px !important}
+#page-landing #tw64-top #tw51-trust,#page-landing #tw64-top #tw48-demo,#page-landing #tw64-top .tw50-scroll{grid-column:1 / -1;justify-self:center}
+#page-landing #tw64-top #tw51-trust{grid-row:2;margin:.4rem auto 0}
+#page-landing #tw64-top #tw48-demo{grid-row:3;width:100%;box-sizing:border-box;text-align:center}
+#page-landing #tw64-top .tw50-scroll{grid-row:4}
+}
+</style>
 
 <!-- ═══════════════════════════════════════════════════════
      HTML SECTION — ALL PAGES
@@ -380,13 +412,15 @@
     <div class="landing-orb landing-orb-b"></div>
     <div class="landing-shell">
 
-      <!-- HERO -->
-      <!-- HERO IMAGE — full width, first thing people see -->
+      <!-- HERO. v64: on computers (900px+) the picture is about half the screen tall, whole, with the headline and
+           Sign Up beside it (Aya, 2026-11-18). Phones and tablets: #tw64-top is display:contents, so they are as before. -->
+      <div id="tw64-top">
+      <!-- HERO IMAGE — first thing people see -->
       <div id="tw-hero-outer" style="width:100%;margin-bottom:1.2rem;position:relative;"><div style="width:100%;border-radius:20px;overflow:hidden;position:relative;background:linear-gradient(135deg,#d8f3dc,#b7e4c7);min-height:260px;display:flex;align-items:center;justify-content:center;">
         <!-- Replace the img src below with your hero image URL -->
         <picture>
-          <source type="image/avif" srcset="assets/img/hero-640.avif 640w, assets/img/hero-960.avif 960w, assets/img/hero-1254.avif 1254w" sizes="100vw">
-          <source type="image/webp" srcset="assets/img/hero-640.webp 640w, assets/img/hero-960.webp 960w" sizes="100vw">
+          <source type="image/avif" srcset="assets/img/hero-640.avif 640w, assets/img/hero-960.avif 960w, assets/img/hero-1254.avif 1254w" sizes="(min-width: 900px) 600px, 100vw">
+          <source type="image/webp" srcset="assets/img/hero-640.webp 640w, assets/img/hero-960.webp 960w" sizes="(min-width: 900px) 600px, 100vw">
           <img id="tw-hero-img" src="assets/img/hero-960.webp" width="1254" height="1254" fetchpriority="high" decoding="async" alt="TeenWork — safe teen jobs"
           style="width:100%;height:100%;object-fit:cover;display:block;border-radius:20px;">
         </picture>
@@ -398,6 +432,7 @@
 
       <section class="landing-hero" id="tw48-hero">
         <div class="landing-inner" style="text-align:center;max-width:720px;margin:0 auto;">
+          <div id="tw64-intro">
           <h1 id="tw48-h1">The teen job app where parents <span style="white-space:nowrap">say yes first</span></h1>
 
           <p class="landing-lead" style="margin:0 auto 1.4rem;max-width:540px;font-size:1.05rem;color:var(--muted);line-height:1.6">TeenWork is a free teen job finder for ages 13–17. A teen can’t apply until a parent links accounts and agrees, and each application waits for the parent’s OK before an employer sees it.</p>
@@ -406,6 +441,7 @@
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem">
             <button onclick="gotoPage('signup')" style="background:var(--green);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(45,106,79,0.3);touch-action:manipulation">Sign Up Free</button>
             <button onclick="gotoPage('login')" style="background:none;border:2px solid var(--green);color:var(--green);padding:12px 26px;border-radius:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">Sign In</button>
+          </div>
           </div>
           <p class="tw51-trust" id="tw51-trust">Free to join · No cut of pay · Chats stay in the app</p>
 
@@ -422,6 +458,7 @@
           <script src="assets/js/app-03.js"></script>
         </div>
       </section>
+      </div>
 
       <!-- HOW IT WORKS: who it's for and how parent approval works -->
       <section class="landing-section" id="tw48-how" aria-label="How TeenWork works">

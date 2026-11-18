@@ -11,6 +11,8 @@
        parent    → their linked teens, and the employers of their teens' applications
        employer  → teens whose application reached them (after the parent's OK),
                    and the parent who approved it
+       v64: also whatever window._twContactSources adds (teen services: the
+       employer, teen and parent of a request the teen and parent said yes to)
    • ➕ Add in Messages, or typing 2+ letters in the search box, finds people
      on TeenWork by name and shows only names and roles (no email, phone or
      address). Parents and employers can't find teens in search: a teen
@@ -384,6 +386,10 @@
             if (v.parentEmail) found.push({ key: v.parentEmail, name: v.parentName, role: 'parent', job: appJob(v).title, how: 'applicant' });
           });
         }
+      }
+      // other features add people too (v64: teen services, once the teen and their parent said yes)
+      for (const src of (Array.isArray(window._twContactSources) ? window._twContactSources : [])) {
+        try { const more = await src(u); if (Array.isArray(more)) more.forEach(x => { if (x && x.key) found.push(x); }); } catch (e) {}
       }
       if (me() !== u) return;
       // the name each person uses now, when TeenWork knows it

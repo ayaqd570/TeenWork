@@ -107,6 +107,20 @@ From Aya's list of 2026-11-15, looking at a real teen account. Pictures: `docs/a
 
 Check with `node tests/account-pages-v60.cjs`.
 
+## After the job: wrap-up and references (v65)
+
+Aya, 2026-11-18: "When a job ends, prompt for hours and pay, a rating from both sides, and a reusable reference for the teen." `assets/js/job-wrapup-v65.js` + `assets/css/job-wrapup-v65.css` (loaded last). Pictures: `docs/job-wrapup-v65/`.
+- **Who and when.** Every teen an employer hired through the job board gets a wrap-up, on both sides. The home screen (Find Jobs, Post a Job) asks a day after the hire, and right away once the other side has wrapped up. The hired job also has a button (teen: Applied; employer: Applicants pipeline and Active Jobs), and closing a listing that had a hire opens the wrap-up at once. "Not finished yet" waits 3 days.
+- **What it asks.** Hours worked, total pay for the job, paid in full or not, 1 to 5 stars for the other side and "would you work together again?". The teen can add a note for other teens and parents. The employer picks up to 5 strengths and writes a short reference ("Start from the strengths I picked" writes a first draft). Free text goes through the chat safety check (`twCheckMessage`) first. Ratings can't be changed afterwards; hours and pay can.
+- **Hours and pay.** Each side sees the other's numbers and can use them. If they differ by more than 15 minutes or 50 cents, both sides and the parent see both numbers. The teen's confirmed hours that aren't in their Work Log yet go in as one entry (`source: 'wrapup'`, it follows later fixes).
+- **Fair ratings.** Neither side sees the other's stars or the reference until both have wrapped up, or 14 days pass. Hours and pay show right away.
+- **References** (teen: References page). Each reference shows the employer, job, month, hours, stars, "would hire again", strengths and the text, with Copy and Print / Save as PDF. "Show to employers when I apply" decides which ones other employers see on the applicant card ("📜 2 · 4.5★" in the pipeline). The old sample panels there and on the employer's Reviews page are hidden for real accounts; Reviews now lists jobs to wrap up and the references you wrote.
+- **Parents** see every wrap-up of their linked teens on Ratings (both sides' numbers, mismatches, "not paid in full yet", the reference and the teen's rating once open) and get a notice for each new one.
+- **Ratings of employers** belong to the employer trust work: the teen's stars and note are sent with `window.twEmployerTrust.review()` when that is on the page, and again on a later visit if it wasn't.
+- **Saved in `user_data`**: `<teen key>/job_wrap:<job id>` (teen's side), `<employer key>/job_wrap:<job id>:<teen key>` (employer's side, written only when the employer finishes), `<teen key>/ref_hidden` (references the teen hides). Like the rest of `user_data`, these rows can be read and written with the app's public key; TeenWork does not check employers' identity, and the printed reference says so.
+
+Check with `node tests/job-wrapup-v65.cjs` (a teen, an employer and a parent in three browsers sharing one pretend Supabase).
+
 ## Sharing (v54)
 
 `assets/js/share-v54.js` (+ `assets/css/share-v54.css`) holds `window.twShare()`, the "📣 Share TeenWork" window: the link with a Copy button, Text, Email, WhatsApp, Facebook and "More…" (the phone's own share sheet). Visitors on a phone get the phone's share sheet straight away; members always get the window, because it also has their joined count and the email invite. It is reached from the menu, the home page band and footer, the old referral window, the rate window and a one-time note on the 3rd dashboard visit (since v60 it sits inside the home section only, not on every page).

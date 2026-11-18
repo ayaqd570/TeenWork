@@ -254,7 +254,7 @@
       b.addEventListener('click', () => { pick = +b.dataset.n; status.textContent = ''; paint(); });
       b.addEventListener('keydown', e => {
         const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
-        if (!d) return; e.preventDefault(); pick = Math.max(1, Math.min(5, (pick || 0) + d)); paint();
+        if (!d) return; e.preventDefault(); pick = Math.max(1, Math.min(5, (+b.dataset.n || 0) + d)); paint();
         const t = m.querySelector('.tw64-star[data-n="' + pick + '"]'); if (t) t.focus();
       });
     });
@@ -534,7 +534,8 @@
         const html = (recent.length ? '<ul class="tw64-reviews tw64-reviews-big">' + recent.map(r => '<li><span class="tw64-stars" role="img" aria-label="' + (+r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span> <b>' + (r.role === 'parent' ? 'Parent' : 'Teen') + '</b> · ' + esc(monthYear(r.at)) + (r.text ? '<q>' + esc(r.text) + '</q>' : '') + '</li>').join('') + '</ul>'
           : '<p class="tw64-line tw64-muted">' + (n ? 'Your reviews show here once they are public.' : 'No reviews yet. After a teen you hired finishes a job, they and their parent can rate you here.') + '</p>') +
           (held ? '<p class="tw64-small">' + (held === 1 ? '1 new review stays private' : held + ' new reviews stay private') + ' for up to 14 days, or until you finish your part of the job wrap-up. It already counts in your stars.</p>' : '');
-        if (list.dataset.tw64 !== html) { list.innerHTML = html; list.dataset.tw64 = html; }
+        // other blocks redraw this list (real-data's "No reviews yet"), so check what is really there
+        if (list.dataset.tw64 !== html || !list.querySelector(':scope > [data-tw64]')) { list.innerHTML = '<div data-tw64="1">' + html + '</div>'; list.dataset.tw64 = html; }
       }
       const prof = $('emp-profile-rating-badge') && $('emp-profile-rating-badge').parentNode;
       if (prof) {
@@ -601,6 +602,7 @@
   wrap('renderAllApplications', () => decorateParent());
   wrap('renderTeenApplications', () => decorateTeen());
   wrap('renderEmployerDashboard', () => { if (asRole('employer')) { backfillHires(); paintEmployer(); } });
+  wrap('renderEmpProfileReviews', () => { if (asRole('employer')) paintEmployer(); });
   wrap('switchDashTab', (btn, id) => {
     if (id === 'ptab-approvals' || id === 'ptab-overview') decorateParent();
     else if (id === 'ttab-applications') decorateTeen();

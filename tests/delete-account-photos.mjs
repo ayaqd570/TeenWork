@@ -25,6 +25,7 @@ function fake({ photoRow, files, tableMissing }) {
       if (method === 'GET') return Response.json(photoRow ? [photoRow] : []);
       return new Response(null, { status: 204 });
     }
+    if (u.pathname === '/rest/v1/rpc/tw_employer_trust_forget' && tableMissing) return Response.json({ code: 'PGRST202', message: 'Could not find the function public.tw_employer_trust_forget' }, { status: 404 });
     if (u.pathname === `/storage/v1/object/list/${PHOTO_BUCKET}`) return Response.json(files.map(name => ({ name })));
     if (u.pathname === `/storage/v1/object/${PHOTO_BUCKET}` && method === 'DELETE') return Response.json([]);
     if (u.pathname.startsWith('/rest/v1/')) return method === 'GET' ? Response.json([]) : new Response(null, { status: 204 });
@@ -45,6 +46,8 @@ const post = (handle, token, body) => handle(new Request('https://fn.test/', { m
   assert(f.calls.some(c => c.method === 'DELETE' && c.path === '/rest/v1/tw_profile_photos' && c.search.includes('owner_key=eq.teen@example.com')), 'photo row not deleted');
   const forget = f.calls.find(c => c.path === '/rest/v1/rpc/tw_photo_forget_viewer');
   assert.deepEqual(forget && forget.body, { p_email: 'teen@example.com' });
+  // v64: the account's employer trust records (phone, hires, reviews) go too
+  assert.deepEqual(f.calls.find(c => c.path === '/rest/v1/rpc/tw_employer_trust_forget')?.body, { p_key: 'teen@example.com' });
 }
 // 2. The admin closes a parent account: the parent's email comes off teens' viewer lists right away
 {
@@ -60,8 +63,9 @@ const post = (handle, token, body) => handle(new Request('https://fn.test/', { m
   const r = await post(f.handle, 'admin', { action: 'close', key: 'teen@example.com#2' });
   assert.equal(r.status, 200);
   assert.deepEqual(f.calls.find(c => c.method === 'DELETE' && c.path === `/storage/v1/object/${PHOTO_BUCKET}`).body.prefixes, [`${UID}/p2-300.jpg`]);
+  assert.deepEqual(f.calls.find(c => c.path === '/rest/v1/rpc/tw_employer_trust_forget')?.body, { p_key: 'teen@example.com#2' });
 }
-// 4. Before the photo migration is applied, deleting an account still works
+// 4. Before the photo and employer trust migrations are applied, deleting an account still works
 {
   const f = fake({ tableMissing: true, files: [] });
   const r = await post(f.handle, 'teen', { action: 'self', key: 'teen@example.com' });

@@ -16,6 +16,8 @@
 //   { ping: true }                             { ok, ready } without doing anything.
 // Profile photos (v55): the account's photo files in the private "profile-photos" bucket and its
 // tw_profile_photos row go too, and the email is taken off other teens' photo viewer lists.
+// Employer trust checks (v64): the account's confirmed phone, the hires it recorded or was part of, and the
+// reviews it wrote or that are about it go too (rpc tw_employer_trust_forget; skipped while not set up).
 // Every closed account gets a row in public.closed_accounts (key, type, closed_by, closed_at,
 // purge_after, purged_at). The app reads that table to hide closed accounts everywhere and to tell
 // people an account they worked with was closed. Only this function can write it.
@@ -172,6 +174,8 @@ export function makeHandler(env: Env, fetchImpl: typeof fetch = fetch) {
       if (!/ 404 |PGRST205|42P01/.test(String(e))) throw e;   // only "not set up yet" is quietly skipped
     }
     try { await rest("rpc/tw_photo_forget_viewer", { method: "POST", body: JSON.stringify({ p_email: emailOfKey(key) }) }); } catch { /* not set up yet */ }
+    // v64 employer trust checks: the account's phone confirmation, hires and reviews (by it or about it)
+    try { await rest("rpc/tw_employer_trust_forget", { method: "POST", body: JSON.stringify({ p_key: key }) }); } catch { /* not set up yet */ }
   }
   async function typeOf(key: string) {
     try { const r = await select(`email=eq.${q(key)}&key=eq.account_profile`); const t = low(parse(r[0]?.value)?.type); return ROLES.includes(t) ? t : ""; } catch { return ""; }

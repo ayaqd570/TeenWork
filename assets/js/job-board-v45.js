@@ -536,10 +536,11 @@
         let a = apps.find(x => x._jb && x._appKey === appKey);
         if (!a) {
           a = tag(Object.assign(pick(v.job || {}, JOB_FIELDS), { id: pid(r.email, v.jobId), status, applied: fmtDate(v.appliedAt) + ' by ' + who, parentApproved: v.status !== 'pending-approval' }),
-            u, { _appKey: appKey, _teenKey: r.email, _jobId: v.jobId, _teenName: teenName || '' });
+            u, { _appKey: appKey, _teenKey: r.email, _jobId: v.jobId, _teenName: teenName || '', _employerKey: v.employerKey || '' });
           if (v.test && !/^🧪/.test(a.title || '')) a.title = '🧪 ' + a.title;
           apps.push(a); changed = true;
         } else if (a.status !== status) { a.status = status; a.parentApproved = v.status !== 'pending-approval'; changed = true; }
+        if (!a._employerKey && v.employerKey) a._employerKey = v.employerKey;   // v64: the employer check on the parent's cards
         const t = (v.job && v.job.title) || 'a job';
         if (m[appKey] !== v.status) {
           if (v.status === 'pending-approval') notes.push(who + ' wants to apply to "' + t + '"' + (v.job && v.job.pay ? ' ($' + v.job.pay + (v.job.payType === 'hourly' ? '/hr' : ' flat') + (v.job.city ? ', ' + v.job.city : '') + ')' : '') + '. Review it in Approvals.');

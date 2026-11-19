@@ -69,6 +69,7 @@
     if (o && o.maxHours != null) r.maxHours = num(o.maxHours, 15);
     if (o && Array.isArray(o.transport)) r.transport = o.transport.slice(0, 8).map(t => clean(t, 30)).filter(Boolean);
     ['permit', 'homeJob', 'farm'].forEach(k => { if (o && o[k] != null) r[k] = !!o[k]; });   // set by the job tiers block
+    ['neighbor', 'notify'].forEach(k => { if (o && o[k]) r[k] = true; });                     // v64 quick job from a neighbor; email the poster when a parent says OK
     const lm = o && o.landmark;     // "Nearest landmark" from the job map block, when that block is in the file
     if (lm && isFinite(lm.lat) && isFinite(lm.lon)) r.landmark = { id: clean(lm.id, 40), name: clean(lm.name, 60), kind: clean(lm.kind, 30), icon: clean(lm.icon, 4), lat: num(lm.lat, 0), lon: num(lm.lon, 0) };
     return r;
@@ -161,7 +162,7 @@
     return n;
   }
   const tag = (o, u, extra) => Object.assign(o, { _jb: true, _owner: own(u) }, extra || {});
-  const JOB_FIELDS = ['title', 'type', 'pay', 'payType', 'city', 'state', 'minAge', 'maxHours', 'desc', 'transport', 'employer', 'landmark', 'permit', 'homeJob', 'farm'];
+  const JOB_FIELDS = ['title', 'type', 'pay', 'payType', 'city', 'state', 'minAge', 'maxHours', 'desc', 'transport', 'employer', 'landmark', 'permit', 'homeJob', 'farm', 'neighbor', 'notify'];
   const pick = (o, keys) => { const r = {}; keys.forEach(k => { if (o && o[k] !== undefined) r[k] = o[k]; }); return r; };
   const LOCAL = { 'pending-approval': 'pending-approval', applied: 'applied', 'parent-denied': 'parent-denied', hired: 'accepted', passed: 'rejected' };
   const rerender = names => names.forEach(n => { try { if (typeof window[n] === 'function') window[n](n === 'renderApprovalJobs' ? APPS() : undefined); } catch (e) {} });
@@ -536,10 +537,11 @@
         let a = apps.find(x => x._jb && x._appKey === appKey);
         if (!a) {
           a = tag(Object.assign(pick(v.job || {}, JOB_FIELDS), { id: pid(r.email, v.jobId), status, applied: fmtDate(v.appliedAt) + ' by ' + who, parentApproved: v.status !== 'pending-approval' }),
-            u, { _appKey: appKey, _teenKey: r.email, _jobId: v.jobId, _teenName: teenName || '' });
+            u, { _appKey: appKey, _teenKey: r.email, _jobId: v.jobId, _teenName: teenName || '', _employerKey: v.employerKey });
           if (v.test && !/^🧪/.test(a.title || '')) a.title = '🧪 ' + a.title;
           apps.push(a); changed = true;
         } else if (a.status !== status) { a.status = status; a.parentApproved = v.status !== 'pending-approval'; changed = true; }
+        a._employerKey = v.employerKey;                       // v64: quick-job-v64 emails the poster when a parent says OK
         const t = (v.job && v.job.title) || 'a job';
         if (m[appKey] !== v.status) {
           if (v.status === 'pending-approval') notes.push(who + ' wants to apply to "' + t + '"' + (v.job && v.job.pay ? ' ($' + v.job.pay + (v.job.payType === 'hourly' ? '/hr' : ' flat') + (v.job.city ? ', ' + v.job.city : '') + ')' : '') + '. Review it in Approvals.');
@@ -603,5 +605,18 @@
   setInterval(() => { const u = me(); if (isReal(u) && document.visibilityState !== 'hidden') syncNow(u); }, 30000);
   document.addEventListener('visibilitychange', () => { const u = me(); if (document.visibilityState === 'visible' && isReal(u)) syncNow(u); });
 
-  window._twJobBoard = { sync: () => syncNow(me(), true), myJobs: () => { const u = me(); return u ? myJobs(u).slice() : []; }, isTester: () => isTester(me()) };
+  // v64: change fields of one of the signed-in employer's own posts after posting (quick-job-v64 marks neighbor posts)
+  function patchMine(id, fields) {
+    const u = realAs('employer'); if (!u || !validId(id)) return false;
+    const list = myJobs(u), rec = list.find(x => x.id === id); if (!rec) return false;
+    const now = cleanJob(Object.assign(pick(rec, JOB_FIELDS), fields || {}));
+    let diff = false;
+    Object.keys(fields || {}).forEach(k => { if (JOB_FIELDS.indexOf(k) < 0) return; if (JSON.stringify(now[k]) !== JSON.stringify(rec[k])) { if (now[k] === undefined) delete rec[k]; else rec[k] = now[k]; diff = true; } });
+    POSTED().forEach(j => { if (j && j.id === id) Object.keys(fields || {}).forEach(k => { if (JOB_FIELDS.indexOf(k) >= 0) j[k] = fields[k]; }); });
+    if (!diff) return true;
+    rec.updatedAt = Date.now(); setMyJobs(u, list); save(u, own(u), JOB + rec.id, rec);
+    return true;
+  }
+
+  window._twJobBoard = { sync: () => syncNow(me(), true), myJobs: () => { const u = me(); return u ? myJobs(u).slice() : []; }, isTester: () => isTester(me()), patch: patchMine };
 })();

@@ -36,6 +36,7 @@
         ['ttab-resume', '👤', 'Profile & Settings', 'account']],
       groups: [
         { id: 'jobs', title: 'Jobs & money', items: [
+          ['ttab-services', '🧰', 'Offer Services'],
           ['ttab-map', '🗺️', 'Job Map'],
           ['ttab-tracker', '📈', 'Tracker'],
           ['ttab-calendar', '📅', 'Schedule'],
@@ -79,6 +80,7 @@
       name: 'Employer',
       main: [
         ['etab-post', '📝', 'Post a Job', 'post'],
+        ['etab-teens', '🙋', 'Find Teens'],
         ['etab-applicants', '👥', 'Applicants', 'hiring'],
         ['etab-active', '📂', 'Active Jobs'],
         ['chat', '💬', 'Messages', 'chat'],

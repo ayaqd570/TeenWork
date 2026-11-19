@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const PORT = 8033, URL0 = 'http://127.0.0.1:' + PORT + '/';
 // Most buttons a role's side menu may show before any group is opened (main places + group buttons + footer).
-const MAX_SHOWN = { teen: 13, parent: 11, employer: 11 };
+const MAX_SHOWN = { teen: 13, parent: 11, employer: 12 };   // v64: employers got Find Teens
 const skipTour = p => p.addInitScript(() => setInterval(() => { try { if (document.getElementById('tw34-tour')) tourSkip(); } catch (e) {} }, 150));
 
 async function start(browser, viewport, role) {

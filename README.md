@@ -49,7 +49,7 @@ Ship v51 in this order, because the v50 admin panel does not sign in to Supabase
 
 Checks, all offline: `node tests/home-v51.cjs`, `node tests/ui-acceptance.cjs`, `node tests/phone-layout.cjs`,
 `node tests/practice-v52.cjs`, `node tests/onboarding-v53.cjs`, `node tests/share-billing-v54.cjs` (sharing, email invites, polish, billing), `node tests/profile-photo-v55.cjs`,
-`node tests/account-pages-v60.cjs` (page titles, bio, Work Log money), `node tests/remember-me-v63.cjs` (staying signed in),
+`node tests/account-pages-v60.cjs` (page titles, bio, Work Log money), `node tests/remember-me-v63.cjs` (staying signed in), `node tests/teen-services-v64.cjs` (teen service profiles),
 `node --experimental-strip-types tests/delete-account-auth.mjs`, `node --experimental-strip-types tests/delete-account-photos.mjs` and `node --experimental-strip-types tests/billing-and-email-functions.mjs`.
 
 ## Staying signed in (v63)
@@ -106,6 +106,18 @@ From Aya's list of 2026-11-15, looking at a real teen account. Pictures: `docs/a
 - **Money.** Work Log amounts always show dollars and cents with a comma for thousands (`wlMoney` in `app-05.js`: "$0.00", "$1,243.75"), like the Earnings page; the Earned box on the profile does the same. On phones the four Work Log numbers sit two by two so the longer amounts fit.
 
 Check with `node tests/account-pages-v60.cjs`.
+
+## Teen service profiles (v64)
+
+Aya's review of 2026-11-18, item 5: "Let teens list what they offer, approved by a parent, so employers can browse teens as well as post jobs." Everything is in `assets/js/teen-services-v64.js` (+ `assets/css/teen-services-v64.css`), loaded last. Pictures: `docs/teen-services-v64/`.
+- **Teen: 🧰 Offer Services** (menu group "Jobs & money", and a card on Find Jobs until the teen has a listing). Services (12 to pick from plus 2 of their own), a short "About you", a rate in whole dollars (per hour, per job or "Let's talk"), when they are free and how they get there. The town comes from the profile. Employers only ever see first name, last initial, age and town. A preview shows the listing exactly as employers will. The teen can hide it any time.
+- **Parent: Approvals → "Teen services"**. A linked parent sees the listing as employers will and picks **Approve listing** or **Ask for changes** (with a note the teen sees), and later **Take it down**. Only a parent linked and approved on the teen's own `parent_link` counts, and a parent account on the teen's own inbox can't approve (testers excepted), the same rules as parent consent. If the teen edits a live listing, employers keep seeing the approved version until the parent approves the new one.
+- **Employer: 🙋 Find Teens** (main menu). Parent-approved listings only, nearest first (same state, then same town), with filters for service, town and time. **Ask … to help** sends a request: service, when, town, pay in whole dollars and an optional note. The teen answers first, then their parent decides. Only when both said yes do the employer, the teen and that parent become contacts (through `window._twContactSources`, which `contacts-v47.js` reads on every sync), so they can message in TeenWork. One open request per teen per employer, at most 10 requests a day.
+- **No contact details**: emails, phone numbers, links, social media names and street addresses are refused in listings, change notes and requests.
+- **Testers** see only testers. A tester teen with no parent linked skips the parent step (like applying). Demos stay in their sandbox.
+- **Saved in `user_data`** (always under real account keys): `<teen>/svc_profile`, `<parent>/svc_ok:<teen key>` (the approved copy and the last decision), `<teen>/svc_req:<id>` (status `waiting-teen` → `waiting-parent` → `accepted`, or `declined`, or `cancelled`), `<employer>/svc_sent` (the employer's own request ids). Everything read back is rebuilt from known fields. Like the job board, `user_data` can be read and written by anyone with the app's public key, so these approvals are as strong as the rest of the app's parent checks until that table gets row rules.
+
+Check with `node tests/teen-services-v64.cjs` (add `--shots` for the pictures).
 
 ## Sharing (v54)
 

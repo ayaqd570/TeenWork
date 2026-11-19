@@ -55,7 +55,7 @@
       'ttab-worklog': 'work-log', 'ttab-calendar': 'schedule', 'ttab-earnings': 'earnings', 'ttab-savings': 'savings',
       'ttab-resume': 'profile', 'ttab-portfolio': 'portfolio', 'ttab-references': 'references', 'ttab-letters': 'letters',
       'ttab-badges': 'badges', 'ttab-leaderboard': 'leaderboard', 'ttab-ai': 'ai-coach', 'ttab-lessons': 'lessons',
-      'ttab-firstjob': 'first-job', 'ttab-qa': 'questions', 'ttab-stories': 'stories'
+      'ttab-firstjob': 'first-job', 'ttab-qa': 'questions', 'ttab-stories': 'stories', 'ttab-services': 'my-services'
     },
     parent: {
       'ptab-overview': 'home', 'ptab-approvals': 'approvals', 'ptab-controls': 'controls', 'ptab-notifications': 'alerts',
@@ -65,7 +65,7 @@
     employer: {
       'etab-post': 'post-job', 'etab-applicants': 'applicants', 'etab-active': 'active-jobs', 'etab-schedule': 'schedule',
       'etab-bulkmsg': 'bulk-message', 'etab-ai': 'ai-tools', 'etab-analytics': 'analytics', 'etab-reviews': 'reviews',
-      'etab-letters': 'letters', 'etab-bgcheck': 'verification', 'etab-profile': 'company-profile'
+      'etab-letters': 'letters', 'etab-bgcheck': 'verification', 'etab-profile': 'company-profile', 'etab-teens': 'find-teens'
     }
   };
   const FIRST = { teen: 'ttab-browse', parent: 'ptab-overview', employer: 'etab-post' };

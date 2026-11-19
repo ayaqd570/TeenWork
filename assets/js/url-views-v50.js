@@ -46,7 +46,7 @@
   const NEXT = 'tw_url_next';         // sessionStorage: where to go after signing in
   const MAX_AGE = 12 * 3600 * 1000;
   const ROLES = ['teen', 'parent', 'employer'];
-  const PUBLIC = ['login', 'signup', 'pricing', 'school', 'safety-lab'];
+  const PUBLIC = ['login', 'signup', 'pricing', 'school', 'safety-lab', 'quick-job'];   // v64: quick-job = "Post a small job" (quick-job-v64.js)
   const AUTH = ['login', 'signup'];
   // section id → address name (anything not listed uses its id)
   const SLUGS = {

@@ -95,6 +95,9 @@
     return '';
   }
   function linkFor(code) { return SITE + (code && CODE_RE.test(code) ? '?ref=' + code : ''); }
+  // v64: asking someone to post a job sends them straight to the one-minute "Post a small job" page (quick-job-v64)
+  function quickJobLink(code) { return SITE + '?view=quick-job' + (code && CODE_RE.test(code) ? '&ref=' + code : ''); }
+  function linkForAudience(code) { return audience === 'employer' ? quickJobLink(code) : linkFor(code); }
   function shareCodeForSheet() { return myCode(true) || (arrival.share && arrival.share !== '1' ? arrival.share : ''); }
 
   /* ── 3. what is shared ──────────────────────────────────────────── */
@@ -102,7 +105,7 @@
   // (used by the empty Find Jobs list). The link and the code stay the member's own.
   var audience = '';
   function message(role) {
-    if (role === 'hire') return 'Could you use a hand with yard work, pet care, snow shoveling or other odd jobs? On TeenWork, neighbors and local businesses post small jobs for teens 13–17, and a parent approves every application. Posting a job is free:';
+    if (role === 'hire') return 'Could you use a hand with yard work, pet care, snow shoveling or other odd jobs? On TeenWork, neighbors and local businesses post small jobs for teens 13–17, and a parent approves every application. Posting a small job is free and takes about a minute:';
     if (role === 'employer') return 'Hiring teens for local jobs? TeenWork connects you with teens 13–17, and a parent approves every application. It’s free to post a job:';
     if (role === 'parent') return 'TeenWork helps teens 13–17 find safe local jobs, and parents approve every application. Free for teens and parents:';
     if (role === 'teen') return 'I’m using TeenWork to find local jobs like lawn care, pet sitting and babysitting. It’s free for teens 13–17 and a parent approves every application:';
@@ -110,7 +113,7 @@
   }
   function payload() {
     var u = user(), role = audience === 'employer' ? 'hire' : (u && !u.isAdmin ? u.type : '');
-    var url = linkFor(shareCodeForSheet());
+    var url = linkForAudience(shareCodeForSheet());
     return { title: audience === 'employer' ? 'Post a job for local teens on TeenWork' : 'TeenWork — safe local jobs for teens', text: message(role), url: url };
   }
 
@@ -246,7 +249,7 @@
       '<p><strong>' + who + '</strong> thinks you&rsquo;d like TeenWork and sent you this invite.</p>' +
       '<p>' + about + '</p>' +
       '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 8px;"><tr><td bgcolor="#2d6a4f" style="background:#2d6a4f;border-radius:12px;">' +
-        '<a href="' + esc(link) + '" style="display:inline-block;padding:14px 26px;font-family:\'DM Sans\',Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:12px;">See TeenWork</a>' +
+        '<a href="' + esc(link) + '" style="display:inline-block;padding:14px 26px;font-family:\'DM Sans\',Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:12px;">' + (audience === 'employer' ? 'Post a small job' : 'See TeenWork') + '</a>' +
       '</td></tr></table>' +
       '<p style="font-size:13px;color:#4b5563;">You got this email because ' + who + ' typed your address into TeenWork. We won&rsquo;t email you again unless you sign up.</p>';
     return {
@@ -276,7 +279,7 @@
     var st = inviteState(u), h = hashAddr(to);
     if (st.sent.some(function (x) { return x.h === h; })) { inviteMsg(form, 'You already invited them this month.', 'warn'); return; }
     if (st.n >= INVITES_PER_DAY) { inviteMsg(form, 'You’ve sent ' + INVITES_PER_DAY + ' invites today. You can send more tomorrow.', 'warn'); return; }
-    var link = linkFor(myCode(true)), mail = inviteEmail(u, link);
+    var link = linkForAudience(myCode(true)), mail = inviteEmail(u, link);
     var mailto = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(mail.subject) + '&body=' + encodeURIComponent(mail.text);
     if (typeof window.twSendViaResend !== 'function') { inviteMsg(form, 'TeenWork can’t send email invites right now.', 'warn', mailto); return; }
     var params = { to_email: to, to_name: '', from_name: 'TeenWork', reply_to: '', subject: mail.subject, message: mail.html,

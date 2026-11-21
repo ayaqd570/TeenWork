@@ -5737,7 +5737,7 @@ const TOUR_STEPS = {
     },
     {
       title: '✅ Job approvals',
-      body: "Every job your teen applies to needs your thumbs-up first. You'll see the employer info, job details, and TrustVerify status before anything moves forward.",
+      body: "Every job your teen applies to needs your thumbs-up first. You'll see the job details and the employer's history (phone check, reviews from past jobs, teens hired) before anything moves forward.",
       target: 'button[onclick*="ptab-approvals"], button[onclick*="ttab-approvals"]', pos: 'bottom',
       tip: '💡 You get an email + in-app notification the moment your teen applies.',
     },
@@ -5747,8 +5747,8 @@ const TOUR_STEPS = {
       target: '.mnb-messages, button.mnb-messages', pos: 'top',
     },
     {
-      title: '🔍 TrustVerify employers',
-      body: "TeenWork does not run criminal background checks. Review the employer and job together before approving. Identity and background checks are not available.",
+      title: '🔍 Employer checks',
+      body: "Each job waiting for your OK shows whether the employer confirmed a phone number by text, reviews from teens and parents who worked there, and how many teens they hired. TeenWork does not run criminal background checks, so review the employer and job together before approving.",
       target: 'button[onclick*="ptab-verify"], button[onclick*="ttab-trust"]', pos: 'bottom',
       tip: '💡 Ask the employer your questions in the app chat before you approve.',
     },

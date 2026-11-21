@@ -1,0 +1,82 @@
+/* v64 — employer trust checks (employer-trust-v64.js): the parent's Employer check box, Rate this employer,
+   the rating window and the employer's Trust checks panel */
+.twet-check{margin:10px 0 4px;padding:12px 14px;border:1.5px solid var(--green-light,#52b788);border-left:5px solid var(--green,#2d6a4f);border-radius:12px;background:var(--green-pale,#d8f3dc);color:var(--text,#1c1c1c);font-size:.88rem;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+.twet-check p{margin:0}
+.twet-title{font-weight:800;color:var(--green,#2d6a4f);margin:0 0 6px !important;font-size:.92rem}
+.twet-line{display:block;margin:3px 0 !important}
+.twet-line span[aria-hidden]{display:inline-block;width:1.4em}
+.twet-good{color:#1d5a3a;font-weight:700}
+.twet-warn{color:#8a4b00;font-weight:700}
+.twet-muted{color:var(--muted,#4b5563)}
+.twet-new{display:inline-block;padding:0 7px;border-radius:999px;background:var(--amber-pale,#fff1e0);color:#8a4b00;font-size:.72rem;font-weight:800;vertical-align:1px}
+.twet-reviews{list-style:none;margin:8px 0 2px;padding:0;display:grid;gap:6px}
+.twet-reviews li{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.75);border:1px solid rgba(45,106,79,.18);font-size:.84rem}
+.twet-reviews q{display:block;margin-top:3px;color:var(--text,#1c1c1c);font-style:italic}
+.twet-reviews-big li{font-size:.9rem;padding:10px 12px}
+.twet-stars{color:#b45309;letter-spacing:1px;font-size:.95em}
+.twet-small{margin:6px 0 0 !important;font-size:.78rem;line-height:1.45;color:var(--muted,#4b5563)}
+.twet-limit{margin:8px 0 0 !important;padding-top:7px;border-top:1px dashed rgba(45,106,79,.3);font-size:.78rem;color:var(--muted,#4b5563)}
+
+/* Rate this employer, on hired jobs */
+.twet-rate{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border,#e2ddd4);font-size:.85rem;font-weight:600;color:var(--text,#1c1c1c)}
+.twet-rate > span{flex:1 1 180px;min-width:0}
+.twet-rate-btn{min-height:44px;padding:0 16px;border:1.5px solid #f6c48a;border-radius:10px;background:var(--amber-pale,#fff1e0);color:#8a4b00;font-family:inherit;font-size:.86rem;font-weight:800;cursor:pointer}
+.twet-rate-btn:hover,.twet-rate-btn:focus-visible{background:#ffe2bf;border-color:var(--amber,#e76f00)}
+
+/* the rating window */
+.twet-modal{position:fixed;inset:0;z-index:100060;background:rgba(15,23,20,.55);display:flex;align-items:flex-end;justify-content:center;font-family:'DM Sans',system-ui,sans-serif}
+@media (min-width:600px){.twet-modal{align-items:center;padding:1rem}}
+.twet-card{position:relative;width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--card,#fffdf7);color:var(--text,#1c1c1c);border-radius:20px 20px 0 0;padding:1.3rem 1.15rem calc(1.15rem + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+@media (min-width:600px){.twet-card{border-radius:20px;padding:1.5rem 1.5rem 1.3rem}}
+.twet-card h2{font-family:'Fraunces',Georgia,serif;font-size:1.25rem;color:var(--green,#2d6a4f);margin:0 2.6rem .25rem 0;overflow-wrap:anywhere}
+.twet-sub{margin:0 0 .8rem;font-size:.86rem;color:var(--muted,#4b5563)}
+.twet-q{margin:.4rem 0 .3rem;font-weight:800;font-size:.95rem}
+.twet-x{position:absolute;top:.5rem;right:.5rem;min-width:44px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--muted,#4b5563);font-size:1.2rem;cursor:pointer}
+.twet-x:hover,.twet-x:focus-visible{background:var(--green-pale,#d8f3dc);color:var(--green,#2d6a4f)}
+.twet-pick{display:flex;align-items:center;flex-wrap:wrap;gap:2px;margin:0 0 .7rem}
+.twet-star{min-width:46px;min-height:46px;border:0;border-radius:10px;background:transparent;color:#cfc8bb;font-size:2rem;line-height:1;cursor:pointer;padding:0}
+.twet-star.on{color:#e09b00}
+.twet-star:hover,.twet-star:focus-visible{background:var(--amber-pale,#fff1e0)}
+.twet-word{margin-left:6px;font-weight:800;color:#8a4b00;font-size:.92rem}
+.twet-lbl{display:block;margin:.3rem 0 .3rem;font-weight:700;font-size:.88rem}
+.twet-lbl span{font-weight:500;color:var(--muted,#4b5563)}
+.twet-card textarea,.twet-form input{width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--bg,#f5f0e8);color:var(--text,#1c1c1c);font-family:inherit;font-size:16px;line-height:1.4}
+.twet-card textarea{resize:vertical;min-height:84px}
+.twet-count{margin:.2rem 0 0;text-align:right;font-size:.74rem;color:var(--muted,#4b5563)}
+.twet-status{min-height:1.2em;margin:.5rem 0 0 !important;font-size:.85rem;font-weight:600}
+.twet-status:empty{min-height:0;margin:0 !important}
+.twet-bad{color:var(--red,#c0392b)}
+.twet-ok{color:#1d5a3a}
+.twet-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:.9rem}
+.twet-go{min-height:46px;padding:0 20px;border:0;border-radius:12px;background:var(--green,#2d6a4f);color:#fff;font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer}
+.twet-go:hover{background:#235c40}
+.twet-go[disabled]{opacity:.6;cursor:progress}
+.twet-cancel{min-height:46px;padding:0 18px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:transparent;color:var(--text,#1c1c1c);font-family:inherit;font-size:.92rem;font-weight:700;cursor:pointer}
+
+/* the employer's Trust checks panel */
+.twet-panel{margin:0 0 1.2rem}
+.twet-lead{margin:0 0 .9rem;font-size:.88rem;line-height:1.5;color:var(--muted,#4b5563)}
+.twet-phone{padding:12px 14px;border:1.5px solid var(--border,#e2ddd4);border-radius:12px;background:var(--card,#fffdf7);margin-bottom:1rem;font-size:.88rem;line-height:1.45}
+.twet-phone p{margin:0}
+.twet-form{margin:.4rem 0 0}
+.twet-row{display:flex;gap:8px;align-items:stretch;min-width:0}
+.twet-row input{flex:1 1 auto;min-width:0}
+.twet-row .twet-go{flex:none}
+@media (max-width:420px){.twet-row{flex-direction:column}.twet-row .twet-go{width:100%}}
+.twet-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:.5rem}
+.twet-link{min-height:44px;padding:0 2px;border:0;background:transparent;color:var(--green,#2d6a4f);font-family:inherit;font-size:.86rem;font-weight:700;text-decoration:underline;cursor:pointer}
+.twet-h3{margin:0 0 .3rem;font-size:.95rem;font-weight:800;color:var(--text,#1c1c1c)}
+#twet-emp-preview{margin-top:0}
+
+html.dark .twet-check{background:#1b2a22;border-color:#3a5a47;color:#eef2ef}
+html.dark .twet-title,html.dark .twet-good,html.dark .twet-ok{color:#9fd8b5}
+html.dark .twet-warn,html.dark .twet-word{color:#f5c27a}
+html.dark .twet-reviews li{background:#16201b;border-color:#3a4a41}
+html.dark .twet-reviews q,html.dark .twet-rate,html.dark .twet-h3{color:#eef2ef}
+html.dark .twet-stars{color:#f5c27a}
+html.dark .twet-card{background:#1f2a24;color:#eef2ef}
+html.dark .twet-card textarea,html.dark .twet-form input{background:#16201b;color:#eef2ef;border-color:#3a4a41}
+html.dark .twet-phone{background:#1f2a24;border-color:#3a4a41;color:#eef2ef}
+html.dark .twet-rate-btn{background:#3a2a12;color:#f5c27a;border-color:#6b4a1c}
+html.dark .twet-link{color:#9fd8b5}
+html.dark .twet-cancel{color:#eef2ef;border-color:#3a4a41}

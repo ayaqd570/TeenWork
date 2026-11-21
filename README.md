@@ -163,6 +163,27 @@ Database: `supabase/migrations/20261107_profile_photos.sql` (bucket, table, rule
 Who counts as someone's parent, teen or employer still comes from `user_data`, which anyone with the app's key can write; the photo rules only trust the owner's own row, and the owner sees the list of people.
 Checks: `node tests/profile-photo-v55.cjs` (screens, fake Supabase), `node --experimental-strip-types tests/delete-account-photos.mjs`, and the database rules on a throwaway local Postgres: `TW_PG="host=… port=… user=postgres" node tests/profile-photos-sql.mjs`.
 
+## Employer trust checks (v64)
+
+Parents decide whether a teen can take a job, so every application waiting for a parent's OK shows an **Employer check** box (`assets/js/employer-trust-v64.js` + `.css`):
+
+- whether the employer confirmed a phone number with a code sent by text (and when), never the number itself;
+- stars and the latest reviews from teens and parents who worked there ("Teen" or "Parent" and the month, never names);
+- how many teens the employer hired on TeenWork, jobs finished (from the after-job wrap-up, shown only when above 0), jobs posted, and since when the employer has been on TeenWork;
+- and, every time, that TeenWork doesn't run background checks and the parent should meet the employer first.
+
+Reviews: the teen who was hired, or that teen's linked parent, rates the employer from the hired job's card (teens on Applied, parents on Approvals and All Applications): 1-5 stars and an optional note of up to 500 characters, with no phone numbers, emails or links. A review counts only once the employer's own account has recorded the hire (`tw_record_hire`, sent when the employer taps Hired, and again for older hires when they open their dashboard), so a made-up "hired" application can't add a review. Each review's stars and note stay private for 14 days, or until the employer has rated the teen in the after-job wrap-up (`<employer>/job_wrap:<job id>:<teen>`), so nobody rates to get even; the totals include it right away. The admin can list and hide reviews (`tw_admin_employer_reviews`, `tw_hide_employer_review`). `window.twEmployerTrust.review({ jobId, employer, rating, text, teen })` is the one way to send a review; the after-job wrap-up uses it.
+
+Employers get a **Trust checks** panel on Company Profile: confirm a US or Canadian mobile number with a texted code, and see exactly what parents see. The `employer-phone` Edge Function sends and checks the code through Twilio Verify, so TeenWork never sees the code and stores only the last 4 digits and a keyed hash. Limits: 5 codes a day per sign-in and per number, `PHONE_DAILY_CAP` (default 50) a day for all of TeenWork, 10 minutes and 5 tries per code, one number on accounts of at most 3 different people. Until the Twilio secrets are set, the panel says texting is being switched on.
+
+Setup, in this order:
+1. Apply `supabase/migrations/20261118_employer_trust.sql` (tables, rules, `tw_employer_trust`). Before it, parents' boxes say the employer history is being switched on, and nothing else changes.
+2. Deploy `employer-phone` (Verify JWT off) and `delete-account` (it now also removes an account's phone confirmation, hires and reviews).
+3. Twilio: create an account, add a payment method (Twilio Verify charges about 5¢ per confirmed number plus a small fee per text), create a Verify service, then add the secrets `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` and `PHONE_HASH_SECRET` (any long random text) in Supabase → Edge Functions → Secrets.
+
+Limits to know: who counts as someone's parent comes from `user_data`, which anyone with the app's key can write, so a review from a "parent" is only as sure as that link; a confirmed phone shows the number is real and theirs, not who they are.
+Checks: `node tests/employer-trust-v64.cjs` (screens, fake Supabase), `node --experimental-strip-types tests/employer-phone-function.mjs`, and the database rules: `TW_PG="host=… port=… user=postgres" node tests/employer-trust-sql.mjs`.
+
 ## Source layout and secure AI deployment
 
 The page now loads its scripts from `assets/js/` and styles from `assets/css/`.

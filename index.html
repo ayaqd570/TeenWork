@@ -287,7 +287,7 @@
           "name": "Does TeenWork verify every employer?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "TeenWork does not currently verify employer identities or run criminal background checks. Parents should review the work and meet the employer with their teen before a first job. Read “How safety works” for the app's checks and their limits."
+            "text": "TeenWork does not verify employer identities or run criminal background checks. Before approving a job, parents see the employer's history on TeenWork: whether they confirmed a phone number by text, reviews from teens and parents who worked for them, and how many teens they've hired. Parents should still meet the employer with their teen before a first job. Read “How safety works” for the app's checks and their limits."
           }
         },
         {
@@ -484,7 +484,7 @@
           <div class="tw48-safety-card tw48-safety-limit">
             <div class="tw48-ico">🔍</div>
             <h3>Employers aren't background-checked</h3>
-            <p>Employers sign up with an email and password. TeenWork doesn't verify who they are or run criminal background checks yet, so meet the employer first.</p>
+            <p>Before approving, parents see each employer's history: whether they confirmed a phone number by text, reviews from past jobs and how many teens they've hired here. TeenWork doesn't verify who employers are or run criminal background checks, so meet the employer first.</p>
           </div>
         </div>
         <div style="text-align:center;margin-top:1.1rem">
@@ -569,6 +569,7 @@
             <li><strong>Teens</strong> type in their own name and date of birth. TeenWork doesn't check IDs. A teen can't apply for a job with a higher minimum age.</li>
             <li><strong>Parents</strong> make their own, separate account. Before a teen can apply, a parent links to the teen with the teen's code and agrees. TeenWork doesn't check IDs, so it can't prove the person is really the teen's parent.</li>
             <li><strong>Employers</strong> sign up with an email and password and describe their job. TeenWork does <strong>not</strong> verify who employers are or run criminal background checks right now. Meet the employer before the first job, with a parent if you can.</li>
+            <li><strong>Employer history:</strong> before a parent approves, each job shows whether the employer confirmed a phone number with a code sent by text, reviews from teens and parents who worked for them, how many teens they hired on TeenWork and when they joined. A confirmed phone only shows the number is real and theirs; it isn't an ID or background check. Reviews come from the hired teen or that teen's parent, and only count once the employer's own account recorded the hire.</li>
             <li><strong>Jobs:</strong> when a teen applies, TeenWork checks the job's minimum age, job types teens aren't allowed to do (like construction, or farm machinery under 16), and whether the teen's state needs a work permit. If it does, the teen uploads a photo of the permit, an AI reads it, and unclear ones wait for a person to look. Employers are still responsible for following child labor law, including hour limits.</li>
           </ul>
 
@@ -2790,7 +2791,7 @@
       </div>
     </div>
     <!-- AI BACKGROUND CHECK BADGE -->
-    <div id="etab-bgcheck" class="tab-panel"><div class="panel-body"><h3>Screening is not available</h3><p>TeenWork does not verify identity documents or run criminal background checks. No screening badge, safety score or payment is offered.</p><button type="button" class="btn-secondary" onclick="twOpenSafetyDetails()">How safety works</button></div></div>
+    <div id="etab-bgcheck" class="tab-panel"><div class="panel-body"><h3>Screening is not available</h3><p>TeenWork does not verify identity documents or run criminal background checks. No screening badge, safety score or payment is offered.</p><p>What you can do: confirm your phone number by text in <b>Company Profile → Trust checks</b>. Parents see that, your reviews and how many teens you've hired before they approve.</p><button type="button" class="btn-secondary" onclick="twOpenSafetyDetails()">How safety works</button></div></div>
     <!-- SCHEDULE -->
     <div id="etab-schedule" class="tab-panel">
       <div class="panel" style="margin-bottom:1.2rem;">
@@ -3166,7 +3167,7 @@
       <!-- Teen reviews -->
       <div class="panel">
         <div class="panel-head" style="background:var(--amber-pale)">
-          <h2 style="color:var(--amber)">⭐ Reviews from Teens</h2>
+          <h2 style="color:var(--amber)">⭐ Reviews from teens and parents</h2>
           <span class="badge badge-amber" id="emp-profile-review-count">0 reviews</span>
         </div>
         <div class="panel-body" id="emp-profile-reviews-list">
@@ -3434,7 +3435,7 @@
 </div>
 
 
-<script src="assets/js/app-04.js?v=64"></script>
+<script src="assets/js/app-04.js?v=64.1"></script>
 
 <!-- ══════════════════════════════════════════════════════════════════
      SECTION 26: ENHANCED CALENDAR — AI AUTOFILL, EARNINGS, HOUR LIMITS
@@ -3766,7 +3767,7 @@
      ═══════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="assets/css/styles-07.css">
 
-<script src="assets/js/app-12.js?v=59"></script>
+<script src="assets/js/app-12.js?v=64"></script>
 
 <!-- ═══════════════════════════════════════════════════════
      TEENWORK v16 PATCH
@@ -3897,7 +3898,7 @@
 <script id="featpack-v39-cloud-js" src="assets/js/featpack-v39-cloud-js.js"></script>
 
 <link rel="stylesheet" href="assets/css/homepage-v49.css?v=55">
-<script src="assets/js/homepage-v49.js?v=55"></script>
+<script src="assets/js/homepage-v49.js?v=64"></script>
 <link rel="stylesheet" href="assets/css/trust-usability.css?v=55">
 <link rel="stylesheet" href="assets/css/phone-fit-v51.css">
 <script id="phone-fit-v51" src="assets/js/phone-fit-v51.js?v=51"></script>
@@ -3933,5 +3934,8 @@
 <!-- v64: teens list the services they offer, a parent approves, employers browse teens (Find Teens) -->
 <link rel="stylesheet" href="assets/css/teen-services-v64.css?v=64">
 <script id="teen-services-v64" src="assets/js/teen-services-v64.js?v=64"></script>
+<!-- v64: employer trust checks (phone confirmed by text, reviews from past jobs, the history parents see before approving) -->
+<link rel="stylesheet" href="assets/css/employer-trust-v64.css?v=64">
+<script id="employer-trust-v64" src="assets/js/employer-trust-v64.js?v=64"></script>
 </body>
 </html>

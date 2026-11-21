@@ -1336,7 +1336,7 @@ async function doSignup() {
   _twLogSignin({ email: email.toLowerCase(), type: selectedType, ok: true, event: 'signup', slot: _slot });
   try { window.twWelcomeEmail && window.twWelcomeEmail(email, fname, selectedType); } catch(e) {}
   pendingEmail = email;
-  _pendingSignupData = { name: `${fname} ${lname}`, email, type: selectedType, address: teenAddr, zip: teenZip, city: teenCity, state: teenState, dob: _dob, notifOptOut: !notifChecked, dataKey: _slot > 1 ? _acctKey : '' };
+  _pendingSignupData = { name: `${fname} ${lname}`, email, type: selectedType, address: teenAddr, zip: teenZip, city: teenCity, state: teenState, dob: _dob, notifOptOut: document.getElementById('perm-notif-signup')?.checked === false, dataKey: _slot > 1 ? _acctKey : '' };
   // Reuse the existing account set-up code, but skip the emailed code.
   _skipEmailVerify = true;
   _pendingVerifyCode = '000000';

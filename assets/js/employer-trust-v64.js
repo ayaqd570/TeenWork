@@ -122,40 +122,40 @@
   /* ── the history box (parents, and the employer's own preview) ──── */
   function historyLines(d) {
     if (!d) return '';
-    if (d.closed) return '<p class="tw64-line tw64-warn">⚠️ This employer\'s account was closed.</p>';
+    if (d.closed) return '<p class="twet-line twet-warn">⚠️ This employer\'s account was closed.</p>';
     const since = day(d.since), isNew = since && Date.now() - since.getTime() < 30 * 864e5;
     const n = +d.reviews || 0, held = +d.held || 0;
     const lines = [];
     lines.push(d.phone
-      ? '<p class="tw64-line tw64-good"><span aria-hidden="true">✅</span> Phone number confirmed by text' + (d.phone_at ? ' (' + esc(monthYear(d.phone_at)) + ')' : '') + '</p>'
-      : '<p class="tw64-line tw64-warn"><span aria-hidden="true">⚠️</span> Phone number not confirmed yet</p>');
+      ? '<p class="twet-line twet-good"><span aria-hidden="true">✅</span> Phone number confirmed by text' + (d.phone_at ? ' (' + esc(monthYear(d.phone_at)) + ')' : '') + '</p>'
+      : '<p class="twet-line twet-warn"><span aria-hidden="true">⚠️</span> Phone number not confirmed yet</p>');
     lines.push(n
-      ? '<p class="tw64-line"><span aria-hidden="true">⭐</span> <b>' + esc(Number(d.avg).toFixed(1)) + ' out of 5</b> from ' + plural(n, 'review') + '</p>'
-      : '<p class="tw64-line"><span aria-hidden="true">⭐</span> No reviews yet</p>');
+      ? '<p class="twet-line"><span aria-hidden="true">⭐</span> <b>' + esc(Number(d.avg).toFixed(1)) + ' out of 5</b> from ' + plural(n, 'review') + '</p>'
+      : '<p class="twet-line"><span aria-hidden="true">⭐</span> No reviews yet</p>');
     const teens = +d.teens || 0, fin = +d.finished || 0;
-    lines.push('<p class="tw64-line"><span aria-hidden="true">🤝</span> ' + (teens ? 'Hired ' + plural(teens, 'teen') + ' on TeenWork' : 'No teens hired on TeenWork yet') +
+    lines.push('<p class="twet-line"><span aria-hidden="true">🤝</span> ' + (teens ? 'Hired ' + plural(teens, 'teen') + ' on TeenWork' : 'No teens hired on TeenWork yet') +
       (fin ? ' · ' + plural(fin, 'job') + ' finished' : '') + '</p>');
-    lines.push('<p class="tw64-line"><span aria-hidden="true">🗓</span> ' + (since ? 'On TeenWork since ' + esc(monthYear(d.since)) + (isNew ? ' <span class="tw64-new">New</span>' : '') : 'New on TeenWork') +
+    lines.push('<p class="twet-line"><span aria-hidden="true">🗓</span> ' + (since ? 'On TeenWork since ' + esc(monthYear(d.since)) + (isNew ? ' <span class="twet-new">New</span>' : '') : 'New on TeenWork') +
       ' · ' + plural(+d.jobs_posted || 0, 'job') + ' posted</p>');
     const recent = (Array.isArray(d.recent) ? d.recent : []).slice(0, 3);
     let html = lines.join('');
     if (recent.length) {
-      html += '<ul class="tw64-reviews">' + recent.map(r => '<li><span class="tw64-stars" role="img" aria-label="' + (+r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span> <b>' +
+      html += '<ul class="twet-reviews">' + recent.map(r => '<li><span class="twet-stars" role="img" aria-label="' + (+r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span> <b>' +
         (r.role === 'parent' ? 'Parent' : 'Teen') + '</b> · ' + esc(monthYear(r.at)) + (r.text ? '<q>' + esc(r.text) + '</q>' : '') + '</li>').join('') + '</ul>';
     }
-    if (held) html += '<p class="tw64-small">' + (held === 1 ? '1 newer review stays private' : held + ' newer reviews stay private') + ' for up to 14 days, so nobody rates to get even. It is in the stars above.</p>';
+    if (held) html += '<p class="twet-small">' + (held === 1 ? '1 newer review stays private' : held + ' newer reviews stay private') + ' for up to 14 days, so nobody rates to get even. It is in the stars above.</p>';
     return html;
   }
-  const LIMIT = '<p class="tw64-limit">TeenWork doesn\'t run background checks. Meet the employer with your teen before the first job.</p>';
+  const LIMIT = '<p class="twet-limit">TeenWork doesn\'t run background checks. Meet the employer with your teen before the first job.</p>';
   function boxHtml(key, name) {
     const d = cached(key);
-    const head = '<p class="tw64-title"><span aria-hidden="true">🛡</span> Employer check' + (name ? ': ' + esc(name) : '') + '</p>';
-    if (state.setup === 'missing') return head + '<p class="tw64-line">Employer history (phone check, reviews from past jobs, teens hired) is being switched on. Ask the employer your questions in Messages.</p>' + LIMIT;
-    if (d === undefined) return head + '<p class="tw64-line tw64-muted">' + (state.setup === 'offline' ? 'Couldn\'t load this employer\'s history. Check your connection.' : state.setup === 'signin' ? 'Sign in again to see this employer\'s history.' : 'Checking this employer…') + '</p>' + LIMIT;
-    if (d === null) return head + '<p class="tw64-line tw64-muted">No history found for this employer.</p>' + LIMIT;
+    const head = '<p class="twet-title"><span aria-hidden="true">🛡</span> Employer check' + (name ? ': ' + esc(name) : '') + '</p>';
+    if (state.setup === 'missing') return head + '<p class="twet-line">Employer history (phone check, reviews from past jobs, teens hired) is being switched on. Ask the employer your questions in Messages.</p>' + LIMIT;
+    if (d === undefined) return head + '<p class="twet-line twet-muted">' + (state.setup === 'offline' ? 'Couldn\'t load this employer\'s history. Check your connection.' : state.setup === 'signin' ? 'Sign in again to see this employer\'s history.' : 'Checking this employer…') + '</p>' + LIMIT;
+    if (d === null) return head + '<p class="twet-line twet-muted">No history found for this employer.</p>' + LIMIT;
     return head + historyLines(d) + LIMIT;
   }
-  const PRACTICE_BOX = '<p class="tw64-title"><span aria-hidden="true">🛡</span> Employer check</p><p class="tw64-line">Practice account: for a real employer, this box shows whether they confirmed a phone number by text, reviews from teens and parents who worked for them, how many teens they hired on TeenWork, and since when they have been on TeenWork.</p>' + LIMIT;
+  const PRACTICE_BOX = '<p class="twet-title"><span aria-hidden="true">🛡</span> Employer check</p><p class="twet-line">Practice account: for a real employer, this box shows whether they confirmed a phone number by text, reviews from teens and parents who worked for them, how many teens they hired on TeenWork, and since when they have been on TeenWork.</p>' + LIMIT;
 
   /* ── my own reviews (to show "You rated ★★★★☆") ─────────────────── */
   const rkey = (emp, job, teen) => low(emp) + '|' + String(job) + '|' + low(teen);
@@ -204,12 +204,12 @@
   const NO_CONTACT = /(\b\d{3}[\s.\-)]*\d{3}[\s.\-]*\d{4}\b)|(@[^\s]+\.[a-z]{2,})|(https?:\/\/)|(\bwww\.)/i;
   let lastFocus = null;
   function closeReview() {
-    const m = $('tw64-review'); if (m) m.remove();
+    const m = $('twet-review'); if (m) m.remove();
     document.removeEventListener('keydown', onKey, true);
     try { if (lastFocus && lastFocus.focus) lastFocus.focus(); } catch (e) {}
   }
   function onKey(e) {
-    const m = $('tw64-review'); if (!m) return;
+    const m = $('twet-review'); if (!m) return;
     if (e.key === 'Escape') { e.preventDefault(); closeReview(); return; }
     if (e.key === 'Tab') {
       const f = [...m.querySelectorAll('button,textarea,[tabindex="0"]')].filter(x => !x.disabled && x.offsetParent !== null);
@@ -226,48 +226,48 @@
     const mine = (state.mine || {})[rkey(o.employer, o.jobId, o.teen || keyOf(u))] || null;
     let pick = mine ? mine.rating : 0;
     const m = document.createElement('div');
-    m.id = 'tw64-review'; m.className = 'tw64-modal';
-    m.innerHTML = '<div class="tw64-card" role="dialog" aria-modal="true" aria-labelledby="tw64-rv-h">' +
-      '<button type="button" class="tw64-x" aria-label="Close">✕</button>' +
-      '<h2 id="tw64-rv-h">Rate ' + esc(o.name || 'this employer') + '</h2>' +
-      (o.title ? '<p class="tw64-sub">For “' + esc(o.title) + '”' + (o.who ? ' · ' + esc(o.who) : '') + '</p>' : '') +
-      '<p class="tw64-q" id="tw64-rv-q">How was this employer to work for?</p>' +
-      '<div class="tw64-pick" role="radiogroup" aria-labelledby="tw64-rv-q">' +
-      [1, 2, 3, 4, 5].map(n => '<button type="button" role="radio" class="tw64-star" data-n="' + n + '" aria-checked="false" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + ', ' + WORDS[n] + '" tabindex="-1">★</button>').join('') +
-      '<span class="tw64-word" id="tw64-rv-word" aria-hidden="true"></span></div>' +
-      '<label class="tw64-lbl" for="tw64-rv-text">Anything other families should know? <span>(optional)</span></label>' +
-      '<textarea id="tw64-rv-text" maxlength="500" rows="3" placeholder="Paid on time? Clear about the work? Safe place to work?"></textarea>' +
-      '<p class="tw64-count" id="tw64-rv-count">0 / 500</p>' +
-      '<p class="tw64-small">Your name isn\'t shown, only “' + (u && u.type === 'parent' ? 'Parent' : 'Teen') + '” and the month. Other families see your stars and note after 14 days, or sooner once the employer has finished their part of the job wrap-up. The employer may still guess who wrote it. Leave out phone numbers, emails and links.</p>' +
-      (practice ? '<p class="tw64-small tw64-warn">Practice account: nothing is saved or sent.</p>' : '') +
-      '<p class="tw64-status" id="tw64-rv-status" role="status" aria-live="polite"></p>' +
-      '<div class="tw64-btns"><button type="button" class="tw64-go" id="tw64-rv-send">' + (mine ? 'Update rating' : 'Send rating') + '</button><button type="button" class="tw64-cancel">Cancel</button></div></div>';
+    m.id = 'twet-review'; m.className = 'twet-modal';
+    m.innerHTML = '<div class="twet-card" role="dialog" aria-modal="true" aria-labelledby="twet-rv-h">' +
+      '<button type="button" class="twet-x" aria-label="Close">✕</button>' +
+      '<h2 id="twet-rv-h">Rate ' + esc(o.name || 'this employer') + '</h2>' +
+      (o.title ? '<p class="twet-sub">For “' + esc(o.title) + '”' + (o.who ? ' · ' + esc(o.who) : '') + '</p>' : '') +
+      '<p class="twet-q" id="twet-rv-q">How was this employer to work for?</p>' +
+      '<div class="twet-pick" role="radiogroup" aria-labelledby="twet-rv-q">' +
+      [1, 2, 3, 4, 5].map(n => '<button type="button" role="radio" class="twet-star" data-n="' + n + '" aria-checked="false" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + ', ' + WORDS[n] + '" tabindex="-1">★</button>').join('') +
+      '<span class="twet-word" id="twet-rv-word" aria-hidden="true"></span></div>' +
+      '<label class="twet-lbl" for="twet-rv-text">Anything other families should know? <span>(optional)</span></label>' +
+      '<textarea id="twet-rv-text" maxlength="500" rows="3" placeholder="Paid on time? Clear about the work? Safe place to work?"></textarea>' +
+      '<p class="twet-count" id="twet-rv-count">0 / 500</p>' +
+      '<p class="twet-small">Your name isn\'t shown, only “' + (u && u.type === 'parent' ? 'Parent' : 'Teen') + '” and the month. Other families see your stars and note after 14 days, or sooner once the employer has finished their part of the job wrap-up. The employer may still guess who wrote it. Leave out phone numbers, emails and links.</p>' +
+      (practice ? '<p class="twet-small twet-warn">Practice account: nothing is saved or sent.</p>' : '') +
+      '<p class="twet-status" id="twet-rv-status" role="status" aria-live="polite"></p>' +
+      '<div class="twet-btns"><button type="button" class="twet-go" id="twet-rv-send">' + (mine ? 'Update rating' : 'Send rating') + '</button><button type="button" class="twet-cancel">Cancel</button></div></div>';
     document.body.appendChild(m);
-    const ta = $('tw64-rv-text'), cnt = $('tw64-rv-count'), status = $('tw64-rv-status'), send = $('tw64-rv-send');
+    const ta = $('twet-rv-text'), cnt = $('twet-rv-count'), status = $('twet-rv-status'), send = $('twet-rv-send');
     if (mine && mine.body) ta.value = mine.body;
     const paint = () => {
-      m.querySelectorAll('.tw64-star').forEach(b => { const n = +b.dataset.n; b.classList.toggle('on', n <= pick); b.setAttribute('aria-checked', String(n === pick)); b.tabIndex = (pick ? n === pick : n === 1) ? 0 : -1; });
-      $('tw64-rv-word').textContent = pick ? WORDS[pick] : 'Tap a star';
+      m.querySelectorAll('.twet-star').forEach(b => { const n = +b.dataset.n; b.classList.toggle('on', n <= pick); b.setAttribute('aria-checked', String(n === pick)); b.tabIndex = (pick ? n === pick : n === 1) ? 0 : -1; });
+      $('twet-rv-word').textContent = pick ? WORDS[pick] : 'Tap a star';
       cnt.textContent = ta.value.length + ' / 500';
     };
-    m.querySelectorAll('.tw64-star').forEach(b => {
+    m.querySelectorAll('.twet-star').forEach(b => {
       b.addEventListener('click', () => { pick = +b.dataset.n; status.textContent = ''; paint(); });
       b.addEventListener('keydown', e => {
         const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
         if (!d) return; e.preventDefault(); pick = Math.max(1, Math.min(5, (+b.dataset.n || 0) + d)); paint();
-        const t = m.querySelector('.tw64-star[data-n="' + pick + '"]'); if (t) t.focus();
+        const t = m.querySelector('.twet-star[data-n="' + pick + '"]'); if (t) t.focus();
       });
     });
-    ta.addEventListener('input', () => { if (status.classList.contains('tw64-bad')) { status.textContent = ''; status.className = 'tw64-status'; } paint(); });
-    m.querySelector('.tw64-x').onclick = closeReview;
-    m.querySelector('.tw64-cancel').onclick = closeReview;
+    ta.addEventListener('input', () => { if (status.classList.contains('twet-bad')) { status.textContent = ''; status.className = 'twet-status'; } paint(); });
+    m.querySelector('.twet-x').onclick = closeReview;
+    m.querySelector('.twet-cancel').onclick = closeReview;
     m.addEventListener('click', e => { if (e.target === m) closeReview(); });
     document.addEventListener('keydown', onKey, true);
     send.onclick = async () => {
       const text = ta.value.replace(/\s+/g, ' ').trim();
-      status.className = 'tw64-status';
-      if (!pick) { status.textContent = 'Tap 1 to 5 stars first.'; status.classList.add('tw64-bad'); return; }
-      if (NO_CONTACT.test(text)) { status.textContent = 'Please leave out phone numbers, email addresses and links.'; status.classList.add('tw64-bad'); return; }
+      status.className = 'twet-status';
+      if (!pick) { status.textContent = 'Tap 1 to 5 stars first.'; status.classList.add('twet-bad'); return; }
+      if (NO_CONTACT.test(text)) { status.textContent = 'Please leave out phone numbers, email addresses and links.'; status.classList.add('twet-bad'); return; }
       if (practice) { status.textContent = 'Practice account: this rating wasn\'t saved. In a real account it would be.'; return; }
       send.disabled = true; status.textContent = 'Sending…';
       // the chat safety check, for hurtful or unsafe words (it is skipped when it can't be reached)
@@ -275,7 +275,7 @@
         if (text && typeof window.twCheckMessage === 'function') {
           const v = await Promise.race([window.twCheckMessage(text), new Promise(r => setTimeout(() => r(null), 4000))]);
           if (v && v.allowed === false && Array.isArray(v.categories) && v.categories.length) {
-            send.disabled = false; status.textContent = 'Please change the note: ' + (v.message || 'it looks hurtful or unsafe.'); status.classList.add('tw64-bad'); return;
+            send.disabled = false; status.textContent = 'Please change the note: ' + (v.message || 'it looks hurtful or unsafe.'); status.classList.add('twet-bad'); return;
           }
         }
       } catch (e) {}
@@ -287,7 +287,7 @@
         later(() => paintAll(true), 0);
         return;
       }
-      status.classList.add('tw64-bad');
+      status.classList.add('twet-bad');
       status.textContent = {
         not_set_up: 'Ratings are still being switched on. Please try again later.',
         offline: 'Couldn\'t send it. Check your connection and try again.',
@@ -298,23 +298,23 @@
       }[r.error] || 'Couldn\'t send it. Please try again.';
     };
     paint();
-    const firstStar = m.querySelector('.tw64-star[tabindex="0"]');
+    const firstStar = m.querySelector('.twet-star[tabindex="0"]');
     setTimeout(() => { try { (firstStar || send).focus(); } catch (e) {} }, 30);
   }
 
   function rateRow(o) {
     const mine = (state.mine || {})[rkey(o.employer, o.jobId, o.teen)];
     const div = document.createElement('div');
-    div.className = 'tw64-rate';
+    div.className = 'twet-rate';
     div.innerHTML = mine
-      ? '<span>You rated ' + esc(o.name || 'this employer') + ' <span class="tw64-stars" role="img" aria-label="' + mine.rating + ' out of 5 stars">' + stars(mine.rating) + '</span></span><button type="button" class="tw64-rate-btn">Change rating</button>'
-      : '<span>How was ' + esc(o.name || 'this employer') + ' to work for?</span><button type="button" class="tw64-rate-btn">⭐ Rate this employer</button>';
+      ? '<span>You rated ' + esc(o.name || 'this employer') + ' <span class="twet-stars" role="img" aria-label="' + mine.rating + ' out of 5 stars">' + stars(mine.rating) + '</span></span><button type="button" class="twet-rate-btn">Change rating</button>'
+      : '<span>How was ' + esc(o.name || 'this employer') + ' to work for?</span><button type="button" class="twet-rate-btn">⭐ Rate this employer</button>';
     div.querySelector('button').onclick = () => openReview(o);
     return div;
   }
   function putRate(card, o) {
     if (!card) return;
-    const old = card.querySelector(':scope > .tw64-rate');
+    const old = card.querySelector(':scope > .twet-rate');
     const sig = [o.employer, o.jobId, o.teen, ((state.mine || {})[rkey(o.employer, o.jobId, o.teen)] || {}).rating || 0].join('|');
     if (old && old.dataset.sig === sig) return;
     const row = rateRow(o); row.dataset.sig = sig;
@@ -334,9 +334,9 @@
       if (!practice && !key) return;
       // the old "Employer rating:" line is replaced by the box
       [...card.querySelectorAll(':scope > div')].forEach(d => { if (/^Employer rating:/.test(d.textContent.trim())) d.hidden = true; });
-      let box = card.querySelector('.tw64-check');
+      let box = card.querySelector('.twet-check');
       if (!box) {
-        box = document.createElement('div'); box.className = 'tw64-check';
+        box = document.createElement('div'); box.className = 'twet-check';
         box.setAttribute('aria-label', 'Employer check');
         const act = card.querySelector('.job-actions');
         if (act) card.insertBefore(box, act); else card.appendChild(box);
@@ -403,15 +403,15 @@
     return ph.ready;
   }
   function empPanel() {
-    let p = $('tw64-emp');
+    let p = $('twet-emp');
     if (p) return p;
     const host = $('etab-profile'); if (!host) return null;
     p = document.createElement('div');
-    p.className = 'panel tw64-panel'; p.id = 'tw64-emp';
-    p.innerHTML = '<div class="panel-head"><h2>🛡 Trust checks</h2><span class="badge badge-amber" id="tw64-emp-badge">Not confirmed</span></div>' +
-      '<div class="panel-body"><p class="tw64-lead">Parents see these checks before they approve their teen\'s application to your job. Employers with a confirmed phone and good reviews are easier to say yes to.</p>' +
-      '<div class="tw64-phone" id="tw64-phone"></div>' +
-      '<h3 class="tw64-h3">What parents see before they approve</h3><div class="tw64-check" id="tw64-emp-preview"></div></div>';
+    p.className = 'panel twet-panel'; p.id = 'twet-emp';
+    p.innerHTML = '<div class="panel-head"><h2>🛡 Trust checks</h2><span class="badge badge-amber" id="twet-emp-badge">Not confirmed</span></div>' +
+      '<div class="panel-body"><p class="twet-lead">Parents see these checks before they approve their teen\'s application to your job. Employers with a confirmed phone and good reviews are easier to say yes to.</p>' +
+      '<div class="twet-phone" id="twet-phone"></div>' +
+      '<h3 class="twet-h3">What parents see before they approve</h3><div class="twet-check" id="twet-emp-preview"></div></div>';
     // after the photo panel (or the profile card), before About
     const photo = host.querySelector('.tw55-panel'), edit = $('emp-profile-edit-wrap');
     const after = photo || (edit && edit.parentNode === host ? edit : null);
@@ -421,48 +421,48 @@
     return p;
   }
   function paintPhone() {
-    const box = $('tw64-phone'), u = asRole('employer'); if (!box || !u) return;
+    const box = $('twet-phone'), u = asRole('employer'); if (!box || !u) return;
     const practice = !isReal(u);
     const d = practice ? null : cached(keyOf(u));
-    const badge = $('tw64-emp-badge');
+    const badge = $('twet-emp-badge');
     const confirmed = !!(d && d.phone);
     if (badge) { badge.textContent = confirmed ? '📱 Phone confirmed' : 'Phone not confirmed'; badge.className = 'badge ' + (confirmed ? 'badge-green' : 'badge-amber'); }
-    let html = '<p class="tw64-title"><span aria-hidden="true">📱</span> ' + (confirmed && ph.step !== 'change' ? 'Your phone number' : 'Confirm your phone number') + '</p>';
-    const msg = ph.msg ? '<p class="tw64-status ' + (ph.msgKind === 'bad' ? 'tw64-bad' : ph.msgKind === 'good' ? 'tw64-ok' : '') + '" role="status" aria-live="polite">' + esc(ph.msg) + '</p>' : '<p class="tw64-status" role="status" aria-live="polite"></p>';
-    const privacy = '<p class="tw64-small">US and Canadian mobile numbers. Your number stays private: parents and teens only see that it was confirmed, never the number. Message and data rates may apply.</p>';
+    let html = '<p class="twet-title"><span aria-hidden="true">📱</span> ' + (confirmed && ph.step !== 'change' ? 'Your phone number' : 'Confirm your phone number') + '</p>';
+    const msg = ph.msg ? '<p class="twet-status ' + (ph.msgKind === 'bad' ? 'twet-bad' : ph.msgKind === 'good' ? 'twet-ok' : '') + '" role="status" aria-live="polite">' + esc(ph.msg) + '</p>' : '<p class="twet-status" role="status" aria-live="polite"></p>';
+    const privacy = '<p class="twet-small">US and Canadian mobile numbers. Your number stays private: parents and teens only see that it was confirmed, never the number. Message and data rates may apply.</p>';
     if (practice) {
-      html += '<p class="tw64-line">Practice account: real employers confirm a mobile number here with a code sent by text. Nothing is sent from a practice account.</p>';
+      html += '<p class="twet-line">Practice account: real employers confirm a mobile number here with a code sent by text. Nothing is sent from a practice account.</p>';
     } else if (state.setup === 'missing' || ph.ready === false) {
-      html += (confirmed ? '<p class="tw64-line tw64-good">✅ Confirmed: number ending in ' + esc(d.last4 || '••••') + (d.phone_at ? ' on ' + esc(fullDate(d.phone_at)) : '') + '</p>'
-        : '<p class="tw64-line">Confirming your number with a texted code is being switched on. You\'ll be able to do it here soon.</p>') + privacy;
+      html += (confirmed ? '<p class="twet-line twet-good">✅ Confirmed: number ending in ' + esc(d.last4 || '••••') + (d.phone_at ? ' on ' + esc(fullDate(d.phone_at)) : '') + '</p>'
+        : '<p class="twet-line">Confirming your number with a texted code is being switched on. You\'ll be able to do it here soon.</p>') + privacy;
     } else if (d === undefined || ph.ready === null) {
-      html += '<p class="tw64-line tw64-muted">Checking…</p>';
+      html += '<p class="twet-line twet-muted">Checking…</p>';
     } else if (ph.step === 'code' || (!ph.step && d && d.pending && !confirmed)) {
       const last4 = ph.last4 || (d && d.pending_last4) || '';
-      html += '<p class="tw64-line">We texted a code to the number ending in <b>' + esc(last4 || '••••') + '</b>. It works for 10 minutes.</p>' +
-        '<form class="tw64-form" id="tw64-code-form"><label class="tw64-lbl" for="tw64-code">Code from the text</label><div class="tw64-row">' +
-        '<input id="tw64-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">' +
-        '<button type="submit" class="tw64-go" data-act="check"' + (ph.busy ? ' disabled' : '') + '>Confirm</button></div></form>' + msg +
-        '<div class="tw64-links"><button type="button" class="tw64-link" data-act="resend">Send a new code</button><button type="button" class="tw64-link" data-act="other">Use a different number</button></div>';
+      html += '<p class="twet-line">We texted a code to the number ending in <b>' + esc(last4 || '••••') + '</b>. It works for 10 minutes.</p>' +
+        '<form class="twet-form" id="twet-code-form"><label class="twet-lbl" for="twet-code">Code from the text</label><div class="twet-row">' +
+        '<input id="twet-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">' +
+        '<button type="submit" class="twet-go" data-act="check"' + (ph.busy ? ' disabled' : '') + '>Confirm</button></div></form>' + msg +
+        '<div class="twet-links"><button type="button" class="twet-link" data-act="resend">Send a new code</button><button type="button" class="twet-link" data-act="other">Use a different number</button></div>';
     } else if (confirmed && ph.step !== 'change') {
-      html += '<p class="tw64-line tw64-good">✅ Confirmed: number ending in <b>' + esc(d.last4 || '••••') + '</b>' + (d.phone_at ? ' on ' + esc(fullDate(d.phone_at)) : '') + '</p>' + msg +
-        '<div class="tw64-links"><button type="button" class="tw64-link" data-act="change">Change number</button><button type="button" class="tw64-link" data-act="remove">Remove</button></div>' + privacy;
+      html += '<p class="twet-line twet-good">✅ Confirmed: number ending in <b>' + esc(d.last4 || '••••') + '</b>' + (d.phone_at ? ' on ' + esc(fullDate(d.phone_at)) : '') + '</p>' + msg +
+        '<div class="twet-links"><button type="button" class="twet-link" data-act="change">Change number</button><button type="button" class="twet-link" data-act="remove">Remove</button></div>' + privacy;
     } else {
-      html += '<form class="tw64-form" id="tw64-phone-form"><label class="tw64-lbl" for="tw64-tel">Your mobile number</label><div class="tw64-row">' +
-        '<input id="tw64-tel" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="(802) 555-1234">' +
-        '<button type="submit" class="tw64-go" data-act="start"' + (ph.busy ? ' disabled' : '') + '>Text me a code</button></div></form>' + msg +
-        (ph.step === 'change' ? '<div class="tw64-links"><button type="button" class="tw64-link" data-act="keep">Keep my confirmed number</button></div>' : '') + privacy;
+      html += '<form class="twet-form" id="twet-phone-form"><label class="twet-lbl" for="twet-tel">Your mobile number</label><div class="twet-row">' +
+        '<input id="twet-tel" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="(802) 555-1234">' +
+        '<button type="submit" class="twet-go" data-act="start"' + (ph.busy ? ' disabled' : '') + '>Text me a code</button></div></form>' + msg +
+        (ph.step === 'change' ? '<div class="twet-links"><button type="button" class="twet-link" data-act="keep">Keep my confirmed number</button></div>' : '') + privacy;
     }
     // keep what the person is typing when the box repaints
-    const typed = { tel: ($('tw64-tel') || {}).value, code: ($('tw64-code') || {}).value };
+    const typed = { tel: ($('twet-tel') || {}).value, code: ($('twet-code') || {}).value };
     const had = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : '';
     if (box.dataset.html !== html) {
       box.innerHTML = html; box.dataset.html = html;
-      if (typed.tel && $('tw64-tel')) $('tw64-tel').value = typed.tel;
-      if (typed.code && $('tw64-code')) $('tw64-code').value = typed.code;
+      if (typed.tel && $('twet-tel')) $('twet-tel').value = typed.tel;
+      if (typed.code && $('twet-code')) $('twet-code').value = typed.code;
       if (had && $(had)) $(had).focus();
     }
-    const f1 = $('tw64-phone-form'), f2 = $('tw64-code-form');
+    const f1 = $('twet-phone-form'), f2 = $('twet-code-form');
     if (f1) f1.onsubmit = e => { e.preventDefault(); phoneAction('start'); };
     if (f2) f2.onsubmit = e => { e.preventDefault(); phoneAction('check'); };
   }
@@ -474,16 +474,16 @@
   async function phoneAction(act) {
     const u = realAs('employer'); if (!u || ph.busy) return;
     ph.msg = ''; ph.msgKind = '';
-    if (act === 'other' || act === 'change') { ph.step = 'change'; paintPhone(); setTimeout(() => { const t = $('tw64-tel'); if (t) t.focus(); }, 0); return; }
+    if (act === 'other' || act === 'change') { ph.step = 'change'; paintPhone(); setTimeout(() => { const t = $('twet-tel'); if (t) t.focus(); }, 0); return; }
     if (act === 'keep') { ph.step = ''; paintPhone(); return; }
     let body = {};
     if (act === 'start' || act === 'resend') {
-      const tel = act === 'resend' ? ph.tel : (($('tw64-tel') || {}).value || '').trim();
+      const tel = act === 'resend' ? ph.tel : (($('twet-tel') || {}).value || '').trim();
       const digits = tel.replace(/\D/g, '');
       if (!(digits.length === 10 || (digits.length === 11 && digits[0] === '1'))) { ph.msg = 'Enter a 10-digit US or Canadian mobile number, like (802) 555-1234.'; ph.msgKind = 'bad'; paintPhone(); return; }
       ph.tel = tel; body = { phone: tel }; act = 'start';
     } else if (act === 'check') {
-      const code = (($('tw64-code') || {}).value || '').replace(/\s+/g, '');
+      const code = (($('twet-code') || {}).value || '').replace(/\s+/g, '');
       if (!/^\d{4,10}$/.test(code)) { ph.msg = 'Enter the number from the text message.'; ph.msgKind = 'bad'; paintPhone(); return; }
       body = { code };
     } else if (act === 'remove') {
@@ -498,7 +498,7 @@
       else if (d.removed) { ph.step = ''; ph.msg = 'Your number was taken off your account.'; ph.msgKind = ''; }
       delete cache[keyOf(u)];
       await fetchTrust([keyOf(u)], true);
-      if (act === 'start' && d.sent) setTimeout(() => { const c = $('tw64-code'); if (c) c.focus(); }, 0);
+      if (act === 'start' && d.sent) setTimeout(() => { const c = $('twet-code'); if (c) c.focus(); }, 0);
     } else {
       if (d.code === 'not_configured' || d.code === 'not_deployed') ph.ready = false;
       if (d.code === 'expired') ph.step = 'change';
@@ -517,7 +517,7 @@
     if (!empPanel()) return;
     const practice = !isReal(u), key = keyOf(u);
     if (ph.key !== key) Object.assign(ph, { key, step: '', last4: '', msg: '', msgKind: '', busy: false, tel: '' });
-    const pv = $('tw64-emp-preview');
+    const pv = $('twet-emp-preview');
     if (pv) { const html = practice ? PRACTICE_BOX : boxHtml(key, ''); if (pv.dataset.html !== html) { pv.innerHTML = html; pv.dataset.html = html; } }
     paintPhone();
     if (practice) return;
@@ -531,16 +531,16 @@
       const list = $('emp-profile-reviews-list');
       if (list) {
         const recent = Array.isArray(d.recent) ? d.recent : [], held = +d.held || 0;
-        const html = (recent.length ? '<ul class="tw64-reviews tw64-reviews-big">' + recent.map(r => '<li><span class="tw64-stars" role="img" aria-label="' + (+r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span> <b>' + (r.role === 'parent' ? 'Parent' : 'Teen') + '</b> · ' + esc(monthYear(r.at)) + (r.text ? '<q>' + esc(r.text) + '</q>' : '') + '</li>').join('') + '</ul>'
-          : '<p class="tw64-line tw64-muted">' + (n ? 'Your reviews show here once they are public.' : 'No reviews yet. After a teen you hired finishes a job, they and their parent can rate you here.') + '</p>') +
-          (held ? '<p class="tw64-small">' + (held === 1 ? '1 new review stays private' : held + ' new reviews stay private') + ' for up to 14 days, or until you finish your part of the job wrap-up. It already counts in your stars.</p>' : '');
+        const html = (recent.length ? '<ul class="twet-reviews twet-reviews-big">' + recent.map(r => '<li><span class="twet-stars" role="img" aria-label="' + (+r.rating || 0) + ' out of 5 stars">' + stars(r.rating) + '</span> <b>' + (r.role === 'parent' ? 'Parent' : 'Teen') + '</b> · ' + esc(monthYear(r.at)) + (r.text ? '<q>' + esc(r.text) + '</q>' : '') + '</li>').join('') + '</ul>'
+          : '<p class="twet-line twet-muted">' + (n ? 'Your reviews show here once they are public.' : 'No reviews yet. After a teen you hired finishes a job, they and their parent can rate you here.') + '</p>') +
+          (held ? '<p class="twet-small">' + (held === 1 ? '1 new review stays private' : held + ' new reviews stay private') + ' for up to 14 days, or until you finish your part of the job wrap-up. It already counts in your stars.</p>' : '');
         // other blocks redraw this list (real-data's "No reviews yet"), so check what is really there
-        if (list.dataset.tw64 !== html || !list.querySelector(':scope > [data-tw64]')) { list.innerHTML = '<div data-tw64="1">' + html + '</div>'; list.dataset.tw64 = html; }
+        if (list.dataset.twet !== html || !list.querySelector(':scope > [data-twet]')) { list.innerHTML = '<div data-twet="1">' + html + '</div>'; list.dataset.twet = html; }
       }
       const prof = $('emp-profile-rating-badge') && $('emp-profile-rating-badge').parentNode;
       if (prof) {
-        let pb = $('tw64-phone-badge');
-        if (d.phone && !pb) { pb = document.createElement('span'); pb.id = 'tw64-phone-badge'; pb.className = 'badge badge-green'; pb.textContent = '📱 Phone confirmed'; prof.appendChild(pb); }
+        let pb = $('twet-phone-badge');
+        if (d.phone && !pb) { pb = document.createElement('span'); pb.id = 'twet-phone-badge'; pb.className = 'badge badge-green'; pb.textContent = '📱 Phone confirmed'; prof.appendChild(pb); }
         else if (!d.phone && pb) pb.remove();
       }
     }
@@ -557,7 +557,7 @@
   }
 
   /* ── "Hired" is recorded on the server by the employer's own account ── */
-  const hireStore = u => 'tw64_hires_' + keyOf(u).replace(/[^a-z0-9]/g, '_');
+  const hireStore = u => 'twet_hires_' + keyOf(u).replace(/[^a-z0-9]/g, '_');
   const recorded = u => { try { return JSON.parse(lsGet(hireStore(u)) || '{}') || {}; } catch (e) { return {}; } };
   const hiring = new Set();
   async function recordHire(u, a) {
